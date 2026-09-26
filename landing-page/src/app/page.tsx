@@ -17,6 +17,7 @@ export default function Home() {
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [isGeneratingProof, setIsGeneratingProof] = useState<boolean>(false);
   const [proofProgress, setProofProgress] = useState<number>(100);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   
   // Spotlight grid mouse tracking
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: -1000, y: -1000 });
@@ -42,6 +43,45 @@ export default function Home() {
     { id: "5", time: "00:00:05", text: "[VERIFY] Local snarkjs check completed in 6.4ms ($0 gas)", colorClass: "text-emerald-400" },
     { id: "6", time: "00:00:06", text: "[BATCH] Nullifier queued for aggregated Arc Gas Station settlement", colorClass: "text-indigo-400" },
   ]);
+
+  // Sync theme with document class & system preference
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setTheme(isDark ? "dark" : "light");
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemChange = (e: MediaQueryListEvent) => {
+      const stored = localStorage.getItem("theme");
+      if (!stored) {
+        const next = e.matches ? "dark" : "light";
+        setTheme(next);
+        if (next === "dark") {
+          document.documentElement.classList.add("dark");
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleSystemChange);
+    return () => mediaQuery.removeEventListener("change", handleSystemChange);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+    if (next === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+    addLog(`[UI-THEME] Switched display mode to ${next.toUpperCase()} THEME`, "text-sky-400");
+  };
 
   const getTimeString = () => {
     const d = new Date();
@@ -251,19 +291,19 @@ template SpendProof(levels) {
     <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen bg-[#FAFAFA] text-[#111215] font-sans antialiased overflow-x-hidden selection:bg-black selection:text-white"
+      className="relative min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white transition-colors duration-300"
     >
       {/* RewampUI Spotlight Grid Cursor Overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(99, 102, 241, 0.08), transparent 75%)`,
+          background: `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, var(--spotlight-color), transparent 75%)`,
         }}
       />
 
       {/* Floating Navigation Bar */}
       <header className="fixed top-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
-        <nav className="pointer-events-auto bg-[#111215]/95 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 flex items-center gap-6 shadow-2xl transition-all duration-300">
+        <nav className="pointer-events-auto bg-[#111215]/95 backdrop-blur-xl border border-white/10 rounded-full px-5 py-2.5 flex items-center gap-4 sm:gap-6 shadow-2xl transition-all duration-300">
           <a className="flex items-center gap-2.5 text-white pr-2 group" href="#">
             <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-bold text-xs tracking-tighter shadow-sm">
               ▲
@@ -283,7 +323,40 @@ template SpendProof(levels) {
             <a className="hover:text-white transition-colors" href="#sdk">SDK</a>
           </div>
 
-          <div className="pl-2 border-l border-white/10 flex items-center">
+          <div className="pl-2 border-l border-white/10 flex items-center gap-2.5">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle color theme"
+              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
+              className="w-8 h-8 rounded-full flex items-center justify-center border border-white/15 bg-white/5 hover:bg-white/15 text-white transition-all cursor-pointer shadow-sm"
+            >
+              {theme === "dark" ? (
+                // Sun Icon
+                <svg className="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="5" strokeWidth="2"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="12" y1="21" x2="12" y2="23" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="1" y1="12" x2="3" y2="12" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="21" y1="12" x2="23" y2="12" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" strokeWidth="2" strokeLinecap="round"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" strokeWidth="2" strokeLinecap="round"></line>
+                </svg>
+              ) : (
+                // Moon Icon
+                <svg className="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  ></path>
+                </svg>
+              )}
+            </button>
+
             <a
               className="bg-white text-black text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-neutral-200 transition-colors shadow-sm"
               href="#simulator"
@@ -298,27 +371,27 @@ template SpendProof(levels) {
         {/* Hero Section */}
         <section className="pt-36 pb-16 md:pt-44 md:pb-24 px-4 max-w-7xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Grant & Solo Project Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-neutral-300/80 bg-white/90 shadow-sm text-xs text-neutral-800 mb-8 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[var(--card-border)] bg-[var(--pill-bg)] shadow-sm text-xs text-[var(--text-primary)] mb-8 backdrop-blur-md transition-colors">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-medium tracking-tight">Independent Solo Project by Trymbak Mahant &bull; Arc Ecosystem Grant</span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-[-0.035em] text-[#111215] max-w-5xl leading-[1.04]">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-[-0.035em] text-[var(--text-primary)] max-w-5xl leading-[1.04] transition-colors">
             Zero-Knowledge Nanopayments
-            <span className="block text-neutral-400 font-light mt-1">For The Autonomous Agent Era</span>
+            <span className="block text-[var(--text-muted)] font-light mt-1">For The Autonomous Agent Era</span>
           </h1>
 
-          <p className="mt-8 text-lg sm:text-xl text-neutral-600 font-normal max-w-3xl leading-relaxed tracking-tight">
+          <p className="mt-8 text-lg sm:text-xl text-[var(--text-secondary)] font-normal max-w-3xl leading-relaxed tracking-tight transition-colors">
             Decouple machine-to-machine payments from on-chain identity. Combine native{" "}
-            <code className="font-mono text-xs px-2 py-0.5 bg-neutral-200/80 rounded text-neutral-800 font-semibold">
+            <code className="font-mono text-xs px-2 py-0.5 bg-[var(--badge-bg)] border border-[var(--badge-border)] rounded text-[var(--text-primary)] font-semibold">
               HTTP 402
             </code>{" "}
             with shielded note pools, instant sub-10ms off-chain Groth16 verification, and sanctioned-address exclusion proofs on Arc.
           </p>
 
-          {/* CTA Buttons with Chrome Border Finish */}
+          {/* CTA Buttons */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <div className="rounded-full p-[1.5px] bg-gradient-to-r from-neutral-800 via-neutral-600 to-neutral-800 shadow-lg">
+            <div className="rounded-full p-[1.5px] bg-gradient-to-r from-neutral-800 via-neutral-600 to-neutral-800 dark:from-neutral-700 dark:via-neutral-400 dark:to-neutral-700 shadow-lg">
               <a
                 className="bg-[#111215] text-white text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-800 transition-all flex items-center gap-2"
                 href="#simulator"
@@ -331,7 +404,7 @@ template SpendProof(levels) {
             </div>
 
             <a
-              className="bg-white text-neutral-900 border border-neutral-300 text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-50 transition-all shadow-sm"
+              className="bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--card-border)] text-sm font-medium px-6 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm"
               href="#pillars"
             >
               System Specification
@@ -339,7 +412,7 @@ template SpendProof(levels) {
           </div>
 
           {/* Hero Visual Card with Animated Iridescent Mesh & 3D Cryptographic Wireframe Rings */}
-          <div className="w-full mt-16 md:mt-20 rounded-[32px] md:rounded-[44px] p-2.5 md:p-3 bg-neutral-200/50 border border-neutral-300/80 shadow-2xl relative">
+          <div className="w-full mt-16 md:mt-20 rounded-[32px] md:rounded-[44px] p-2.5 md:p-3 bg-neutral-200/50 dark:bg-neutral-900/40 border border-[var(--card-border)] shadow-2xl relative transition-colors">
             <div className="hero-mesh-gradient w-full min-h-[460px] md:min-h-[580px] rounded-[24px] md:rounded-[36px] overflow-hidden relative flex flex-col justify-between p-6 sm:p-10 md:p-14 text-white">
               
               {/* Header inside Card */}
@@ -355,16 +428,12 @@ template SpendProof(levels) {
                 </div>
               </div>
 
-              {/* Centerpiece: Cryptographic Wireframe Ring Orb (RewampUI Inspired) */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
+              {/* Centerpiece: Cryptographic Wireframe Ring Orb */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-85">
                 <div className="relative w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center">
-                  {/* Outer Orbit */}
                   <div className="absolute inset-0 rounded-full border border-dashed border-white/20 animate-spin-slow"></div>
-                  {/* Mid Ring with Tilt */}
                   <div className="absolute w-4/5 h-4/5 rounded-full border border-indigo-400/40 animate-spin-reverse-slow rotate-45"></div>
-                  {/* Inner Ring with Glow */}
                   <div className="absolute w-3/5 h-3/5 rounded-full border-2 border-emerald-400/40 animate-spin-slow -rotate-12 shadow-[0_0_30px_rgba(16,185,129,0.3)]"></div>
-                  {/* Core Glowing Orb */}
                   <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 blur-sm opacity-90 shadow-2xl animate-pulse"></div>
                   <div className="absolute w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center font-mono text-[10px] text-black font-bold">
                     ZK
@@ -395,7 +464,7 @@ template SpendProof(levels) {
           </div>
         </section>
 
-        {/* Velocity Marquee (RewampUI Inspired) */}
+        {/* Velocity Marquee */}
         <div className="w-full bg-[#111215] py-3.5 border-y border-neutral-800 overflow-hidden relative z-10">
           <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-mono text-neutral-400">
             {marqueeItems.concat(marqueeItems).map((item, idx) => (
@@ -410,44 +479,44 @@ template SpendProof(levels) {
         {/* Metrics Ribbon */}
         <section className="max-w-7xl mx-auto px-4 py-16 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-sm text-left hover:border-neutral-400 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111215]">0%</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-neutral-500 mt-2">Identity Leakage</div>
-              <p className="text-xs text-neutral-600 mt-1">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text-primary)]">0%</div>
+              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Identity Leakage</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
                 <code className="font-mono">msg.sender</code> decoupled from note spending.
               </p>
             </div>
-            <div className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-sm text-left hover:border-neutral-400 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-emerald-600">&lt; 8ms</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-neutral-500 mt-2">Proof Verification</div>
-              <p className="text-xs text-neutral-600 mt-1">Direct local memory execution before payload response.</p>
+            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-emerald-500">&lt; 8ms</div>
+              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Proof Verification</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Direct local memory execution before payload response.</p>
             </div>
-            <div className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-sm text-left hover:border-neutral-400 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#111215]">100%</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-neutral-500 mt-2">Compliance Ready</div>
-              <p className="text-xs text-neutral-600 mt-1">Privacy Pools ASP exclusion proof with each batch.</p>
+            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text-primary)]">100%</div>
+              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Compliance Ready</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Privacy Pools ASP exclusion proof with each batch.</p>
             </div>
-            <div className="bg-white rounded-3xl p-6 border border-neutral-200/80 shadow-sm text-left hover:border-neutral-400 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-indigo-600">$0.00</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-neutral-500 mt-2">Agent Native Gas</div>
-              <p className="text-xs text-neutral-600 mt-1">Circle Gas Station Paymaster handles L1/L2 gas.</p>
+            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-indigo-500">$0.00</div>
+              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Agent Native Gas</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Circle Gas Station Paymaster handles L1/L2 gas.</p>
             </div>
           </div>
         </section>
 
-        {/* Interactive Protocol Simulator */}
-        <section className="py-20 bg-[#F4F4F6] border-y border-neutral-200/80 px-4 relative z-10" id="simulator">
+        {/* Interactive Protocol Simulator (Terminal Dark Surface) */}
+        <section className="py-20 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors" id="simulator">
           <div className="max-w-7xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-neutral-300 text-[11px] font-mono uppercase tracking-wider text-neutral-600 mb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--card-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
                 Interactive Testbed
               </div>
-              <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-neutral-900">
+              <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-[var(--text-primary)]">
                 The Complete ZK-x402 Protocol Flow
               </h2>
-              <p className="text-neutral-600 text-sm md:text-base mt-2">
+              <p className="text-[var(--text-secondary)] text-sm md:text-base mt-2">
                 Simulate an autonomous agent triggering an{" "}
-                <code className="font-mono text-xs bg-neutral-200 px-1 py-0.5 rounded">
+                <code className="font-mono text-xs bg-[var(--badge-bg)] border border-[var(--badge-border)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">
                   HTTP 402 Payment Required
                 </code>{" "}
                 challenge, computing the Groth16 zero-knowledge proof, and verifying within single-digit milliseconds.
@@ -541,7 +610,7 @@ template SpendProof(levels) {
                         <div className="pt-2">
                           <button
                             onClick={handleDepositCommitment}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-md"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round"/></svg>
                             Commit Note into Arc Merkle Tree
@@ -750,110 +819,110 @@ template SpendProof(levels) {
         {/* System Pillars (Bento Grid Layout) */}
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="pillars">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] font-mono uppercase tracking-wider text-neutral-600 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--badge-bg)] border border-[var(--badge-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
               Architecture
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[#111215]">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
               Why Naive ZK Fails &amp; How ArcZK Solves It
             </h2>
-            <p className="text-neutral-600 text-base mt-3">
+            <p className="text-[var(--text-secondary)] text-base mt-3">
               Traditional privacy protocols either leak the spender via transaction signing, impose second-long verification stalls, or face regulatory non-compliance. ArcZK architects around these limits.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Bento Card 1 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   01
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Fixed Denomination Pools</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Fixed Denomination Pools</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   Eliminates value-based transaction correlation. All agent notes are uniform (e.g. 0.01 USDC, 0.05 USDC), creating high anonymity sets even at fractional micropayment volumes.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-neutral-400">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
                 Poseidon Hash Merkle Tree
               </div>
             </div>
 
             {/* Bento Card 2 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   02
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Decoupled msg.sender</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Decoupled msg.sender</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   The AI agent pays via HTTP header without signing an on-chain transaction. The recipient API gateway batches nullifier settlements on-chain, eliminating payer wallet linkability entirely.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-neutral-400">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
                 Zero Sender Footprint
               </div>
             </div>
 
             {/* Bento Card 3 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   03
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Compliant Privacy Pools</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Compliant Privacy Pools</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   Incorporates Association Set Providers (ASPs). Each proof mathematically proves the spent note is NOT derived from sanctioned or flagged deposits without disclosing the origin leaf.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-neutral-400">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
                 OFAC &amp; FinCEN Provable Filter
               </div>
             </div>
 
             {/* Bento Card 4 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   04
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Two-Stage Verification</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Two-Stage Verification</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   Stage 1 checks Groth16 pairings in local server RAM in &lt;10ms to serve the HTTP payload instantly. Stage 2 executes asynchronous aggregated settlement on Arc Network.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-emerald-600 font-semibold">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-emerald-500 font-semibold">
                 Sub-10ms API Overhead
               </div>
             </div>
 
             {/* Bento Card 5 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   05
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Circle Gas Station Integration</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Circle Gas Station Integration</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   Autonomous agents only manage stablecoin notes. The Circle Paymaster subsidizes on-chain batching gas, meaning agents never hold native gas tokens or leak balances.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-neutral-400">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
                 ERC-4337 Sponsored Paymaster
               </div>
             </div>
 
             {/* Bento Card 6 */}
-            <div className="bg-white rounded-3xl p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:border-neutral-400 hover:shadow-md transition-all">
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center font-mono text-sm font-semibold mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
                   06
                 </div>
-                <h3 className="text-xl font-medium text-neutral-900 tracking-tight">Autonomous M2M Protocol</h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Autonomous M2M Protocol</h3>
+                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
                   Built specifically for autonomous LLMs and agent swarms querying APIs, retrieving contextual embeddings, compute nodes, and vector search on per-inference basis.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-neutral-100 text-xs font-mono text-neutral-400">
+              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
                 Standard HTTP 402 Headers
               </div>
             </div>
@@ -861,89 +930,89 @@ template SpendProof(levels) {
         </section>
 
         {/* Comparison Table Section */}
-        <section className="py-20 bg-white border-t border-neutral-200/80 px-4 relative z-10" id="comparison">
+        <section className="py-20 bg-[var(--card-bg)] border-t border-[var(--card-border)] px-4 relative z-10 transition-colors" id="comparison">
           <div className="max-w-7xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] font-mono uppercase tracking-wider text-neutral-600 mb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--badge-bg)] border border-[var(--badge-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
                 Ecosystem Benchmark
               </div>
-              <h2 className="text-3xl sm:text-4xl font-normal tracking-tight text-[#111215]">
+              <h2 className="text-3xl sm:text-4xl font-normal tracking-tight text-[var(--text-primary)]">
                 Market Architecture Comparison
               </h2>
-              <p className="text-neutral-600 text-sm sm:text-base mt-2">
+              <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2">
                 Evaluating how ArcZK-x402 solves identity isolation and latency compared to incumbent solutions.
               </p>
             </div>
 
-            <div className="overflow-x-auto border border-neutral-200 rounded-3xl shadow-sm">
+            <div className="overflow-x-auto border border-[var(--card-border)] rounded-3xl shadow-sm">
               <table className="w-full text-left text-sm border-collapse min-w-[720px]">
                 <thead>
-                  <tr className="border-b border-neutral-200 bg-neutral-50/70 font-mono text-xs text-neutral-600">
+                  <tr className="border-b border-[var(--table-border)] bg-[var(--table-head-bg)] font-mono text-xs text-[var(--text-secondary)] transition-colors">
                     <th className="py-4 px-6 font-semibold">Evaluation Metric</th>
                     <th className="py-4 px-6 font-medium">Public ERC-20 (USDC)</th>
                     <th className="py-4 px-6 font-medium">Legacy Mixer (Tornado)</th>
                     <th className="py-4 px-6 font-medium">Privacy Pools (Railgun)</th>
-                    <th className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-950 border-l border-emerald-500/20">
+                    <th className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       ArcZK-x402 Protocol
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-200 text-neutral-700">
+                <tbody className="divide-y divide-[var(--table-border)] text-[var(--text-secondary)]">
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">Identity Privacy</td>
-                    <td className="py-4 px-6 text-rose-600 flex items-center gap-1.5">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Identity Privacy</td>
+                    <td className="py-4 px-6 text-rose-500 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-rose-500"></span> Publicly Visible
                     </td>
-                    <td className="py-4 px-6 text-neutral-700">Zero-Knowledge</td>
-                    <td className="py-4 px-6 text-neutral-700">Zero-Knowledge</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6">Zero-Knowledge</td>
+                    <td className="py-4 px-6">Zero-Knowledge</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       Zero-Knowledge (Decoupled)
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">Signer Address Leakage</td>
-                    <td className="py-4 px-6 text-rose-600">100% Leaked (msg.sender)</td>
-                    <td className="py-4 px-6 text-amber-600">Requires Relayer Gas Fee</td>
-                    <td className="py-4 px-6 text-amber-600">Requires Relayer Setup</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Signer Address Leakage</td>
+                    <td className="py-4 px-6 text-rose-500">100% Leaked (msg.sender)</td>
+                    <td className="py-4 px-6 text-amber-500">Requires Relayer Gas Fee</td>
+                    <td className="py-4 px-6 text-amber-500">Requires Relayer Setup</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       0% (Receiver Settles)
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">Regulatory Status</td>
-                    <td className="py-4 px-6 text-neutral-700">Compliant</td>
-                    <td className="py-4 px-6 text-rose-600 flex items-center gap-1.5">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Regulatory Status</td>
+                    <td className="py-4 px-6">Compliant</td>
+                    <td className="py-4 px-6 text-rose-500 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-rose-500"></span> OFAC Sanctioned
                     </td>
-                    <td className="py-4 px-6 text-neutral-700">Optional Disclosures</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6">Optional Disclosures</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       Inherent ASP Exclusion Proof
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">API Request Latency</td>
-                    <td className="py-4 px-6 text-neutral-700">Block confirmation (2-12s)</td>
-                    <td className="py-4 px-6 text-neutral-700">N/A (Non-API)</td>
-                    <td className="py-4 px-6 text-neutral-700">On-chain verify (seconds)</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">API Request Latency</td>
+                    <td className="py-4 px-6">Block confirmation (2-12s)</td>
+                    <td className="py-4 px-6">N/A (Non-API)</td>
+                    <td className="py-4 px-6">On-chain verify (seconds)</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       &lt; 10ms (In-Memory Snarkjs)
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">Nanopayment Economics</td>
-                    <td className="py-4 px-6 text-rose-600">Gas exceeds $0.01 value</td>
-                    <td className="py-4 px-6 text-rose-600">Fixed Large Tiers (0.1+ ETH)</td>
-                    <td className="py-4 px-6 text-amber-600">High gas per execution</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Nanopayment Economics</td>
+                    <td className="py-4 px-6 text-rose-500">Gas exceeds $0.01 value</td>
+                    <td className="py-4 px-6 text-rose-500">Fixed Large Tiers (0.1+ ETH)</td>
+                    <td className="py-4 px-6 text-amber-500">High gas per execution</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       Batched Circle Paymaster ($0)
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-4 px-6 font-medium text-neutral-900">Agent Protocol Native</td>
-                    <td className="py-4 px-6 text-rose-600">No (Web3 Only)</td>
-                    <td className="py-4 px-6 text-rose-600">No</td>
-                    <td className="py-4 px-6 text-rose-600">No</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/5 text-emerald-700 border-l border-emerald-500/20">
+                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Agent Protocol Native</td>
+                    <td className="py-4 px-6 text-rose-500">No (Web3 Only)</td>
+                    <td className="py-4 px-6 text-rose-500">No</td>
+                    <td className="py-4 px-6 text-rose-500">No</td>
+                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
                       Yes (Native HTTP 402)
                     </td>
                   </tr>
@@ -1027,10 +1096,10 @@ template SpendProof(levels) {
           <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto mb-8 shadow-md">
             ▲
           </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-[#111215] max-w-3xl mx-auto leading-tight">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-[var(--text-primary)] max-w-3xl mx-auto leading-tight transition-colors">
             Experience zero-knowledge nanopayments for autonomous agents
           </h2>
-          <p className="text-neutral-500 text-base md:text-lg mt-4 max-w-xl mx-auto">
+          <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 max-w-xl mx-auto transition-colors">
             Built as a grant proposal and open protocol on Arc Network. Enable sub-cent private agent interactions today.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
@@ -1041,7 +1110,7 @@ template SpendProof(levels) {
               Test Live Simulator
             </a>
             <a
-              className="bg-transparent text-neutral-800 border border-neutral-300 text-sm font-medium px-7 py-3.5 rounded-full hover:bg-neutral-100 transition-all"
+              className="bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--card-border)] text-sm font-medium px-7 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm"
               href="https://github.com/trymbakmahant/p2pzkpayment"
               target="_blank"
               rel="noopener noreferrer"

@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+:root {
+  --bg-app: #FAFAFA;
+  --text-primary: #111215;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --section-alt-bg: #F4F4F6;
+  --table-head-bg: #F8F9FA;
+  --table-border: rgba(0, 0, 0, 0.08);
+  --badge-bg: rgba(0, 0, 0, 0.04);
+  --badge-border: rgba(0, 0, 0, 0.12);
+  --pill-bg: rgba(255, 255, 255, 0.9);
+  --spotlight-color: rgba(99, 102, 241, 0.08);
+  color-scheme: light;
+}
+
+html.dark,
+[data-theme="dark"] {
+  --bg-app: #08090C;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --card-bg: #111319;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --section-alt-bg: #0C0E14;
+  --table-head-bg: #141722;
+  --table-border: rgba(255, 255, 255, 0.08);
+  --badge-bg: rgba(255, 255, 255, 0.06);
+  --badge-border: rgba(255, 255, 255, 0.12);
+  --pill-bg: rgba(18, 20, 26, 0.9);
+  --spotlight-color: rgba(99, 102, 241, 0.16);
+  color-scheme: dark;
+}
+
 @layer utilities {
   .hero-mesh-gradient {
     background: linear-gradient(135deg, #11141E 0%, #1A1D2B 35%, #3B1E4A 60%, #E85D36 82%, #F9AC37 100%);
