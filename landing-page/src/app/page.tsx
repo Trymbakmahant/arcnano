@@ -444,132 +444,106 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Problem 1 */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/90 hover:border-rose-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
-                        <Radar className="w-4 h-4 text-rose-600" />
-                      </div>
-                      <span className="text-xs font-mono uppercase tracking-wider text-rose-600 font-semibold">
-                        01 • Surveillance
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-md">
-                      msg.sender Doxxing
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-medium text-neutral-950 tracking-tight">
-                    Public Ledgers Dox Your AI Agents
-                  </h3>
-                  <p className="text-neutral-600 text-sm sm:text-base mt-2.5 leading-relaxed">
-                    Standard crypto payments permanently log every prompt, tool call, and model supplier to block explorers for competitors to copy.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-neutral-200/70 flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    Zero business or prompt privacy
-                  </span>
-                </div>
-              </div>
+            {/* Architectural Blueprint Grid (Inspired by arc.io spec layout) */}
+            <div className="relative bg-white border border-neutral-200/90 shadow-sm max-w-6xl mx-auto">
+              {/* Corner and Intersection Architectural Ticks */}
+              {/* Top-Left Corner ┌ */}
+              <svg className="absolute -top-[1px] -left-[1px] w-5 h-5 pointer-events-none text-neutral-400 z-10" viewBox="0 0 20 20" fill="none">
+                <path d="M1 20V1H20" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
 
-              {/* Problem 2 */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/90 hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
-                        <Unlink className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <span className="text-xs font-mono uppercase tracking-wider text-amber-600 font-semibold">
-                        02 • Transport Leak
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-md">
-                      Naive ZK Trap
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-medium text-neutral-950 tracking-tight">
-                    Naive ZK Still Leaks The Signer
-                  </h3>
-                  <p className="text-neutral-600 text-sm sm:text-base mt-2.5 leading-relaxed">
-                    Even with a ZK proof, if the agent signs the transaction on-chain, its wallet address is broadcast to every node in the network.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-neutral-200/70 flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Privacy broken at network layer
-                  </span>
-                </div>
-              </div>
+              {/* Top-Center T ┬ */}
+              <svg className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-8 h-5 pointer-events-none text-neutral-400 hidden md:block z-10" viewBox="0 0 32 20" fill="none">
+                <path d="M0 1H32M16 1V20" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
 
-              {/* Problem 3 */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/90 hover:border-rose-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
-                        <ShieldBan className="w-4 h-4 text-rose-600" />
-                      </div>
-                      <span className="text-xs font-mono uppercase tracking-wider text-rose-600 font-semibold">
-                        03 • Sanctions Ban
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-md">
-                      Mixer Ban
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-medium text-neutral-950 tracking-tight">
-                    Mixers Are Blocked By Enterprise APIs
-                  </h3>
-                  <p className="text-neutral-600 text-sm sm:text-base mt-2.5 leading-relaxed">
-                    Traditional mixers pool dirty and clean funds together, causing AI gateways, AWS, and Cloudflare to automatically blacklist them.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-neutral-200/70 flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    Banned by compliant API gateways
-                  </span>
-                </div>
-              </div>
+              {/* Top-Right Corner ┐ */}
+              <svg className="absolute -top-[1px] -right-[1px] w-5 h-5 pointer-events-none text-neutral-400 z-10" viewBox="0 0 20 20" fill="none">
+                <path d="M19 20V1H0" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
 
-              {/* Problem 4 */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/90 hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  <div className="flex items-center justify-between gap-4 mb-5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
-                        <Gauge className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <span className="text-xs font-mono uppercase tracking-wider text-amber-600 font-semibold">
-                        04 • Latency &amp; Gas
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-md">
-                      Economic Trap
-                    </span>
+              {/* Middle-Left T ├ */}
+              <svg className="absolute top-1/2 -left-[1px] -translate-y-1/2 w-5 h-8 pointer-events-none text-neutral-400 hidden md:block z-10" viewBox="0 0 20 32" fill="none">
+                <path d="M1 0V32M1 16H20" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* Center Crosshair + */}
+              <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 pointer-events-none text-neutral-400 hidden md:block z-10" viewBox="0 0 32 32" fill="none">
+                <path d="M0 16H32M16 0V32" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* Middle-Right T ┤ */}
+              <svg className="absolute top-1/2 -right-[1px] -translate-y-1/2 w-5 h-8 pointer-events-none text-neutral-400 hidden md:block z-10" viewBox="0 0 20 32" fill="none">
+                <path d="M19 0V32M19 16H0" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* Bottom-Left Corner └ */}
+              <svg className="absolute -bottom-[1px] -left-[1px] w-5 h-5 pointer-events-none text-neutral-400 z-10" viewBox="0 0 20 20" fill="none">
+                <path d="M1 0V19H20" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* Bottom-Center T ┴ */}
+              <svg className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 w-8 h-5 pointer-events-none text-neutral-400 hidden md:block z-10" viewBox="0 0 32 20" fill="none">
+                <path d="M0 19H32M16 19V0" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* Bottom-Right Corner ┘ */}
+              <svg className="absolute -bottom-[1px] -right-[1px] w-5 h-5 pointer-events-none text-neutral-400 z-10" viewBox="0 0 20 20" fill="none">
+                <path d="M19 0V19H0" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+
+              {/* 2x2 Architectural Grid Cells */}
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                {/* Cell 1: Surveillance */}
+                <div className="p-8 sm:p-10 md:p-12 border-b md:border-r border-neutral-200/90 flex flex-col justify-between hover:bg-neutral-50/50 transition-colors duration-200">
+                  <div>
+                    <Radar className="w-7 h-7 text-amber-500 stroke-[1.5]" />
+                    <h3 className="text-2xl sm:text-[26px] font-normal text-neutral-900 tracking-tight leading-snug mt-5">
+                      Public ledgers dox AI agents
+                    </h3>
+                    <p className="text-neutral-600 text-sm sm:text-[15px] mt-4 leading-relaxed">
+                      Standard crypto payments permanently log every prompt, tool call, and model supplier to block explorers for competitors to copy.
+                    </p>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-medium text-neutral-950 tracking-tight">
-                    Block Times &amp; Gas Kill Nanopayments
-                  </h3>
-                  <p className="text-neutral-600 text-sm sm:text-base mt-2.5 leading-relaxed">
-                    Waiting 10–15 seconds for a block stalls real-time agent loops, while gas fees cost 10x more than a $0.001 inference call.
-                  </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-neutral-200/70 flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Economically &amp; computationally broken
-                  </span>
+
+                {/* Cell 2: Transport Leak */}
+                <div className="p-8 sm:p-10 md:p-12 border-b border-neutral-200/90 flex flex-col justify-between hover:bg-neutral-50/50 transition-colors duration-200">
+                  <div>
+                    <Unlink className="w-7 h-7 text-amber-500 stroke-[1.5]" />
+                    <h3 className="text-2xl sm:text-[26px] font-normal text-neutral-900 tracking-tight leading-snug mt-5">
+                      Naive ZK still leaks the signer
+                    </h3>
+                    <p className="text-neutral-600 text-sm sm:text-[15px] mt-4 leading-relaxed">
+                      Even with a ZK proof, if the agent signs the transaction on-chain, its wallet address is broadcast to every node in the network.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Cell 3: Sanctions Ban */}
+                <div className="p-8 sm:p-10 md:p-12 border-b md:border-b-0 md:border-r border-neutral-200/90 flex flex-col justify-between hover:bg-neutral-50/50 transition-colors duration-200">
+                  <div>
+                    <ShieldBan className="w-7 h-7 text-amber-500 stroke-[1.5]" />
+                    <h3 className="text-2xl sm:text-[26px] font-normal text-neutral-900 tracking-tight leading-snug mt-5">
+                      Mixers are blocked by enterprise APIs
+                    </h3>
+                    <p className="text-neutral-600 text-sm sm:text-[15px] mt-4 leading-relaxed">
+                      Traditional mixers pool dirty and clean funds together, causing AI gateways, AWS, and Cloudflare to automatically blacklist them.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Cell 4: Latency & Gas */}
+                <div className="p-8 sm:p-10 md:p-12 flex flex-col justify-between hover:bg-neutral-50/50 transition-colors duration-200">
+                  <div>
+                    <Gauge className="w-7 h-7 text-amber-500 stroke-[1.5]" />
+                    <h3 className="text-2xl sm:text-[26px] font-normal text-neutral-900 tracking-tight leading-snug mt-5">
+                      Block times &amp; gas kill nanopayments
+                    </h3>
+                    <p className="text-neutral-600 text-sm sm:text-[15px] mt-4 leading-relaxed">
+                      Waiting 10–15 seconds for a block stalls real-time agent loops, while gas fees cost 10x more than a $0.001 inference call.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
