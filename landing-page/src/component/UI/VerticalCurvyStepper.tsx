@@ -352,24 +352,24 @@ export default function VerticalCurvyStepper() {
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Theme Adaptive Dynamic Gradient */}
+            {/* Clean Light Dynamic Gradient */}
             <linearGradient id="stepperNeonGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="var(--primary, #F59E0B)" />
-              <stop offset="35%" stopColor="var(--primary-bright, #FBBF24)" />
-              <stop offset="70%" stopColor="var(--accent-zk, #A78BFA)" />
-              <stop offset="100%" stopColor="var(--primary, #F59E0B)" />
+              <stop offset="0%" stopColor="#0284C7" />
+              <stop offset="35%" stopColor="#06B6D4" />
+              <stop offset="70%" stopColor="#7C3AED" />
+              <stop offset="100%" stopColor="#0284C7" />
             </linearGradient>
 
             {/* Traveling Light Pulse Laser */}
             <linearGradient id="stepperLaserBeam" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="var(--primary-bright, #FBBF24)" stopOpacity="0" />
-              <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
-              <stop offset="100%" stopColor="var(--accent-zk, #A78BFA)" stopOpacity="0" />
+              <stop offset="0%" stopColor="#0284C7" stopOpacity="0" />
+              <stop offset="50%" stopColor="#0284C7" stopOpacity="1" />
+              <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
             </linearGradient>
 
             {/* Glow Filter */}
             <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
               <feMerge>
                 <feMergeNode in="coloredBlur" />
                 <feMergeNode in="SourceGraphic" />
@@ -381,7 +381,7 @@ export default function VerticalCurvyStepper() {
           {curvyPath && (
             <path
               d={curvyPath}
-              stroke="var(--card-border, rgba(255, 255, 255, 0.12))"
+              stroke="rgba(2, 132, 199, 0.18)"
               strokeWidth="2.5"
               strokeDasharray="6 6"
               strokeLinecap="round"
@@ -393,7 +393,7 @@ export default function VerticalCurvyStepper() {
             <path
               key={`branch-${idx}`}
               d={bp}
-              stroke="var(--card-border, rgba(255, 255, 255, 0.15))"
+              stroke="rgba(2, 132, 199, 0.22)"
               strokeWidth="2"
               strokeDasharray="3 3"
               strokeLinecap="round"
@@ -449,7 +449,7 @@ export default function VerticalCurvyStepper() {
             >
               {/* Outer Pulsing Radar Ring */}
               <motion.div
-                className="absolute -inset-3 rounded-full border border-[var(--primary)]/30"
+                className="absolute -inset-3 rounded-full border border-sky-400/40"
                 animate={{
                   scale: [1, 1.35, 1],
                   opacity: [0.6, 0.1, 0.6],
@@ -465,19 +465,19 @@ export default function VerticalCurvyStepper() {
               {/* Glowing Aura on Hover or Selected */}
               <div
                 className={`absolute -inset-2 rounded-full transition-opacity duration-300 blur-md ${
-                  isSelected ? "bg-[var(--primary)]/40 opacity-100" : "bg-[var(--primary)]/20 opacity-0 group-hover:opacity-70"
+                  isSelected ? "bg-sky-500/25 opacity-100" : "bg-sky-500/10 opacity-0 group-hover:opacity-60"
                 }`}
               />
 
               {/* Stepper Node Orb */}
               <div
-                className={`relative w-11 h-11 md:w-13 md:h-13 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-xl border backdrop-blur-xl ${
+                className={`relative w-11 h-11 md:w-13 md:h-13 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-md border backdrop-blur-xl ${
                   isSelected
-                    ? "bg-gradient-to-br from-[var(--surface-2)] to-[var(--surface)] border-[var(--primary)] text-white shadow-[var(--primary)]/25 ring-2 ring-[var(--primary)]/40 scale-105"
-                    : "bg-neutral-900/85 dark:bg-black/85 border-[var(--card-border)] text-neutral-300 hover:border-[var(--primary)]/50 hover:scale-105"
+                    ? "bg-white border-sky-500 text-sky-900 shadow-sky-500/20 ring-2 ring-sky-400/40 scale-105"
+                    : "bg-white/95 border-neutral-200/90 text-neutral-700 hover:border-sky-400 hover:scale-105"
                 }`}
               >
-                <div className="text-[10px] md:text-[11px] font-mono font-bold tracking-tight text-[var(--primary-bright)]">
+                <div className="text-[10px] md:text-[11px] font-mono font-bold tracking-tight text-sky-600">
                   {SOLUTIONS_DATA[idx].stepNumber}
                 </div>
                 <div className="scale-75 md:scale-80 transform -mt-0.5">
@@ -514,23 +514,23 @@ export default function VerticalCurvyStepper() {
               }}
               className={`rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 transition-all duration-500 relative border ${
                 isSelected
-                  ? "bg-[var(--card-bg)]/80 border-[var(--primary)]/50 shadow-2xl shadow-[var(--primary)]/10 ring-1 ring-[var(--primary)]/30"
-                  : "bg-white/70 dark:bg-white/[0.03] border-[var(--card-border)] hover:border-[var(--primary)]/40 shadow-lg hover:shadow-2xl"
+                  ? "bg-white/95 border-sky-500/50 shadow-xl shadow-sky-500/10 ring-1 ring-sky-500/25"
+                  : "bg-white/80 border-neutral-200/90 hover:border-sky-500/35 shadow-md hover:shadow-xl"
               } backdrop-blur-2xl`}
             >
               {/* Top Accent Rim Highlight */}
-              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent pointer-events-none" />
+              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/30 to-transparent pointer-events-none" />
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Left Header Column */}
                 <div className="lg:col-span-5 space-y-4">
                   {/* Step Category Badge & Problem Countered */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-[var(--primary)]/10 text-[var(--primary-bright)] border border-[var(--primary)]/20">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-sky-500/10 text-sky-700 border border-sky-500/20">
                       {getStepIcon(idx)}
                       <span>Solution {step.stepNumber}</span>
                     </span>
-                    <span className="text-[11px] font-mono text-[var(--text-muted)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-full border border-black/5 dark:border-white/10">
+                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
                       {step.tag}
                     </span>
                   </div>
@@ -539,18 +539,18 @@ export default function VerticalCurvyStepper() {
                     <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-[var(--text-primary)]">
                       {step.title}
                     </h3>
-                    <div className="text-sm font-mono text-[var(--primary-bright)] mt-1 font-medium">
+                    <div className="text-sm font-mono text-sky-600 mt-1 font-medium">
                       {step.subtitle}
                     </div>
                     <div className="text-xs font-mono text-[var(--text-muted)] mt-1.5 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                       <span>{step.problemCountered}</span>
                     </div>
                   </div>
 
                   {/* Impact Metric Pill */}
-                  <div className="inline-flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--primary)]/5 dark:bg-[var(--primary)]/[0.08] border border-[var(--primary)]/25">
-                    <div className="text-2xl font-bold font-mono text-[var(--primary-bright)] tracking-tight">
+                  <div className="inline-flex items-center gap-3 p-3.5 rounded-2xl bg-sky-500/5 border border-sky-500/20">
+                    <div className="text-2xl font-bold font-mono text-sky-600 tracking-tight">
                       {step.metric.value}
                     </div>
                     <div className="text-xs text-[var(--text-secondary)] font-medium leading-tight">
@@ -590,7 +590,7 @@ export default function VerticalCurvyStepper() {
                       {step.flowSteps.map((flow, fIdx) => (
                         <div
                           key={fIdx}
-                          className="relative p-3 rounded-2xl bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/10 hover:border-emerald-500/30 transition-colors flex flex-col justify-between"
+                          className="relative p-3 rounded-2xl bg-neutral-100/80 border border-neutral-200/80 hover:border-emerald-500/40 transition-colors flex flex-col justify-between"
                         >
                           <div>
                             <span

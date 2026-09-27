@@ -1,24 +1,23 @@
 @import "tailwindcss";
 
-:root,
-[data-theme="light"] {
+:root {
   --bg-app: #FAFAFA;
   --surface: #FFFFFF;
   --surface-2: #F4F4F6;
   --primary: #0284C7;
   --primary-bright: #0369A1;
-  --text-primary: #111215;
-  --text-secondary: #525252;
-  --text-muted: #737373;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
   --card-bg: #FFFFFF;
   --card-border: rgba(0, 0, 0, 0.08);
-  --section-alt-bg: #F4F4F6;
-  --table-head-bg: #F8F9FA;
-  --table-border: rgba(0, 0, 0, 0.08);
-  --badge-bg: rgba(0, 0, 0, 0.04);
-  --badge-border: rgba(0, 0, 0, 0.12);
-  --pill-bg: rgba(255, 255, 255, 0.9);
-  --spotlight-color: rgba(99, 102, 241, 0.08);
+  --section-alt-bg: #F8FAFC;
+  --table-head-bg: #F1F5F9;
+  --table-border: rgba(0, 0, 0, 0.06);
+  --badge-bg: rgba(2, 132, 199, 0.06);
+  --badge-border: rgba(2, 132, 199, 0.16);
+  --pill-bg: rgba(255, 255, 255, 0.95);
+  --spotlight-color: rgba(2, 132, 199, 0.05);
   --accent-zk: #7C3AED;
   --accent-success: #16A34A;
   --accent-error: #DC2626;
@@ -26,38 +25,9 @@
   color-scheme: light;
 }
 
-/* Theme 1: Solar Obsidian (Dark Theme) */
-html.dark,
-[data-theme="dark"],
-[data-theme="solar-obsidian"] {
-  --bg-app: #07090D;
-  --surface: #0D1117;
-  --surface-2: #151A22;
-  --primary: #F59E0B;
-  --primary-bright: #FBBF24;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --card-bg: #0D1117;
-  --card-border: #242B36;
-  --section-alt-bg: #0A0D14;
-  --table-head-bg: #151A22;
-  --table-border: #242B36;
-  --badge-bg: rgba(245, 158, 11, 0.1);
-  --badge-border: rgba(245, 158, 11, 0.25);
-  --pill-bg: rgba(13, 17, 23, 0.9);
-  --spotlight-color: rgba(245, 158, 11, 0.14);
-  --accent-zk: #A78BFA;
-  --accent-success: #22C55E;
-  --accent-error: #EF4444;
-  --accent-money: #FBBF24;
-  color-scheme: dark;
-}
-
-
 @layer utilities {
   .hero-mesh-gradient {
-    background: linear-gradient(135deg, #11141E 0%, #1A1D2B 35%, #3B1E4A 60%, #E85D36 82%, #F9AC37 100%);
+    background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 35%, #FDF4FF 60%, #FFFBEB 85%, #FAFAFA 100%);
     background-size: 200% 200%;
     animation: subtleFlow 16s ease infinite alternate;
   }
@@ -78,38 +48,25 @@ html.dark,
   }
 
   .liquid-glass {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(240, 240, 245, 0.35) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(245, 247, 250, 0.65) 100%);
     backdrop-filter: blur(28px) saturate(190%) contrast(102%);
     -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(102%);
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.6), inset 0 0 20px 0 rgba(255, 255, 255, 0.1), 0 24px 60px -15px rgba(0, 0, 0, 0.12);
-  }
-
-  :is(.dark, [data-theme="dark"], [data-theme="solar-obsidian"]) .liquid-glass {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, rgba(6, 8, 14, 0.38) 100%);
-    backdrop-filter: blur(32px) saturate(190%) contrast(105%);
-    -webkit-backdrop-filter: blur(32px) saturate(190%) contrast(105%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 24px 0 rgba(255, 255, 255, 0.03), 0 30px 70px -15px rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 0 20px 0 rgba(255, 255, 255, 0.2), 0 20px 50px -12px rgba(0, 0, 0, 0.08);
   }
 
   .liquid-glass-border {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.02) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(220, 228, 240, 0.45) 45%, rgba(255, 255, 255, 0.1) 100%);
     padding: 1.5px;
     border-radius: 44px;
-    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.35);
-  }
-
-  :is(.dark, [data-theme="dark"], [data-theme="solar-obsidian"]) .liquid-glass-border {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0.01) 100%);
-    box-shadow: 0 35px 90px -20px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.08);
   }
 
   .terminal-scroll::-webkit-scrollbar {
     width: 4px;
   }
   .terminal-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
   }
 
