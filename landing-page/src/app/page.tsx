@@ -474,46 +474,13 @@ export default function Home() {
           {/* Animated Vertical Curvy Stepper */}
           <VerticalCurvyStepper />
 
-          {/* Arc Ecosystem Reference Strip (Direct arc.io REF. 01 / REF. 02 inspiration) */}
-          <div className="mt-20 pt-14 border-t border-neutral-200/80 max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="text-xs font-mono font-semibold text-sky-800 uppercase tracking-wider mb-3">
-                    {"// REF. 01 • ARC THESIS ON AGENTIC COMMERCE"}
-                  </div>
-                  <blockquote className="text-neutral-700 text-sm sm:text-base leading-relaxed italic">
-                    &ldquo;Predictable low fees and deterministic sub-second finality make payments behave more like API calls: clear, fast, and settled with certainty. This unlocks high-frequency, sub-cent flows like nanopayments, enabling agents to pay, trade, retrieve data, coordinate, and do business at machine scale.&rdquo;
-                  </blockquote>
-                </div>
-                <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono text-neutral-500">
-                  <span>Source: Arc Platform Specification (arc.io)</span>
-                  <span className="text-sky-700 font-semibold">[ARC-L1-SPEC]</span>
-                </div>
-              </div>
-
-              <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="text-xs font-mono font-semibold text-purple-800 uppercase tracking-wider mb-3">
-                    {"// REF. 02 • THE ARCNANO SHIELDED PRINCIPLE"}
-                  </div>
-                  <blockquote className="text-neutral-700 text-sm sm:text-base leading-relaxed italic">
-                    &ldquo;Decoupling the spender&apos;s msg.sender identity from the settlement transaction is the only way autonomous AI agents can consume commercial APIs without publishing their operational trade secrets to block explorers.&rdquo;
-                  </blockquote>
-                </div>
-                <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono text-neutral-500">
-                  <span>Source: ArcNano Architecture Whitepaper</span>
-                  <span className="text-purple-700 font-semibold">[SPEC-x402]</span>
-                </div>
-              </div>
-            </div>
-          </div>
+         
         </section>
 
-        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN) */}
-        <section className="py-24 bg-white border-t border-neutral-200/90 px-6 sm:px-8 max-w-7xl mx-auto relative z-10" id="roadmap">
+        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN - 100VH) */}
+        <section className="min-h-screen flex flex-col justify-center py-12 md:py-16 bg-white border-t border-neutral-200/90 px-6 sm:px-8 max-w-7xl mx-auto relative z-10" id="roadmap">
           {/* Section Header */}
-          <div className="mb-14">
+          <div className="mb-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-4 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
               <span>{"// 04 DEVELOPMENT ROADMAP"}</span>
