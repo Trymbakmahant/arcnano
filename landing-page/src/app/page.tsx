@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
+import ArcAgentSimulator from "@/component/UI/ArcAgentSimulator";
+import ArcRoleTabs from "@/component/UI/ArcRoleTabs";
 import {
   Radar,
   Unlink,
@@ -202,8 +204,34 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Arc L1 Institutional Spec Ribbon (Direct arc.io inspiration) */}
+          <div className="w-full max-w-5xl mx-auto mt-8 mb-2 relative z-10">
+            <div className="bg-white/80 backdrop-blur-xl border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70">
+              <div className="pt-2 md:pt-0 md:px-3 text-left">
+                <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// SETTLEMENT LAYER"}</div>
+                <div className="text-sm font-semibold text-neutral-900 mt-0.5">Arc Network (Circle)</div>
+                <div className="text-[11px] text-neutral-500 font-mono">Permissioned L1 Cohort</div>
+              </div>
+              <div className="pt-2 md:pt-0 md:px-3 text-left">
+                <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// GAS ENGINE"}</div>
+                <div className="text-sm font-semibold text-neutral-900 mt-0.5">Circle Gas Station</div>
+                <div className="text-[11px] text-neutral-500 font-mono">Native USDC Paymaster</div>
+              </div>
+              <div className="pt-2 md:pt-0 md:px-3 text-left">
+                <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// SETTLEMENT FINALITY"}</div>
+                <div className="text-sm font-semibold text-neutral-900 mt-0.5">&lt; 500ms Deterministic</div>
+                <div className="text-[11px] text-neutral-500 font-mono">Sub-second certainty</div>
+              </div>
+              <div className="pt-2 md:pt-0 md:px-3 text-left">
+                <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// PRIVACY MECHANISM"}</div>
+                <div className="text-sm font-semibold text-neutral-900 mt-0.5">Groth16 + Privacy Pools</div>
+                <div className="text-[11px] text-neutral-500 font-mono">Opt-in OFAC compliance</div>
+              </div>
+            </div>
+          </div>
+
           {/* Floating Glass Scroll Cue */}
-          <div className="mt-7 hidden sm:flex items-center justify-center">
+          <div className="mt-5 hidden sm:flex items-center justify-center">
             <a
               href="#blueprint"
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 hover:bg-white border border-neutral-200 backdrop-blur-xl text-[11px] font-mono uppercase tracking-widest text-neutral-600 hover:text-neutral-950 transition-all shadow-sm animate-bounce cursor-pointer"
@@ -232,8 +260,8 @@ export default function Home() {
               {/* Top Banner inside Blueprint */}
               <div className="flex flex-wrap items-center justify-between gap-3 w-full relative z-10">
                 <div className="flex items-center gap-3 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs font-mono">
-                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-                  <span>ArcNano Protocol Blueprint</span>
+                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                  <span>{"// 01 PROTOCOL BLUEPRINT"}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-amber-500/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-amber-500/30 text-xs font-mono text-amber-300">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
@@ -311,11 +339,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* SECTION 1: WHAT WE ARE (TAKES 100vh FULL VIEWPORT) */}
-        <section className="min-h-screen flex flex-col justify-center py-20 px-4 max-w-7xl mx-auto relative z-10" id="about">
+        {/* SECTION 1: WHAT WE ARE (TAKES FULL VIEWPORT) */}
+        <section className="py-20 px-4 max-w-7xl mx-auto relative z-10" id="about">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--badge-bg)] border border-[var(--badge-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-              Mission Statement
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-[11px] font-mono uppercase tracking-wider text-sky-800 mb-3">
+              {"// 02 ARCHITECTURE & MISSION"}
             </div>
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-neutral-950">
               What Is ArcNano?
@@ -380,6 +408,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Arc.io Persona Segmentation Tabs */}
+          <ArcRoleTabs />
         </section>
 
         {/* SECTION 2: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
@@ -391,7 +422,7 @@ export default function Home() {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono uppercase tracking-wider text-rose-600 mb-4 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>The Core Dilemma</span>
+                <span>{"// 03 THREAT MODEL & TRAPS"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950 max-w-4xl mx-auto leading-[1.15]">
                 Why Existing Machine Payments Fail for AI Agents
@@ -536,19 +567,57 @@ export default function Home() {
         {/* SECTION 3: HOW ARCNANO SOLVES IT */}
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-500 mb-3">
-              The Architecture
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-800 mb-3">
+              {"// 05 ARCHITECTURAL RESOLUTION"}
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
               How ArcNano Solves Every Trap
             </h2>
-            <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 leading-relaxed">
+            <p className="text-neutral-600 text-base md:text-lg mt-4 leading-relaxed">
               We architected ArcNano from first principles to decouple payments from identity, guarantee legal compliance, and deliver instant sub-second verification.
             </p>
           </div>
 
           {/* Animated Vertical Curvy Stepper */}
           <VerticalCurvyStepper />
+
+          {/* Interactive Protocol Playground (arc.io inspiration) */}
+          <ArcAgentSimulator />
+
+          {/* Arc Ecosystem Reference Strip (Direct arc.io REF. 01 / REF. 02 inspiration) */}
+          <div className="mt-20 pt-14 border-t border-neutral-200/80 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="text-xs font-mono font-semibold text-sky-800 uppercase tracking-wider mb-3">
+                    {"// REF. 01 • ARC THESIS ON AGENTIC COMMERCE"}
+                  </div>
+                  <blockquote className="text-neutral-700 text-sm sm:text-base leading-relaxed italic">
+                    &ldquo;Predictable low fees and deterministic sub-second finality make payments behave more like API calls: clear, fast, and settled with certainty. This unlocks high-frequency, sub-cent flows like nanopayments, enabling agents to pay, trade, retrieve data, coordinate, and do business at machine scale.&rdquo;
+                  </blockquote>
+                </div>
+                <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono text-neutral-500">
+                  <span>Source: Arc Platform Specification (arc.io)</span>
+                  <span className="text-sky-700 font-semibold">[ARC-L1-SPEC]</span>
+                </div>
+              </div>
+
+              <div className="bg-white/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-neutral-200/90 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="text-xs font-mono font-semibold text-purple-800 uppercase tracking-wider mb-3">
+                    {"// REF. 02 • THE ARCNANO SHIELDED PRINCIPLE"}
+                  </div>
+                  <blockquote className="text-neutral-700 text-sm sm:text-base leading-relaxed italic">
+                    &ldquo;Decoupling the spender&apos;s msg.sender identity from the settlement transaction is the only way autonomous AI agents can consume commercial APIs without publishing their operational trade secrets to block explorers.&rdquo;
+                  </blockquote>
+                </div>
+                <div className="mt-5 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-mono text-neutral-500">
+                  <span>Source: ArcNano Architecture Whitepaper</span>
+                  <span className="text-purple-700 font-semibold">[SPEC-x402]</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* SECTION 4: DEVELOPMENT ROADMAP & COMING SOON */}
@@ -557,7 +626,7 @@ export default function Home() {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>Active Research &amp; Implementation</span>
+                <span>{"// 06 DEVELOPMENT ROADMAP"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
                 Development Roadmap
@@ -698,19 +767,22 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Main Footer */}
-      <footer className="bg-[#0B0C0E] text-white pt-16 pb-12 border-t border-neutral-900 relative z-10">
+      {/* Main Footer (Inspired by arc.io clean taxonomy) */}
+      <footer className="bg-[#090D16] text-white pt-16 pb-12 border-t border-neutral-800 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-10 pb-16 border-b border-neutral-800">
             <div className="md:col-span-2 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-white text-black flex items-center justify-center text-xs font-bold">
+              <div className="flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded bg-white text-black flex items-center justify-center text-xs font-bold shadow-sm">
                   ▲
                 </div>
                 <span className="text-base font-semibold tracking-tight text-white">ArcNano</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-white/10 text-neutral-300 border border-white/10">
+                  Arc Native
+                </span>
               </div>
               <p className="text-neutral-400 text-xs sm:text-sm max-w-sm leading-relaxed">
-                Privacy-preserving zero-knowledge payment infrastructure for autonomous machine-to-machine interactions and AI agent micro-transactions on the Arc Network.
+                Shielded zero-knowledge payment infrastructure purpose-built for autonomous machine-to-machine interactions and agentic economic activity on the Arc Network.
               </p>
               <div className="flex items-center gap-2 text-xs font-mono text-amber-300 pt-2">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -719,42 +791,60 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Architecture</h4>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
+                {"// BUILD"}
+              </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#about">What We Are</a></li>
-                <li><a className="hover:text-white transition-colors" href="#problem">The Problem</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">How ArcNano Solves It</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">Agent SDK Suite</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Circom Prover (spend.circom)</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">ArcShieldPool.sol</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer">Circle Testnet Faucet &rarr;</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://docs.arc.network" target="_blank" rel="noopener noreferrer">Arc Network Docs &rarr;</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
+                {"// EXPLORE"}
+              </h4>
+              <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
+                <li><a className="hover:text-white transition-colors" href="#about">What Is ArcNano?</a></li>
+                <li><a className="hover:text-white transition-colors" href="#about">Actor Perspectives</a></li>
+                <li><a className="hover:text-white transition-colors" href="#problem">Threat Model &amp; Traps</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Curvy Execution Stepper</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Live Protocol Simulator</a></li>
                 <li><a className="hover:text-white transition-colors" href="#roadmap">Development Roadmap</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Protocol Tenets</h4>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
+                {"// PROTOCOL & ARC"}
+              </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#solution">HTTP 402 Standard</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Zero msg.sender Leakage</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Privacy Pools (ASP Check)</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Arc Circle Gas Station</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Project &amp; Source</h4>
-              <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant" target="_blank" rel="noopener noreferrer">Author Profile</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/README.md" target="_blank" rel="noopener noreferrer">Architecture README</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://www.arc.io/" target="_blank" rel="noopener noreferrer">Arc Platform (arc.io) &rarr;</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://circle.com" target="_blank" rel="noopener noreferrer">Circle Internet Group &rarr;</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Circle Gas Station (Paymaster)</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Privacy Pools (ASP Compliance)</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT Open License</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
+          <div className="pt-8 text-neutral-500 text-[11px] leading-relaxed font-sans max-w-4xl">
+            <p>
+              ArcNano is an open-source zero-knowledge protocol research project engineered for the Arc ecosystem. Arc is an open Layer-1 blockchain launched by Arc Network Services LLC and Circle Internet Group, Inc. USDC is issued by Circle.
+            </p>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
             <div>&copy; 2026 ArcNano Protocol &bull; MIT License.</div>
             <div className="flex items-center gap-6">
               <a className="hover:text-neutral-400 transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
               <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="#roadmap">Coming Soon</a>
+              <a className="hover:text-neutral-400 transition-colors" href="https://www.arc.io" target="_blank" rel="noopener noreferrer">Arc Network</a>
+              <span className="text-neutral-700">•</span>
+              <a className="hover:text-neutral-400 transition-colors" href="#roadmap">Roadmap</a>
             </div>
           </div>
         </div>
