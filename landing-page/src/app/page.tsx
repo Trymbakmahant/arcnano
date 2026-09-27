@@ -1,77 +1,41 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 
-interface LogEntry {
-  id: string;
-  time: string;
-  text: string;
-  colorClass?: string;
+function subscribeTheme(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  mediaQuery.addEventListener("change", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    mediaQuery.removeEventListener("change", callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function getThemeSnapshot(): "light" | "dark" {
+  if (typeof document === "undefined") return "dark";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function getThemeServerSnapshot(): "light" | "dark" {
+  return "dark";
 }
 
 export default function Home() {
-  const [activeStep, setActiveStep] = useState<number>(4);
-  const [selectedDenomination, setSelectedDenomination] = useState<string>("0.01");
-  const [codeTab, setCodeTab] = useState<"agent" | "gateway" | "circom">("agent");
-  const [copyFeedback, setCopyFeedback] = useState<string>("Copy");
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [isGeneratingProof, setIsGeneratingProof] = useState<boolean>(false);
-  const [proofProgress, setProofProgress] = useState<number>(100);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const systemTheme = React.useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
+  const [themeOverride, setThemeOverride] = useState<"light" | "dark" | null>(null);
+  const theme = themeOverride ?? systemTheme;
+  const [copyFeedback, setCopyFeedback] = useState<string>("Copy GitHub Command");
   
   // Spotlight grid mouse tracking
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: -1000, y: -1000 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Live leaves state
-  const [merkleLeaves, setMerkleLeaves] = useState<string[]>([
-    "0x9f2...a1",
-    "0xb83...4e",
-    "0x12c...9d",
-    "0x55a...3c",
-    "0x7e1...f0",
-    "0x3d9...8b",
-    "0xa4c...12",
-    "0xf02...6a",
-  ]);
-
-  const [logs, setLogs] = useState<LogEntry[]>([
-    { id: "1", time: "00:00:01", text: "Initializing ArcZK-x402 Agent Client...", colorClass: "text-neutral-500" },
-    { id: "2", time: "00:00:02", text: "Poseidon Tree Depth: 20 | Anonymity Set: 128 notes active", colorClass: "text-neutral-500" },
-    { id: "3", time: "00:00:03", text: "[HTTP 402] Challenge received: cost=0.01 USDC", colorClass: "text-sky-400" },
-    { id: "4", time: "00:00:04", text: "[CIRCOM] Groth16 witness generated (184ms off-chain)", colorClass: "text-amber-400" },
-    { id: "5", time: "00:00:05", text: "[VERIFY] Local snarkjs check completed in 6.4ms ($0 gas)", colorClass: "text-emerald-400" },
-    { id: "6", time: "00:00:06", text: "[BATCH] Nullifier queued for aggregated Arc Gas Station settlement", colorClass: "text-indigo-400" },
-  ]);
-
-  // Sync theme with document class & system preference
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setTheme(isDark ? "dark" : "light");
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleSystemChange = (e: MediaQueryListEvent) => {
-      const stored = localStorage.getItem("theme");
-      if (!stored) {
-        const next = e.matches ? "dark" : "light";
-        setTheme(next);
-        if (next === "dark") {
-          document.documentElement.classList.add("dark");
-          document.documentElement.setAttribute("data-theme", "dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-          document.documentElement.setAttribute("data-theme", "light");
-        }
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleSystemChange);
-    return () => mediaQuery.removeEventListener("change", handleSystemChange);
-  }, []);
-
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
+    setThemeOverride(next);
     localStorage.setItem("theme", next);
     if (next === "dark") {
       document.documentElement.classList.add("dark");
@@ -80,211 +44,46 @@ export default function Home() {
       document.documentElement.classList.remove("dark");
       document.documentElement.setAttribute("data-theme", "light");
     }
-    addLog(`[UI-THEME] Switched display mode to ${next.toUpperCase()} THEME`, "text-sky-400");
   };
 
-  const getTimeString = () => {
-    const d = new Date();
-    return d.toTimeString().split(" ")[0];
-  };
-
-  const addLog = (text: string, colorClass: string = "text-neutral-300") => {
-    const newEntry: LogEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      time: getTimeString(),
-      text,
-      colorClass,
+  // Track cursor position globally for spotlight overlay
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      setMousePos({
+        x: e.clientX,
+        y: e.clientY,
+      });
     };
-    setLogs((prev) => [...prev, newEntry]);
-  };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
+    return () => window.removeEventListener("mousemove", handleGlobalMouseMove);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
     setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: e.clientX,
+      y: e.clientY,
     });
   };
 
-  const handleStepChange = (step: number) => {
-    setActiveStep(step);
-    if (step === 1) {
-      addLog(`[DEPOSIT] Agent allocated 10 x ${selectedDenomination} USDC notes into Arc Poseidon Tree.`, "text-emerald-400");
-    } else if (step === 2) {
-      addLog(`[HTTP 402] Gateway returned challenge: nonce=0xbf28... cost=${selectedDenomination} USDC.`, "text-sky-400");
-    } else if (step === 3) {
-      addLog("[PROOF] Witness generated in 184ms. Zero knowledge of spender wallet maintained.", "text-amber-400");
-    } else if (step === 4) {
-      addLog("[VERIFY] Proof verified in 6.4ms. Payload delivered immediately to agent.", "text-emerald-400");
-    }
-  };
-
-  const handleDepositCommitment = () => {
-    const randomLeaf = "0x" + Math.random().toString(16).substring(2, 5) + "..." + Math.random().toString(16).substring(2, 4);
-    setMerkleLeaves((prev) => [randomLeaf, ...prev.slice(0, 7)]);
-    addLog(`[DEPOSIT-TX] Committed ${selectedDenomination} USDC leaf ${randomLeaf} into ArcShieldPool contract.`, "text-emerald-400");
-  };
-
-  const runProofGeneration = () => {
-    setIsGeneratingProof(true);
-    setProofProgress(15);
-    addLog("[WITNESS] Calculating BN254 Poseidon Merkle inclusion path...", "text-amber-400");
-    
-    setTimeout(() => {
-      setProofProgress(65);
-      addLog("[ASP-CHECK] Evaluating Association Set non-membership check against OFAC roots...", "text-neutral-400");
-    }, 200);
-
-    setTimeout(() => {
-      setProofProgress(100);
-      setIsGeneratingProof(false);
-      addLog("[PROOF-READY] Groth16 proof {pi_a, pi_b, pi_c} ready for X-PAYMENT header injection.", "text-emerald-400");
-    }, 450);
-  };
-
-  const runVerificationDemo = () => {
-    setIsVerifying(true);
-    addLog("[VERIFY-REQ] Received X-Payment header, initiating Groth16 memory pairing check...", "text-amber-400");
-
-    setTimeout(() => {
-      addLog("[PASSED] In-memory verification valid in 5.8ms. Nullifier recorded. Status 200 returned.", "text-emerald-400");
-      setIsVerifying(false);
-    }, 380);
-  };
-
-  const flushBatchDemo = () => {
-    addLog("[BATCH] Flushing 64 queued notes to Arc Network contract 0x3d1... (batchSpend)", "text-indigo-400");
-    setTimeout(() => {
-      addLog("[CIRCLE-STATION] Sponsored Paymaster Tx: 0x99f48... Total Agent Gas: $0.00.", "text-indigo-300");
-    }, 420);
-  };
-
-  const clearTerminalLogs = () => {
-    setLogs([
-      { id: "reset", time: getTimeString(), text: "[CONSOLE RESET] Stream cleared. Ready for telemetry.", colorClass: "text-neutral-500" }
-    ]);
-  };
-
-  const codeSnippets = {
-    agent: `# agent_client.py — Autonomous agent handling HTTP 402 with Groth16 note spend
-import requests
-from arczk_sdk import ZKWallet, generate_spend_proof
-
-wallet = ZKWallet.from_seed("agent-private-entropy")
-api_endpoint = "https://api.agentinference.ai/v1/context"
-
-# 1. Attempt standard GET request
-resp = requests.get(api_endpoint)
-
-if resp.status_code == 402:
-    challenge = resp.headers.get("X-Payment-Challenge")
-    pool_root = resp.headers.get("X-Pool-Root")
-    asp_root = resp.headers.get("X-ASP-Exclusion-Root")
-    
-    # 2. Select 0.01 USDC note from local shielded vault
-    note = wallet.get_unspent_note(denomination=0.01)
-    
-    # 3. Compute Circom Groth16 witness locally with non-membership proof
-    zk_payload = generate_spend_proof(note, root=pool_root, asp_root=asp_root, challenge=challenge)
-    
-    # 4. Re-issue request with anonymous payment authorization in header
-    data = requests.get(api_endpoint, headers={
-        "X-Payment-Authorization": zk_payload.serialize(),
-        "X-Nullifier": zk_payload.nullifier_hash
-    })
-    
-    # 5. Successfully received 200 OK with payload within 8ms
-    print("Inference Result:", data.json())`,
-
-    gateway: `// gateway.js — Express/Node.js Zero-Knowledge x402 Middleware
-import { snarkjs } from "snarkjs";
-import vKey from "./verification_key.json";
-
-export function x402ZKMiddleware(req, res, next) {
-  const authHeader = req.headers['x-payment-authorization'];
-  
-  if (!authHeader) {
-    return res.status(402)
-      .header('X-Payment-Required', '0.01 USDC')
-      .header('X-Challenge', crypto.randomBytes(16).toString('hex'))
-      .header('X-Pool-Root', currentPoolMerkleRoot)
-      .json({ error: "Payment required via ArcZK-x402" });
-  }
-
-  // Stage 1: Ultra-fast local in-memory pairing check (< 8ms)
-  const { proof, publicSignals } = JSON.parse(authHeader);
-  const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-
-  if (!isValid || isNullifierSpent(publicSignals.nullifier)) {
-    return res.status(403).json({ error: "Invalid or double-spent ZK proof" });
-  }
-
-  // Stage 2: Queue for background Arc settlement batch via Circle Gas Station
-  batchQueue.push(publicSignals);
-  next();
-}`,
-
-    circom: `/* spend.circom — Fixed-Denomination Anonymous Spend with ASP Check */
-pragma circom 2.1.6;
-
-include "circomlib/circuits/poseidon.circom";
-include "circomlib/circuits/merkleTree.circom";
-
-template SpendProof(levels) {
-    // Public inputs
-    signal input root;
-    signal input nullifierHash;
-    signal input aspExclusionRoot;
-    signal input challengeNonce;
-    signal input recipient;
-
-    // Private inputs
-    signal input secret;
-    signal input nullifier;
-    signal input pathElements[levels];
-    signal input pathIndices[levels];
-
-    // 1. Compute leaf commitment = Poseidon(amount, secret, nullifier)
-    component leafHasher = Poseidon(2);
-    leafHasher.inputs[0] <== nullifier;
-    leafHasher.inputs[1] <== secret;
-
-    // 2. Verify Membership in Shielded Deposit Root
-    component tree = MerkleTreeChecker(levels);
-    tree.leaf <== leafHasher.out;
-    tree.root <== root;
-    for (var i = 0; i < levels; i++) {
-        tree.pathElements[i] <== pathElements[i];
-        tree.pathIndices[i] <== pathIndices[i];
-    }
-
-    // 3. Nullifier derivation prevents double spending
-    component nullHasher = Poseidon(2);
-    nullHasher.inputs[0] <== nullifier;
-    nullHasher.inputs[1] <== pathIndices[0];
-    nullifierHash === nullHasher.out;
-}`
-  };
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(codeSnippets[codeTab]).then(() => {
-      setCopyFeedback("Copied!");
-      setTimeout(() => setCopyFeedback("Copy"), 2000);
+  const copyCloneCommand = () => {
+    navigator.clipboard.writeText("git clone https://github.com/trymbakmahant/p2pzkpayment.git").then(() => {
+      setCopyFeedback("Copied to Clipboard!");
+      setTimeout(() => setCopyFeedback("Copy GitHub Command"), 2200);
     });
   };
 
   const marqueeItems = [
-    "LangChain AI Swarms",
-    "Circle Gas Station (Paymaster)",
-    "Groth16 BN254 Pairings",
-    "AutoGPT Autonomous Agents",
     "HTTP 402 Protocol",
-    "Poseidon Merkle Vault",
+    "Zero msg.sender Leakage",
+    "Receiver-Batched Settlement",
+    "Arc Circle Gas Station",
     "Privacy Pools ASP Checks",
-    "Arc Network Testnet",
-    "Sub-10ms Local Verification",
-    "Native USDC Micro-Settlement",
+    "Poseidon Merkle Vault",
+    "Sub-Cent Machine Micropayments",
+    "Autonomous AI Agent Swarms",
+    "Arc Network Ecosystem",
+    "Two-Stage Verification",
   ];
 
   return (
@@ -293,7 +92,7 @@ template SpendProof(levels) {
       onMouseMove={handleMouseMove}
       className="relative min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white transition-colors duration-300"
     >
-      {/* RewampUI Spotlight Grid Cursor Overlay */}
+      {/* Spotlight Grid Cursor Overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
         style={{
@@ -309,18 +108,18 @@ template SpendProof(levels) {
               ▲
             </div>
             <span className="font-semibold text-sm tracking-tight text-white/95">
-              ArcZK<span className="text-white/40">-x402</span>
+              ArcNano
             </span>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">
-              Arc Grant
+            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-white/10 text-neutral-300 border border-white/15">
+              Protocol
             </span>
           </a>
 
           <div className="hidden md:flex items-center gap-6 text-xs font-medium text-white/70">
-            <a className="hover:text-white transition-colors" href="#simulator">Simulator</a>
-            <a className="hover:text-white transition-colors" href="#pillars">Architecture</a>
-            <a className="hover:text-white transition-colors" href="#comparison">Comparison</a>
-            <a className="hover:text-white transition-colors" href="#sdk">SDK</a>
+            <a className="hover:text-white transition-colors" href="#about">What We Are</a>
+            <a className="hover:text-white transition-colors" href="#problem">The Problem</a>
+            <a className="hover:text-white transition-colors" href="#solution">How It Works</a>
+            <a className="hover:text-white transition-colors" href="#roadmap">Roadmap</a>
           </div>
 
           <div className="pl-2 border-l border-white/10 flex items-center gap-2.5">
@@ -357,766 +156,657 @@ template SpendProof(levels) {
               )}
             </button>
 
+            {/* Coming Soon Status Pill */}
             <a
-              className="bg-white text-black text-xs font-semibold px-3.5 py-1.5 rounded-full hover:bg-neutral-200 transition-colors shadow-sm"
-              href="#simulator"
+              href="#roadmap"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium px-3.5 py-1.5 rounded-full hover:bg-amber-500/25 transition-all shadow-sm"
             >
-              Launch Demo
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>Coming Soon</span>
             </a>
           </div>
         </nav>
       </header>
 
-      <main>
-        {/* Hero Section */}
-        <section className="pt-36 pb-16 md:pt-44 md:pb-24 px-4 max-w-7xl mx-auto flex flex-col items-center text-center relative z-10">
-          {/* Grant & Solo Project Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[var(--card-border)] bg-[var(--pill-bg)] shadow-sm text-xs text-[var(--text-primary)] mb-8 backdrop-blur-md transition-colors">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-medium tracking-tight">Independent Solo Project by Trymbak Mahant &bull; Arc Ecosystem Grant</span>
+      <main className="relative">
+        {/* Ambient Multi-Harmonic Sine Ribbon Background for Hero Section */}
+        <div className="absolute top-0 inset-x-0 h-screen overflow-hidden pointer-events-none z-0">
+          <SineRibbonBackground
+            className="w-full h-full"
+            palette="arc"
+            speed={0.85}
+            interactive={true}
+            transparentBg={true}
+            opacity={theme === "dark" ? 0.75 : 0.45}
+          />
+          {/* Soft fade out to background color at the bottom of the backdrop */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--bg-app)] pointer-events-none" />
+        </div>
+
+        {/* Hero Section (100vh) */}
+        <section className="min-h-screen flex flex-col justify-center items-center text-center px-4 max-w-7xl mx-auto relative z-10 py-12 md:py-16">
+          {/* Glassmorphism Hero Card */}
+          <div className="w-full max-w-5xl md:max-w-6xl liquid-glass-border shadow-2xl">
+            <div className="w-full rounded-[40px] px-8 sm:px-14 md:px-20 py-12 md:py-16 liquid-glass flex flex-col items-center text-center relative overflow-hidden">
+              {/* Prismatic glass refraction flares */}
+              <div className="absolute -top-28 -left-20 w-96 h-96 bg-indigo-500/15 dark:bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-28 -right-20 w-96 h-96 bg-emerald-500/15 dark:bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+              
+              {/* Glass specular top reflection sheen */}
+              <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/[0.22] via-white/[0.06] to-transparent pointer-events-none rounded-t-[40px]" />
+
+              {/* Status Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 dark:bg-white/[0.08] border border-white/60 dark:border-white/20 backdrop-blur-xl text-xs font-mono text-neutral-800 dark:text-neutral-200 mb-6 shadow-sm relative z-10">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="text-[var(--text-primary)] font-semibold">Arc Ecosystem Protocol</span>
+                <span className="text-neutral-400 dark:text-neutral-500">•</span>
+                <span className="text-amber-600 dark:text-amber-300 font-medium">Under Active Development</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-[-0.035em] text-[var(--text-primary)] max-w-4xl leading-[1.08] transition-colors relative z-10">
+                Shielded Nanopayments
+                <span className="block text-[var(--text-muted)] font-light mt-1.5">
+                  For Autonomous AI Agents
+                </span>
+              </h1>
+
+              <p className="mt-6 text-base sm:text-lg md:text-xl text-[var(--text-secondary)] font-normal max-w-3xl leading-relaxed tracking-tight transition-colors relative z-10">
+                When autonomous AI agents pay for inference or data using public blockchain transactions, their wallet permanently logs every model call and trade secret. <strong className="text-[var(--text-primary)] font-medium">ArcNano</strong> is building private, compliant, sub-cent micropayments via native{" "}
+                <span className="inline-flex items-center whitespace-nowrap font-mono text-xs px-2.5 py-0.5 bg-white/60 dark:bg-white/10 border border-white/50 dark:border-white/20 rounded font-semibold text-[var(--text-primary)] shadow-sm align-baseline">
+                  HTTP 402
+                </span>{" "}
+                on the Arc Network.
+              </p>
+
+              {/* Genuine Intent Action Buttons */}
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5 relative z-10">
+                <a
+                  className="bg-white text-black hover:bg-neutral-100 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+                  href="#problem"
+                >
+                  <span>The Problem We Are Solving</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                  </svg>
+                </a>
+
+                <a
+                  className="bg-white/40 dark:bg-white/[0.08] hover:bg-white/60 dark:hover:bg-white/[0.14] text-[var(--text-primary)] border border-white/60 dark:border-white/15 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+                  href="#roadmap"
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span>Roadmap (Coming Soon)</span>
+                </a>
+
+                <a
+                  className="bg-white/20 dark:bg-white/[0.04] hover:bg-white/40 dark:hover:bg-white/[0.10] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-white/40 dark:border-white/10 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
+                  href="https://github.com/trymbakmahant/p2pzkpayment"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>GitHub Repository</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-[-0.035em] text-[var(--text-primary)] max-w-5xl leading-[1.04] transition-colors">
-            Zero-Knowledge Nanopayments
-            <span className="block text-[var(--text-muted)] font-light mt-1">For The Autonomous Agent Era</span>
-          </h1>
-
-          <p className="mt-8 text-lg sm:text-xl text-[var(--text-secondary)] font-normal max-w-3xl leading-relaxed tracking-tight transition-colors">
-            Decouple machine-to-machine payments from on-chain identity. Combine native{" "}
-            <code className="font-mono text-xs px-2 py-0.5 bg-[var(--badge-bg)] border border-[var(--badge-border)] rounded text-[var(--text-primary)] font-semibold">
-              HTTP 402
-            </code>{" "}
-            with shielded note pools, instant sub-10ms off-chain Groth16 verification, and sanctioned-address exclusion proofs on Arc.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <div className="rounded-full p-[1.5px] bg-gradient-to-r from-neutral-800 via-neutral-600 to-neutral-800 dark:from-neutral-700 dark:via-neutral-400 dark:to-neutral-700 shadow-lg">
-              <a
-                className="bg-[#111215] text-white text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-800 transition-all flex items-center gap-2"
-                href="#simulator"
-              >
-                <span>Run x402 ZK Simulator</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                </svg>
-              </a>
-            </div>
-
+          {/* Floating Glass Scroll Cue */}
+          <div className="mt-7 hidden sm:flex items-center justify-center">
             <a
-              className="bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--card-border)] text-sm font-medium px-6 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm"
-              href="#pillars"
+              href="#blueprint"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/30 dark:bg-white/[0.06] hover:bg-white/50 dark:hover:bg-white/[0.12] border border-white/40 dark:border-white/10 backdrop-blur-xl text-[11px] font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm animate-bounce cursor-pointer"
             >
-              System Specification
+              <span>Protocol Architecture</span>
+              <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+              </svg>
             </a>
           </div>
+        </section>
 
-          {/* Hero Visual Card with Animated Iridescent Mesh & 3D Cryptographic Wireframe Rings */}
-          <div className="w-full mt-16 md:mt-20 rounded-[32px] md:rounded-[44px] p-2.5 md:p-3 bg-neutral-200/50 dark:bg-neutral-900/40 border border-[var(--card-border)] shadow-2xl relative transition-colors">
-            <div className="hero-mesh-gradient w-full min-h-[460px] md:min-h-[580px] rounded-[24px] md:rounded-[36px] overflow-hidden relative flex flex-col justify-between p-6 sm:p-10 md:p-14 text-white">
+        {/* Architectural Blueprint Section (100vh) */}
+        <section className="min-h-screen flex flex-col justify-center items-center px-4 max-w-7xl mx-auto relative z-10 py-12 md:py-20" id="blueprint">
+          <div className="w-full rounded-[32px] md:rounded-[44px] p-2.5 md:p-3 bg-neutral-200/50 dark:bg-neutral-900/40 border border-[var(--card-border)] shadow-2xl relative transition-colors group">
+            <div className="w-full min-h-[460px] md:min-h-[540px] rounded-[24px] md:rounded-[36px] overflow-hidden relative flex flex-col justify-between p-6 sm:p-10 md:p-12 text-white bg-[#07090F] shadow-2xl">
+              {/* Interactive Sine Ribbon Background Canvas */}
+              <SineRibbonBackground
+                className="absolute inset-0 z-0 w-full h-full"
+                palette="arc"
+                speed={0.9}
+                interactive={true}
+              />
+
+              {/* Luminous vignette overlay for text legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/40 pointer-events-none z-[1]" />
               
-              {/* Header inside Card */}
-              <div className="flex items-center justify-between w-full relative z-10">
-                <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs font-mono">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span>Poseidon Tree Root: 0x7c4f...b389</span>
+              {/* Top Banner inside Blueprint */}
+              <div className="flex flex-wrap items-center justify-between gap-3 w-full relative z-10">
+                <div className="flex items-center gap-3 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs font-mono">
+                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                  <span>ArcNano Protocol Blueprint</span>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs font-medium">
-                  <span>Groth16 / BN254</span>
-                  <span className="opacity-40">•</span>
-                  <span>10,240 Constrained Gates</span>
+                <div className="flex items-center gap-2 bg-amber-500/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-amber-500/30 text-xs font-mono text-amber-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  <span>Specification &amp; Circuit Phase</span>
                 </div>
               </div>
 
-              {/* Centerpiece: Cryptographic Wireframe Ring Orb */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-85">
-                <div className="relative w-72 h-72 sm:w-96 sm:h-96 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border border-dashed border-white/20 animate-spin-slow"></div>
-                  <div className="absolute w-4/5 h-4/5 rounded-full border border-indigo-400/40 animate-spin-reverse-slow rotate-45"></div>
-                  <div className="absolute w-3/5 h-3/5 rounded-full border-2 border-emerald-400/40 animate-spin-slow -rotate-12 shadow-[0_0_30px_rgba(16,185,129,0.3)]"></div>
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 blur-sm opacity-90 shadow-2xl animate-pulse"></div>
-                  <div className="absolute w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center font-mono text-[10px] text-black font-bold">
-                    ZK
+              {/* Center Conceptual Diagram */}
+              <div className="relative z-10 my-8 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                    <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 1</div>
+                    <div className="text-base font-medium text-white mt-1">Shielded Note Deposit</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                      Agent commits fixed-tier USDC notes into a Poseidon Merkle tree on Arc, creating a uniform anonymity set.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                    <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 2</div>
+                    <div className="text-base font-medium text-white mt-1">HTTP 402 Challenge</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                      Agent queries an AI inference API and receives an automated HTTP 402 challenge with root parameters.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                    <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 3</div>
+                    <div className="text-base font-medium text-white mt-1">Off-Chain Groth16 Proof</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                      Agent proves note membership and ASP non-sanctioned compliance off-chain in memory without signing a tx.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                    <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 4</div>
+                    <div className="text-base font-medium text-white mt-1">Receiver Arc Settlement</div>
+                    <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
+                      Gateway verifies instantly and settles aggregated batches on Arc using Circle Gas Station sponsorship.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Info inside Card */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end relative z-10">
-                <div className="col-span-2 text-left">
-                  <span className="text-xs uppercase font-mono tracking-widest text-white/70">
-                    Decoupled Ephemeral Note Transfer
-                  </span>
-                  <p className="text-xl sm:text-3xl font-light tracking-tight mt-2 text-white/95 max-w-xl">
-                    Unlinkable machine micropayments. Provable solvency without revealing sender address or wallet histories.
-                  </p>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-4 text-left shadow-lg">
-                  <div className="text-[11px] font-mono uppercase text-white/60">Off-Chain Verification</div>
-                  <div className="text-3xl font-mono font-bold mt-1 text-emerald-300">6.4ms</div>
-                  <div className="text-xs text-white/70 mt-1">
-                    Direct local memory check via <code className="text-white font-mono">snarkjs.groth16</code>
+              {/* Bottom Info inside Blueprint */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 border-t border-white/10 relative z-10 text-left">
+                <div>
+                  <span className="text-xs uppercase font-mono tracking-wider text-neutral-400">Core Cryptographic Guarantee</span>
+                  <div className="text-sm sm:text-base font-light text-white/90 mt-0.5">
+                    The spender never broadcasts an on-chain transaction. <code className="text-emerald-300 font-mono text-xs">msg.sender</code> linkability is mathematically eliminated.
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="#solution"
+                    className="text-xs font-mono text-white/70 hover:text-white underline underline-offset-4 transition-colors"
+                  >
+                    Read Technical Breakdown &rarr;
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Velocity Marquee */}
+        {/* Protocol Pillars Marquee */}
         <div className="w-full bg-[#111215] py-3.5 border-y border-neutral-800 overflow-hidden relative z-10">
           <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-mono text-neutral-400">
             {marqueeItems.concat(marqueeItems).map((item, idx) => (
               <span key={idx} className="flex items-center gap-8">
                 <span>{item}</span>
-                <span className="text-emerald-400">•</span>
+                <span className="text-indigo-400">•</span>
               </span>
             ))}
           </div>
         </div>
 
-        {/* Metrics Ribbon */}
-        <section className="max-w-7xl mx-auto px-4 py-16 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text-primary)]">0%</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Identity Leakage</div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">
-                <code className="font-mono">msg.sender</code> decoupled from note spending.
-              </p>
-            </div>
-            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-emerald-500">&lt; 8ms</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Proof Verification</div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Direct local memory execution before payload response.</p>
-            </div>
-            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text-primary)]">100%</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Compliance Ready</div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Privacy Pools ASP exclusion proof with each batch.</p>
-            </div>
-            <div className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] shadow-sm text-left hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="text-3xl sm:text-4xl font-semibold tracking-tight text-indigo-500">$0.00</div>
-              <div className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mt-2">Agent Native Gas</div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Circle Gas Station Paymaster handles L1/L2 gas.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Interactive Protocol Simulator (Terminal Dark Surface) */}
-        <section className="py-20 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors" id="simulator">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--card-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-                Interactive Testbed
-              </div>
-              <h2 className="text-3xl md:text-4xl font-normal tracking-tight text-[var(--text-primary)]">
-                The Complete ZK-x402 Protocol Flow
-              </h2>
-              <p className="text-[var(--text-secondary)] text-sm md:text-base mt-2">
-                Simulate an autonomous agent triggering an{" "}
-                <code className="font-mono text-xs bg-[var(--badge-bg)] border border-[var(--badge-border)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">
-                  HTTP 402 Payment Required
-                </code>{" "}
-                challenge, computing the Groth16 zero-knowledge proof, and verifying within single-digit milliseconds.
-              </p>
-            </div>
-
-            {/* Simulator Frame */}
-            <div className="bg-[#12141A] rounded-[32px] border border-neutral-800 text-white shadow-2xl overflow-hidden">
-              {/* Header */}
-              <div className="px-6 py-4 border-b border-neutral-800/80 flex flex-wrap items-center justify-between gap-4 bg-neutral-950/40">
-                <div className="flex items-center gap-3">
-                  <span className="flex gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-rose-500/80"></span>
-                    <span className="w-3 h-3 rounded-full bg-amber-500/80"></span>
-                    <span className="w-3 h-3 rounded-full bg-emerald-500/80"></span>
-                  </span>
-                  <span className="text-xs font-mono text-neutral-400 pl-2 border-l border-neutral-800">
-                    x402 Interactive Pipeline
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-800/50">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>Arc Testnet Connected</span>
-                </div>
-              </div>
-
-              {/* Step Navigation Tabs */}
-              <div className="px-6 py-3 bg-neutral-900/50 border-b border-neutral-800/80 flex overflow-x-auto gap-2 text-xs">
-                {[
-                  { step: 1, label: "1. Pool Deposit" },
-                  { step: 2, label: "2. HTTP 402 Trigger" },
-                  { step: 3, label: "3. ZK Proof Gen" },
-                  { step: 4, label: "4. Verify & Settle" },
-                ].map((item) => (
-                  <button
-                    key={item.step}
-                    onClick={() => handleStepChange(item.step)}
-                    className={`px-3.5 py-1.5 rounded-lg border font-mono whitespace-nowrap transition-all cursor-pointer ${
-                      activeStep === item.step
-                        ? "bg-white/10 text-white border-white/20 font-medium"
-                        : "text-neutral-400 border-transparent hover:bg-neutral-800"
-                    }`}
-                  >
-                    {item.label} {activeStep === item.step ? "(Active)" : ""}
-                  </button>
-                ))}
-              </div>
-
-              {/* Simulator Body */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800">
-                {/* Left Interactive Column */}
-                <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between">
-                  <div>
-                    {activeStep === 1 && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-xs uppercase font-mono tracking-wider text-emerald-400">Step 1 of 4</span>
-                            <h3 className="text-xl font-medium text-white mt-1">Shielded Pool Deposit &amp; Note Commitment</h3>
-                          </div>
-                          <span className="text-xs px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono">
-                            Poseidon Hash Commit
-                          </span>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800">
-                            <div className="text-xs font-mono text-neutral-400 mb-2">Select Fixed Denomination (Uniform Anonymity Set):</div>
-                            <div className="grid grid-cols-3 gap-2 font-mono text-xs">
-                              {["0.01", "0.05", "0.10"].map((denom) => (
-                                <button
-                                  key={denom}
-                                  onClick={() => setSelectedDenomination(denom)}
-                                  className={`p-2.5 rounded-lg border transition-all cursor-pointer font-bold ${
-                                    selectedDenomination === denom
-                                      ? "bg-emerald-950/60 border-emerald-500/60 text-emerald-400"
-                                      : "bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white"
-                                  }`}
-                                >
-                                  {denom} USDC
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800 text-xs font-mono text-neutral-400">
-                            <span className="text-white block font-sans font-medium mb-1">Generated Secret Commitment:</span>
-                            <div className="bg-neutral-950 p-2.5 rounded text-neutral-300 font-mono break-all border border-neutral-800/80">
-                              commitment = Poseidon({selectedDenomination} USDC, secret, nullifier_seed) &rarr; 0x8a92f09c71b...
-                            </div>
-                          </div>
-                        </div>
-                        <div className="pt-2">
-                          <button
-                            onClick={handleDepositCommitment}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-md"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round"/></svg>
-                            Commit Note into Arc Merkle Tree
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeStep === 2 && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-xs uppercase font-mono tracking-wider text-amber-400">Step 2 of 4</span>
-                            <h3 className="text-xl font-medium text-white mt-1">HTTP 402 Trigger &amp; Server Challenge</h3>
-                          </div>
-                          <span className="text-xs px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono">
-                            Standard HTTP 402
-                          </span>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800">
-                            <div className="text-xs font-mono text-amber-400">HTTP/1.1 402 Payment Required</div>
-                            <div className="mt-2 text-xs font-mono bg-neutral-950 p-2.5 rounded text-neutral-300 space-y-1 border border-neutral-800/80">
-                              <div>X-Price-Per-Request: {selectedDenomination} USDC</div>
-                              <div>X-Payment-Address: 0xa94b8...F3C7</div>
-                              <div>X-Challenge-Nonce: 0xbf28489c017d...</div>
-                              <div>X-Pool-Merkle-Root: 0x7c4f19b2a...</div>
-                              <div>X-ASP-Exclusion-Root: 0x19a0bc...</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="pt-2">
-                          <button
-                            onClick={() => addLog("[HTTP 402] GET /api/v1/inference &rarr; Returned HTTP 402 challenge challengeNonce=0xbf28...", "text-sky-400")}
-                            className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium px-4 py-2.5 rounded-lg transition-all cursor-pointer"
-                          >
-                            Re-send Request to Gateway
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeStep === 3 && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-xs uppercase font-mono tracking-wider text-indigo-400">Step 3 of 4</span>
-                            <h3 className="text-xl font-medium text-white mt-1">Groth16 Client Witness &amp; Proof Generation</h3>
-                          </div>
-                          <span className="text-xs px-2.5 py-1 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-mono">
-                            Wasm / Circom
-                          </span>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800">
-                            <div className="flex justify-between items-center text-xs font-mono text-neutral-400">
-                              <span className="text-white">spend.circom execution</span>
-                              <span className="text-emerald-400">{isGeneratingProof ? "Computing..." : "Proof Valid"}</span>
-                            </div>
-                            <div className="mt-2 text-xs font-mono bg-neutral-950 p-2.5 rounded text-neutral-300 space-y-1 border border-neutral-800/80">
-                              <div>Private: note.secret, note.nullifier, merklePath[20]</div>
-                              <div>Public: root, nullifierHash, challenge, recipient</div>
-                              <div className="text-neutral-500">Constraint verification count: 10,240 gates</div>
-                            </div>
-
-                            {/* Progress bar */}
-                            <div className="w-full bg-neutral-950 h-1.5 rounded-full mt-3 overflow-hidden">
-                              <div
-                                className="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full transition-all duration-300"
-                                style={{ width: `${proofProgress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="pt-2">
-                          <button
-                            onClick={runProofGeneration}
-                            disabled={isGeneratingProof}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2"/></svg>
-                            {isGeneratingProof ? "Synthesizing Proof..." : "Re-generate Groth16 Proof"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeStep === 4 && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-xs uppercase font-mono tracking-wider text-emerald-400">Step 4 of 4</span>
-                            <h3 className="text-xl font-medium text-white mt-1">Sub-10ms Verify &amp; Arc Batch Settlement</h3>
-                          </div>
-                          <span className="text-xs px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono">
-                            &lt; 8ms latency
-                          </span>
-                        </div>
-                        <div className="space-y-4">
-                          {/* Stage 1 */}
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800">
-                            <div className="flex items-center justify-between text-xs font-mono text-neutral-400">
-                              <span className="text-white font-medium">Stage 1: Memory Verification</span>
-                              <span className="text-emerald-400">PASSED (6.4ms)</span>
-                            </div>
-                            <div className="mt-2 text-xs font-mono text-neutral-300 bg-neutral-950 p-2.5 rounded-lg border border-neutral-800/80 space-y-1">
-                              <div>snarkjs.groth16.verify(vKey, publicSignals, proof)</div>
-                              <div className="text-neutral-500">&rarr; Nullifier: 0x93e10fa728bc2... (Unspent)</div>
-                              <div className="text-neutral-500">&rarr; ASP Root: 0x41f3... (Whitelisted set)</div>
-                            </div>
-                          </div>
-                          {/* Stage 2 */}
-                          <div className="bg-neutral-900/80 rounded-2xl p-4 border border-neutral-800">
-                            <div className="flex items-center justify-between text-xs font-mono text-neutral-400">
-                              <span className="text-white font-medium">Stage 2: Arc Batch Settlement</span>
-                              <span className="text-indigo-400">Deferred Queue</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                              <div className="bg-neutral-950 p-2 rounded-lg border border-neutral-800 font-mono">
-                                <span className="text-neutral-500 block text-[10px]">RECIPIENT ADDRESS</span>
-                                <span className="text-white truncate block">0xa94b8...F3C7</span>
-                              </div>
-                              <div className="bg-neutral-950 p-2 rounded-lg border border-neutral-800 font-mono">
-                                <span className="text-neutral-500 block text-[10px]">GAS SPONSOR</span>
-                                <span className="text-emerald-400 block">$0.00 (Circle Paymaster)</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions Bar */}
-                  <div className="mt-8 pt-6 border-t border-neutral-800 flex flex-wrap gap-3">
-                    <button
-                      onClick={runVerificationDemo}
-                      disabled={isVerifying}
-                      className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-black text-xs font-semibold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 cursor-pointer shadow-md"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                      </svg>
-                      <span>{isVerifying ? "Verifying In Memory..." : "Verify X-PAYMENT & Serve Payload"}</span>
-                    </button>
-                    <button
-                      onClick={flushBatchDemo}
-                      className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium px-4 py-2.5 rounded-lg transition-all cursor-pointer"
-                    >
-                      Flush Batch Settlement
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right Telemetry Column */}
-                <div className="lg:col-span-5 p-6 sm:p-8 bg-neutral-950/70 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs uppercase font-mono tracking-wider text-neutral-400">
-                        Telemetry &amp; Proof Log
-                      </span>
-                      <button
-                        onClick={clearTerminalLogs}
-                        className="text-[10px] text-neutral-500 hover:text-neutral-300 font-mono underline cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    </div>
-
-                    <div className="terminal-scroll h-60 overflow-y-auto font-mono text-[11px] leading-relaxed p-3 bg-neutral-950 rounded-xl border border-neutral-800/80 space-y-1.5">
-                      {logs.map((log) => (
-                        <div key={log.id} className={log.colorClass || "text-neutral-300"}>
-                          <span className="text-neutral-500">[{log.time}]</span> {log.text}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Anonymity Set Leaves */}
-                  <div className="mt-6 pt-4 border-t border-neutral-800/80">
-                    <div className="flex justify-between items-center text-xs font-mono mb-2">
-                      <span className="text-neutral-400">Live Merkle Leaves (Anonymity Set)</span>
-                      <span className="text-emerald-400 font-bold">{merkleLeaves.length + 120} Notes</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1.5 font-mono text-[10px]">
-                      {merkleLeaves.map((leaf, i) => (
-                        <div
-                          key={i}
-                          className={`p-1.5 rounded text-center truncate border transition-all ${
-                            i === 0
-                              ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 font-bold"
-                              : "bg-neutral-900 border-neutral-800 text-neutral-400"
-                          }`}
-                        >
-                          {leaf}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* System Pillars (Bento Grid Layout) */}
-        <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="pillars">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+        {/* SECTION 1: WHAT WE ARE (TAKES 100vh FULL VIEWPORT) */}
+        <section className="min-h-screen flex flex-col justify-center py-20 px-4 max-w-7xl mx-auto relative z-10" id="about">
+          <div className="max-w-3xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--badge-bg)] border border-[var(--badge-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-              Architecture
+              Mission Statement
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
-              Why Naive ZK Fails &amp; How ArcZK Solves It
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-[var(--text-primary)]">
+              What Is ArcNano?
             </h2>
-            <p className="text-[var(--text-secondary)] text-base mt-3">
-              Traditional privacy protocols either leak the spender via transaction signing, impose second-long verification stalls, or face regulatory non-compliance. ArcZK architects around these limits.
+            <p className="text-[var(--text-secondary)] text-base md:text-xl mt-4 leading-relaxed">
+              ArcNano is an open-source zero-knowledge payment protocol engineered for the <strong className="text-[var(--text-primary)] font-medium">Arc Ecosystem</strong>, designed to enable true private machine-to-machine commerce.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Bento Card 1 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card 1 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-lg mb-6">
                   01
                 </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Fixed Denomination Pools</h3>
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
+                  Zero-Knowledge for Agents
+                </h3>
                 <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  Eliminates value-based transaction correlation. All agent notes are uniform (e.g. 0.01 USDC, 0.05 USDC), creating high anonymity sets even at fractional micropayment volumes.
+                  Cryptographic payment infrastructure specifically designed for machine-to-machine interactions. Autonomous software agents and LLMs require private payments that do not dox their operational logic, prompt pipelines, or trading intelligence.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
-                Poseidon Hash Merkle Tree
+                Poseidon Merkle Trees • Groth16
               </div>
             </div>
 
-            {/* Bento Card 2 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
+            {/* Card 2 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-lg mb-6">
                   02
                 </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Decoupled msg.sender</h3>
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
+                  Native Web Standard (x402)
+                </h3>
                 <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  The AI agent pays via HTTP header without signing an on-chain transaction. The recipient API gateway batches nullifier settlements on-chain, eliminating payer wallet linkability entirely.
+                  Instead of requiring manual wallet popups or custom RPC bridges, payments occur naturally over the Internet&apos;s standard <code className="font-mono text-xs">HTTP 402 Payment Required</code> protocol via standard HTTP request/response headers.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
-                Zero Sender Footprint
+                RFC-Standardized Header Exchange
               </div>
             </div>
 
-            {/* Bento Card 3 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
+            {/* Card 3 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-lg mb-6">
                   03
                 </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Compliant Privacy Pools</h3>
+                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
+                  Purpose-Built for Arc
+                </h3>
                 <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  Incorporates Association Set Providers (ASPs). Each proof mathematically proves the spent note is NOT derived from sanctioned or flagged deposits without disclosing the origin leaf.
+                  Leveraging Arc&apos;s native Circle Gas Station (ERC-4337 Paymaster) and native USDC. Receiver-sponsored gas eliminates the need for agents to hold native gas tokens, preventing the gas-funding paper trail that destroys privacy.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
-                OFAC &amp; FinCEN Provable Filter
-              </div>
-            </div>
-
-            {/* Bento Card 4 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
-                  04
-                </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Two-Stage Verification</h3>
-                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  Stage 1 checks Groth16 pairings in local server RAM in &lt;10ms to serve the HTTP payload instantly. Stage 2 executes asynchronous aggregated settlement on Arc Network.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-emerald-500 font-semibold">
-                Sub-10ms API Overhead
-              </div>
-            </div>
-
-            {/* Bento Card 5 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
-                  05
-                </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Circle Gas Station Integration</h3>
-                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  Autonomous agents only manage stablecoin notes. The Circle Paymaster subsidizes on-chain batching gas, meaning agents never hold native gas tokens or leak balances.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
-                ERC-4337 Sponsored Paymaster
-              </div>
-            </div>
-
-            {/* Bento Card 6 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm flex flex-col justify-between hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-2xl bg-[var(--badge-bg)] border border-[var(--badge-border)] flex items-center justify-center font-mono text-sm font-semibold mb-6 text-[var(--text-primary)]">
-                  06
-                </div>
-                <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">Autonomous M2M Protocol</h3>
-                <p className="text-[var(--text-secondary)] text-sm mt-3 leading-relaxed">
-                  Built specifically for autonomous LLMs and agent swarms querying APIs, retrieving contextual embeddings, compute nodes, and vector search on per-inference basis.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
-                Standard HTTP 402 Headers
+                Circle Paymaster • Native USDC
               </div>
             </div>
           </div>
         </section>
 
-        {/* Comparison Table Section */}
-        <section className="py-20 bg-[var(--card-bg)] border-t border-[var(--card-border)] px-4 relative z-10 transition-colors" id="comparison">
+        {/* SECTION 2: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
+        <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors" id="problem">
           <div className="max-w-7xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--badge-bg)] border border-[var(--badge-border)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] mb-3">
-                Ecosystem Benchmark
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-[11px] font-mono uppercase tracking-wider text-rose-500 mb-3">
+                The Problem
               </div>
-              <h2 className="text-3xl sm:text-4xl font-normal tracking-tight text-[var(--text-primary)]">
-                Market Architecture Comparison
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
+                Why Existing Machine Payments Fail
               </h2>
-              <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2">
-                Evaluating how ArcZK-x402 solves identity isolation and latency compared to incumbent solutions.
+              <p className="text-[var(--text-secondary)] text-base mt-3">
+                Paying for AI compute and tools with public crypto creates 4 fatal traps.
               </p>
             </div>
 
-            <div className="overflow-x-auto border border-[var(--card-border)] rounded-3xl shadow-sm">
-              <table className="w-full text-left text-sm border-collapse min-w-[720px]">
-                <thead>
-                  <tr className="border-b border-[var(--table-border)] bg-[var(--table-head-bg)] font-mono text-xs text-[var(--text-secondary)] transition-colors">
-                    <th className="py-4 px-6 font-semibold">Evaluation Metric</th>
-                    <th className="py-4 px-6 font-medium">Public ERC-20 (USDC)</th>
-                    <th className="py-4 px-6 font-medium">Legacy Mixer (Tornado)</th>
-                    <th className="py-4 px-6 font-medium">Privacy Pools (Railgun)</th>
-                    <th className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      ArcZK-x402 Protocol
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--table-border)] text-[var(--text-secondary)]">
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Identity Privacy</td>
-                    <td className="py-4 px-6 text-rose-500 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500"></span> Publicly Visible
-                    </td>
-                    <td className="py-4 px-6">Zero-Knowledge</td>
-                    <td className="py-4 px-6">Zero-Knowledge</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      Zero-Knowledge (Decoupled)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Signer Address Leakage</td>
-                    <td className="py-4 px-6 text-rose-500">100% Leaked (msg.sender)</td>
-                    <td className="py-4 px-6 text-amber-500">Requires Relayer Gas Fee</td>
-                    <td className="py-4 px-6 text-amber-500">Requires Relayer Setup</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      0% (Receiver Settles)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Regulatory Status</td>
-                    <td className="py-4 px-6">Compliant</td>
-                    <td className="py-4 px-6 text-rose-500 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-rose-500"></span> OFAC Sanctioned
-                    </td>
-                    <td className="py-4 px-6">Optional Disclosures</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      Inherent ASP Exclusion Proof
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">API Request Latency</td>
-                    <td className="py-4 px-6">Block confirmation (2-12s)</td>
-                    <td className="py-4 px-6">N/A (Non-API)</td>
-                    <td className="py-4 px-6">On-chain verify (seconds)</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      &lt; 10ms (In-Memory Snarkjs)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Nanopayment Economics</td>
-                    <td className="py-4 px-6 text-rose-500">Gas exceeds $0.01 value</td>
-                    <td className="py-4 px-6 text-rose-500">Fixed Large Tiers (0.1+ ETH)</td>
-                    <td className="py-4 px-6 text-amber-500">High gas per execution</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      Batched Circle Paymaster ($0)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 font-medium text-[var(--text-primary)]">Agent Protocol Native</td>
-                    <td className="py-4 px-6 text-rose-500">No (Web3 Only)</td>
-                    <td className="py-4 px-6 text-rose-500">No</td>
-                    <td className="py-4 px-6 text-rose-500">No</td>
-                    <td className="py-4 px-6 font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-l border-emerald-500/20">
-                      Yes (Native HTTP 402)
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Problem 1 */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-rose-500/40 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-mono uppercase tracking-wider text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-md font-semibold">
+                      01 • Surveillance
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">msg.sender Doxxing</span>
+                  </div>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Public Ledgers Dox Your AI Agents
+                  </h3>
+                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                    Standard crypto payments permanently log every prompt, tool call, and model supplier to block explorers for competitors to copy.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-rose-500">
+                  <span>Impact</span>
+                  <span className="font-semibold">Zero business or operational privacy</span>
+                </div>
+              </div>
+
+              {/* Problem 2 */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-amber-500/40 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-mono uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md font-semibold">
+                      02 • Transport Leak
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Naive ZK Trap</span>
+                  </div>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Naive ZK Still Leaks The Signer
+                  </h3>
+                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                    Even with a ZK proof, if the agent signs the transaction on-chain, its wallet address is broadcast to every node in the network.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-amber-500">
+                  <span>Impact</span>
+                  <span className="font-semibold">Privacy broken at the network layer</span>
+                </div>
+              </div>
+
+              {/* Problem 3 */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-rose-500/40 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-mono uppercase tracking-wider text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-md font-semibold">
+                      03 • Sanctions Ban
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Mixer Ban</span>
+                  </div>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Mixers Are Blocked By Enterprise APIs
+                  </h3>
+                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                    Traditional mixers pool dirty and clean funds together, causing AI gateways, AWS, and Cloudflare to automatically blacklist them.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-rose-500">
+                  <span>Impact</span>
+                  <span className="font-semibold">Banned by compliant API gateways</span>
+                </div>
+              </div>
+
+              {/* Problem 4 */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-amber-500/40 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-mono uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md font-semibold">
+                      04 • Latency &amp; Gas
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Economic Trap</span>
+                  </div>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Block Times &amp; Gas Kill Nanopayments
+                  </h3>
+                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                    Waiting 10–15 seconds for a block stalls real-time agent loops, while gas fees cost 10x more than a $0.001 inference call.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-amber-500">
+                  <span>Impact</span>
+                  <span className="font-semibold">Economically &amp; computationally broken</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Code SDK Section */}
-        <section className="py-24 bg-[#0D0E12] text-white px-4 border-t border-neutral-800 relative z-10" id="sdk">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white/70 text-[11px] font-mono uppercase tracking-wider mb-3">
-                  Developer Kit
+        {/* SECTION 3: HOW ARCNANO SOLVES IT */}
+        <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-500 mb-3">
+              The Architecture
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
+              How ArcNano Solves Every Trap
+            </h2>
+            <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 leading-relaxed">
+              We architected ArcNano from first principles to decouple payments from identity, guarantee legal compliance, and deliver instant sub-second verification.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Solution Card 1 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-5">
+                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 01</span>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Receiver-Batched Settlement
+                  </h3>
+                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
+                    Eliminating the Payer&apos;s msg.sender
+                  </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-normal tracking-tight">Plug-and-Play Implementation</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-400 font-mono">Compatible with:</span>
-                <span className="px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 font-mono text-xs">LangChain</span>
-                <span className="px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 font-mono text-xs">AutoGPT</span>
-                <span className="px-2.5 py-1 rounded-md bg-white/10 text-neutral-300 font-mono text-xs">Express/Node</span>
+                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
+                  <p>
+                    In ArcNano, <strong className="text-[var(--text-primary)] font-medium">the agent never broadcasts an on-chain transaction to spend a note</strong>.
+                  </p>
+                  <p>
+                    Instead, the agent computes the Groth16 proof locally in memory and embeds it directly into the HTTP header (<code className="font-mono text-xs bg-[var(--badge-bg)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">X-PAYMENT</code>) when calling the API.
+                  </p>
+                  <p>
+                    The <em>receiver</em> (the API service) collects valid proofs from multiple agents and broadcasts an aggregated <code className="font-mono text-xs">batchSpend()</code> transaction to Arc. Because the receiver is the transaction signer, the payer&apos;s wallet address is never published to the blockchain.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="bg-[#14161E] rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-              <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-black/30">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCodeTab("agent")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                      codeTab === "agent" ? "bg-white/15 text-white" : "text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    agent_client.py
-                  </button>
-                  <button
-                    onClick={() => setCodeTab("gateway")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                      codeTab === "gateway" ? "bg-white/15 text-white" : "text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    gateway.js (x402 Middleware)
-                  </button>
-                  <button
-                    onClick={() => setCodeTab("circom")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-                      codeTab === "circom" ? "bg-white/15 text-white" : "text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    spend.circom (Circuit)
-                  </button>
+            {/* Solution Card 2 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-5">
+                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 02</span>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Arc Circle Gas Station Sponsorship
+                  </h3>
+                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
+                    $0 Gas &amp; No Funding Paper Trails
+                  </div>
                 </div>
+                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
+                  <p>
+                    Normally, funding burner wallets with native gas tokens creates a traceable link back to the funding exchange or master account.
+                  </p>
+                  <p>
+                    On Arc, settlement transactions are submitted via the <strong className="text-[var(--text-primary)] font-medium">Circle Gas Station (Paymaster)</strong>. Receiver settlement gas is sponsored, meaning agents only need to manage stable USDC commitments. No gas tokens are held, and no funding trails are created.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Solution Card 3 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-5">
+                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 03</span>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Association Set Provider (ASP) Proofs
+                  </h3>
+                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
+                    Compliance by Mathematics (Privacy Pools)
+                  </div>
+                </div>
+                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
+                  <p>
+                    To avoid the regulatory fate of legacy mixers, ArcNano integrates Association Set Providers (ASPs) inspired by the <em>Privacy Pools</em> research paper.
+                  </p>
+                  <p>
+                    Every Circom spend circuit includes a cryptographic non-membership constraint against sanctioned deposit roots. The agent mathematically proves: <em className="text-[var(--text-primary)]">&ldquo;My deposited note exists in the legitimate tree, AND my note is NOT present in any flagged/OFAC sanctioned root.&rdquo;</em>
+                  </p>
+                  <p>
+                    Enterprise APIs can verify clean funds with 100% mathematical certainty without learning the depositor&apos;s identity.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Solution Card 4 */}
+            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-5">
+                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 04</span>
+                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                    Two-Stage HTTP 402 Verification
+                  </h3>
+                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
+                    Sub-10ms Delivery + Periodic Batching
+                  </div>
+                </div>
+                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
+                  <p>
+                    We decouple the API response from on-chain block mining times:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-sm md:text-base">
+                    <li>
+                      <strong className="text-[var(--text-primary)] font-medium">Stage 1 (Off-Chain Verification):</strong> When the API gateway receives the HTTP 402 payment header, it executes an in-memory Groth16 pairing check and checks an in-memory nullifier cache. The verification completes in milliseconds, and the API payload is returned to the agent without delay.
+                    </li>
+                    <li>
+                      <strong className="text-[var(--text-primary)] font-medium">Stage 2 (On-Chain Settlement):</strong> The gateway queues the nullifiers and settles 50–100 transactions together on Arc in periodic background batches, dropping per-request settlement costs to fractions of a cent.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 4: DEVELOPMENT ROADMAP & COMING SOON */}
+        <section className="py-24 bg-[var(--section-alt-bg)] border-t border-[var(--card-border)] px-4 relative z-10 transition-colors" id="roadmap">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-500 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Active Research &amp; Implementation</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
+                Development Roadmap
+              </h2>
+              <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 leading-relaxed">
+                We believe in total transparency. Here is our honest, step-by-step progress from architectural design to live testnet deployment on Arc.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {/* Milestone 1 - Completed */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                      Milestone 1 • Completed
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Research &amp; Specification</span>
+                  </div>
+                  <h3 className="text-xl font-medium text-[var(--text-primary)]">
+                    System Architecture &amp; Protocol Specification Formulation
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+                    Designed the two-stage HTTP 402 verification model, solved the <code className="font-mono text-xs">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification for the Arc ecosystem.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-emerald-500 text-xs font-mono shrink-0">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Completed</span>
+                </div>
+              </div>
+
+              {/* Milestone 2 - In Progress / Coming Soon */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border-2 border-amber-500/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="space-y-2 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      Milestone 2 • In Active Development
+                    </span>
+                    <span className="text-xs font-mono text-amber-600 dark:text-amber-400 font-medium">Coming Soon</span>
+                  </div>
+                  <h3 className="text-xl font-medium text-[var(--text-primary)]">
+                    Circom Circuits &amp; Arc Testnet Smart Contracts
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+                    Finalizing the 20-level Poseidon Merkle tree inclusion circuit (<code className="font-mono text-xs">spend.circom</code>), implementing Association Set non-membership constraints (<code className="font-mono text-xs">asp_check.circom</code>), and preparing <code className="font-mono text-xs">ArcShieldPool.sol</code> for deployment on Arc Testnet.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-amber-500 text-xs font-mono shrink-0 relative z-10">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                  <span>In Progress</span>
+                </div>
+              </div>
+
+              {/* Milestone 3 - Coming Soon */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">
+                      Milestone 3 • Coming Soon
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Developer Tooling</span>
+                  </div>
+                  <h3 className="text-xl font-medium text-[var(--text-primary)]">
+                    Autonomous Agent SDK &amp; Gateway Middleware
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+                    Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify HTTP 402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
+                  </p>
+                </div>
+                <div className="text-neutral-400 text-xs font-mono shrink-0">
+                  Coming Soon
+                </div>
+              </div>
+
+              {/* Milestone 4 - Coming Soon */}
+              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">
+                      Milestone 4 • Coming Soon
+                    </span>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">Live Ecosystem Pilot</span>
+                  </div>
+                  <h3 className="text-xl font-medium text-[var(--text-primary)]">
+                    Circle Gas Station Relayer &amp; AI Pilot on Arc
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+                    Production integration with Arc&apos;s Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.
+                  </p>
+                </div>
+                <div className="text-neutral-400 text-xs font-mono shrink-0">
+                  Coming Soon
+                </div>
+              </div>
+            </div>
+
+            {/* Coming Soon Callout Box */}
+            <div className="mt-12 bg-[#12141A] rounded-3xl p-8 md:p-10 border border-white/10 text-white shadow-2xl text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/25 text-xs font-mono mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Open Source • Public Research</span>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-normal tracking-tight">
+                Follow the Development of ArcNano
+              </h3>
+              <p className="text-neutral-400 text-sm md:text-base max-w-xl mx-auto mt-3 leading-relaxed">
+                As circuits, testnet contracts, and the agent client library are committed, all code is published openly on GitHub under the MIT License.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <a
+                  href="https://github.com/trymbakmahant/p2pzkpayment"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white text-black hover:bg-neutral-200 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-md cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                  <span>Star &amp; View Repository</span>
+                </a>
+
                 <button
-                  onClick={copyCode}
-                  className="text-xs font-mono text-neutral-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                  onClick={copyCloneCommand}
+                  className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs sm:text-sm font-mono px-5 py-3 rounded-full transition-all border border-neutral-700 cursor-pointer flex items-center gap-2"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                    ></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   <span>{copyFeedback}</span>
                 </button>
               </div>
-
-              <pre className="p-6 md:p-8 font-mono text-xs sm:text-sm text-neutral-300 overflow-x-auto leading-relaxed max-h-[460px] terminal-scroll">
-                <code>{codeSnippets[codeTab]}</code>
-              </pre>
             </div>
-          </div>
-        </section>
-
-        {/* Minimal Sign-off & Solo Author Card */}
-        <section className="py-24 max-w-4xl mx-auto px-4 text-center relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto mb-8 shadow-md">
-            ▲
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-[var(--text-primary)] max-w-3xl mx-auto leading-tight transition-colors">
-            Experience zero-knowledge nanopayments for autonomous agents
-          </h2>
-          <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 max-w-xl mx-auto transition-colors">
-            Built as a grant proposal and open protocol on Arc Network. Enable sub-cent private agent interactions today.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <a
-              className="bg-[#111215] text-white text-sm font-medium px-7 py-3.5 rounded-full hover:bg-neutral-800 transition-all shadow-md"
-              href="#simulator"
-            >
-              Test Live Simulator
-            </a>
-            <a
-              className="bg-[var(--card-bg)] text-[var(--text-primary)] border border-[var(--card-border)] text-sm font-medium px-7 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm"
-              href="https://github.com/trymbakmahant/p2pzkpayment"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View GitHub Repo
-            </a>
           </div>
         </section>
       </main>
@@ -1130,54 +820,54 @@ template SpendProof(levels) {
                 <div className="w-6 h-6 rounded bg-white text-black flex items-center justify-center text-xs font-bold">
                   ▲
                 </div>
-                <span className="text-base font-semibold tracking-tight text-white">ArcZK-x402</span>
+                <span className="text-base font-semibold tracking-tight text-white">ArcNano</span>
               </div>
               <p className="text-neutral-400 text-xs sm:text-sm max-w-sm leading-relaxed">
-                The privacy-preserving zero-knowledge payment infrastructure tailored for autonomous machine-to-machine interactions and AI agent micro-transactions on Arc.
+                Privacy-preserving zero-knowledge payment infrastructure for autonomous machine-to-machine interactions and AI agent micro-transactions on the Arc Network.
               </p>
-              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 pt-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>All Systems Operational (Arc Testnet)</span>
+              <div className="flex items-center gap-2 text-xs font-mono text-amber-300 pt-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Active Research &amp; Circuit Implementation Phase</span>
               </div>
             </div>
 
             <div>
               <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Architecture</h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#simulator">x402 Protocol Spec</a></li>
-                <li><a className="hover:text-white transition-colors" href="#pillars">Circom Verification</a></li>
-                <li><a className="hover:text-white transition-colors" href="#pillars">Poseidon Trees</a></li>
-                <li><a className="hover:text-white transition-colors" href="#pillars">Circle Gas Station</a></li>
+                <li><a className="hover:text-white transition-colors" href="#about">What We Are</a></li>
+                <li><a className="hover:text-white transition-colors" href="#problem">The Problem</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">How ArcNano Solves It</a></li>
+                <li><a className="hover:text-white transition-colors" href="#roadmap">Development Roadmap</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Resources</h4>
+              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Protocol Tenets</h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#sdk">Developer Documentation</a></li>
-                <li><a className="hover:text-white transition-colors" href="#sdk">Python SDK</a></li>
-                <li><a className="hover:text-white transition-colors" href="#sdk">TypeScript SDK</a></li>
-                <li><a className="hover:text-white transition-colors" href="#">Security Audit</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">HTTP 402 Standard</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Zero msg.sender Leakage</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Privacy Pools (ASP Check)</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Arc Circle Gas Station</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Protocol</h4>
+              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400 mb-4">Project &amp; Source</h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#">Arc Network Bridge</a></li>
-                <li><a className="hover:text-white transition-colors" href="#">ASP Whitelist Registry</a></li>
-                <li><a className="hover:text-white transition-colors" href="#">GitHub Repository</a></li>
-                <li><a className="hover:text-white transition-colors" href="#">Discord Community</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant" target="_blank" rel="noopener noreferrer">Author Profile</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/README.md" target="_blank" rel="noopener noreferrer">Architecture README</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
               </ul>
             </div>
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
-            <div>&copy; 2026 ArcZK-x402 Protocol &bull; Independent project by Trymbak Mahant. MIT License.</div>
+            <div>&copy; 2026 ArcNano Protocol &bull; MIT License.</div>
             <div className="flex items-center gap-6">
-              <a className="hover:text-neutral-400 transition-colors" href="#">Privacy Policy</a>
-              <a className="hover:text-neutral-400 transition-colors" href="#">Terms of Service</a>
-              <a className="hover:text-neutral-400 transition-colors" href="#">Audit Disclosures</a>
+              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+              <span className="text-neutral-700">•</span>
+              <a className="hover:text-neutral-400 transition-colors" href="#roadmap">Coming Soon</a>
             </div>
           </div>
         </div>
