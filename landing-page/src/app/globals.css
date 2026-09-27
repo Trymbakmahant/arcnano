@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="light"] {
   --bg-app: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F6;
+  --primary: #0284C7;
+  --primary-bright: #0369A1;
   --text-primary: #111215;
   --text-secondary: #525252;
   --text-muted: #737373;
@@ -14,26 +19,41 @@
   --badge-border: rgba(0, 0, 0, 0.12);
   --pill-bg: rgba(255, 255, 255, 0.9);
   --spotlight-color: rgba(99, 102, 241, 0.08);
+  --accent-zk: #7C3AED;
+  --accent-success: #16A34A;
+  --accent-error: #DC2626;
+  --accent-money: #D97706;
   color-scheme: light;
 }
 
+/* Theme 1: Solar Obsidian (Dark Theme) */
 html.dark,
-[data-theme="dark"] {
-  --bg-app: #08090C;
+[data-theme="dark"],
+[data-theme="solar-obsidian"] {
+  --bg-app: #07090D;
+  --surface: #0D1117;
+  --surface-2: #151A22;
+  --primary: #F59E0B;
+  --primary-bright: #FBBF24;
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --card-bg: #111319;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --section-alt-bg: #0C0E14;
-  --table-head-bg: #141722;
-  --table-border: rgba(255, 255, 255, 0.08);
-  --badge-bg: rgba(255, 255, 255, 0.06);
-  --badge-border: rgba(255, 255, 255, 0.12);
-  --pill-bg: rgba(18, 20, 26, 0.9);
-  --spotlight-color: rgba(99, 102, 241, 0.16);
+  --card-bg: #0D1117;
+  --card-border: #242B36;
+  --section-alt-bg: #0A0D14;
+  --table-head-bg: #151A22;
+  --table-border: #242B36;
+  --badge-bg: rgba(245, 158, 11, 0.1);
+  --badge-border: rgba(245, 158, 11, 0.25);
+  --pill-bg: rgba(13, 17, 23, 0.9);
+  --spotlight-color: rgba(245, 158, 11, 0.14);
+  --accent-zk: #A78BFA;
+  --accent-success: #22C55E;
+  --accent-error: #EF4444;
+  --accent-money: #FBBF24;
   color-scheme: dark;
 }
+
 
 @layer utilities {
   .hero-mesh-gradient {
@@ -65,7 +85,7 @@ html.dark,
     box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.6), inset 0 0 20px 0 rgba(255, 255, 255, 0.1), 0 24px 60px -15px rgba(0, 0, 0, 0.12);
   }
 
-  :is(.dark, [data-theme="dark"]) .liquid-glass {
+  :is(.dark, [data-theme="dark"], [data-theme="solar-obsidian"]) .liquid-glass {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, rgba(6, 8, 14, 0.38) 100%);
     backdrop-filter: blur(32px) saturate(190%) contrast(105%);
     -webkit-backdrop-filter: blur(32px) saturate(190%) contrast(105%);
@@ -80,7 +100,7 @@ html.dark,
     box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.35);
   }
 
-  :is(.dark, [data-theme="dark"]) .liquid-glass-border {
+  :is(.dark, [data-theme="dark"], [data-theme="solar-obsidian"]) .liquid-glass-border {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0.01) 100%);
     box-shadow: 0 35px 90px -20px rgba(0, 0, 0, 0.7);
   }

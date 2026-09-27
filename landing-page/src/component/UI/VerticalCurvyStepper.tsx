@@ -307,15 +307,15 @@ export default function VerticalCurvyStepper() {
   const getStepIcon = (idx: number) => {
     switch (idx) {
       case 0:
-        return <Layers className="w-5 h-5 text-emerald-400" />;
+        return <Layers className="w-5 h-5 text-[var(--primary)]" />;
       case 1:
-        return <Fuel className="w-5 h-5 text-emerald-400" />;
+        return <Fuel className="w-5 h-5 text-[var(--primary)]" />;
       case 2:
-        return <ShieldCheck className="w-5 h-5 text-emerald-400" />;
+        return <ShieldCheck className="w-5 h-5 text-[var(--primary)]" />;
       case 3:
-        return <Zap className="w-5 h-5 text-emerald-400" />;
+        return <Zap className="w-5 h-5 text-[var(--primary)]" />;
       default:
-        return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />;
     }
   };
 
@@ -352,19 +352,19 @@ export default function VerticalCurvyStepper() {
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Emerald to Cyan to Sapphire Gradient */}
+            {/* Theme Adaptive Dynamic Gradient */}
             <linearGradient id="stepperNeonGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#10B981" />
-              <stop offset="35%" stopColor="#06B6D4" />
-              <stop offset="70%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#10B981" />
+              <stop offset="0%" stopColor="var(--primary, #F59E0B)" />
+              <stop offset="35%" stopColor="var(--primary-bright, #FBBF24)" />
+              <stop offset="70%" stopColor="var(--accent-zk, #A78BFA)" />
+              <stop offset="100%" stopColor="var(--primary, #F59E0B)" />
             </linearGradient>
 
             {/* Traveling Light Pulse Laser */}
             <linearGradient id="stepperLaserBeam" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#34D399" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--primary-bright, #FBBF24)" stopOpacity="0" />
               <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
-              <stop offset="100%" stopColor="#06B6D4" stopOpacity="0" />
+              <stop offset="100%" stopColor="var(--accent-zk, #A78BFA)" stopOpacity="0" />
             </linearGradient>
 
             {/* Glow Filter */}
@@ -381,7 +381,7 @@ export default function VerticalCurvyStepper() {
           {curvyPath && (
             <path
               d={curvyPath}
-              stroke="rgba(16, 185, 129, 0.16)"
+              stroke="var(--card-border, rgba(255, 255, 255, 0.12))"
               strokeWidth="2.5"
               strokeDasharray="6 6"
               strokeLinecap="round"
@@ -393,7 +393,7 @@ export default function VerticalCurvyStepper() {
             <path
               key={`branch-${idx}`}
               d={bp}
-              stroke="rgba(16, 185, 129, 0.22)"
+              stroke="var(--card-border, rgba(255, 255, 255, 0.15))"
               strokeWidth="2"
               strokeDasharray="3 3"
               strokeLinecap="round"
@@ -449,7 +449,7 @@ export default function VerticalCurvyStepper() {
             >
               {/* Outer Pulsing Radar Ring */}
               <motion.div
-                className="absolute -inset-3 rounded-full border border-emerald-400/30"
+                className="absolute -inset-3 rounded-full border border-[var(--primary)]/30"
                 animate={{
                   scale: [1, 1.35, 1],
                   opacity: [0.6, 0.1, 0.6],
@@ -465,7 +465,7 @@ export default function VerticalCurvyStepper() {
               {/* Glowing Aura on Hover or Selected */}
               <div
                 className={`absolute -inset-2 rounded-full transition-opacity duration-300 blur-md ${
-                  isSelected ? "bg-emerald-500/40 opacity-100" : "bg-emerald-500/20 opacity-0 group-hover:opacity-70"
+                  isSelected ? "bg-[var(--primary)]/40 opacity-100" : "bg-[var(--primary)]/20 opacity-0 group-hover:opacity-70"
                 }`}
               />
 
@@ -473,11 +473,11 @@ export default function VerticalCurvyStepper() {
               <div
                 className={`relative w-11 h-11 md:w-13 md:h-13 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-xl border backdrop-blur-xl ${
                   isSelected
-                    ? "bg-gradient-to-br from-emerald-950/90 to-neutral-950/90 border-emerald-400 text-white shadow-emerald-500/25 ring-2 ring-emerald-400/40 scale-105"
-                    : "bg-neutral-900/85 dark:bg-black/85 border-neutral-700/60 dark:border-white/15 text-neutral-300 hover:border-emerald-500/50 hover:scale-105"
+                    ? "bg-gradient-to-br from-[var(--surface-2)] to-[var(--surface)] border-[var(--primary)] text-white shadow-[var(--primary)]/25 ring-2 ring-[var(--primary)]/40 scale-105"
+                    : "bg-neutral-900/85 dark:bg-black/85 border-[var(--card-border)] text-neutral-300 hover:border-[var(--primary)]/50 hover:scale-105"
                 }`}
               >
-                <div className="text-[10px] md:text-[11px] font-mono font-bold tracking-tight text-emerald-400">
+                <div className="text-[10px] md:text-[11px] font-mono font-bold tracking-tight text-[var(--primary-bright)]">
                   {SOLUTIONS_DATA[idx].stepNumber}
                 </div>
                 <div className="scale-75 md:scale-80 transform -mt-0.5">
@@ -514,19 +514,19 @@ export default function VerticalCurvyStepper() {
               }}
               className={`rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 transition-all duration-500 relative border ${
                 isSelected
-                  ? "bg-white/80 dark:bg-neutral-900/70 border-emerald-500/50 shadow-2xl shadow-emerald-500/10 ring-1 ring-emerald-500/30"
-                  : "bg-white/70 dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/10 hover:border-emerald-500/35 shadow-lg hover:shadow-2xl"
+                  ? "bg-[var(--card-bg)]/80 border-[var(--primary)]/50 shadow-2xl shadow-[var(--primary)]/10 ring-1 ring-[var(--primary)]/30"
+                  : "bg-white/70 dark:bg-white/[0.03] border-[var(--card-border)] hover:border-[var(--primary)]/40 shadow-lg hover:shadow-2xl"
               } backdrop-blur-2xl`}
             >
               {/* Top Accent Rim Highlight */}
-              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
+              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent pointer-events-none" />
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Left Header Column */}
                 <div className="lg:col-span-5 space-y-4">
                   {/* Step Category Badge & Problem Countered */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-[var(--primary)]/10 text-[var(--primary-bright)] border border-[var(--primary)]/20">
                       {getStepIcon(idx)}
                       <span>Solution {step.stepNumber}</span>
                     </span>
@@ -539,18 +539,18 @@ export default function VerticalCurvyStepper() {
                     <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-[var(--text-primary)]">
                       {step.title}
                     </h3>
-                    <div className="text-sm font-mono text-emerald-400/90 mt-1 font-medium">
+                    <div className="text-sm font-mono text-[var(--primary-bright)] mt-1 font-medium">
                       {step.subtitle}
                     </div>
                     <div className="text-xs font-mono text-[var(--text-muted)] mt-1.5 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
                       <span>{step.problemCountered}</span>
                     </div>
                   </div>
 
                   {/* Impact Metric Pill */}
-                  <div className="inline-flex items-center gap-3 p-3.5 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/[0.08] border border-emerald-500/25">
-                    <div className="text-2xl font-bold font-mono text-emerald-400 tracking-tight">
+                  <div className="inline-flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--primary)]/5 dark:bg-[var(--primary)]/[0.08] border border-[var(--primary)]/25">
+                    <div className="text-2xl font-bold font-mono text-[var(--primary-bright)] tracking-tight">
                       {step.metric.value}
                     </div>
                     <div className="text-xs text-[var(--text-secondary)] font-medium leading-tight">

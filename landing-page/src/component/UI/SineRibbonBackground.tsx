@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 
 export interface SineRibbonBackgroundProps {
   className?: string;
-  palette?: "arc" | "emerald" | "violet" | "aurora";
+  palette?: "arc" | "emerald" | "violet" | "aurora" | "solar" | "cyan" | "stealth";
   speed?: number;
   interactive?: boolean;
   opacity?: number;
@@ -216,6 +216,225 @@ export default function SineRibbonBackground({
               colorEnd: "rgba(59, 7, 100, 0.07)",
               edgeColor: "rgba(255, 255, 255, 0.95)",
               lineWidth: 2.0,
+            },
+          ];
+
+        case "solar":
+          // Theme 1: Solar Gold, Amber, and High-Frequency ZK Violet Harmonic
+          return [
+            {
+              baseY: 0.52,
+              thickness: 82,
+              speed: 0.014 * speed,
+              amp: 72,
+              freq: 0.0025,
+              phase: 0.0,
+              harmonics: [
+                { freq: 0.0052, amp: 30, speed: 0.019 * speed },
+                { freq: 0.0105, amp: 14, speed: -0.012 * speed },
+              ],
+              colorStart: "rgba(245, 158, 11, 0.60)", // Solar Gold
+              colorMid: "rgba(217, 119, 6, 0.38)",   // Amber 600
+              colorEnd: "rgba(180, 83, 9, 0.10)",    // Deep Amber
+              edgeColor: "rgba(254, 240, 138, 0.98)", // Solar White-Gold Crest
+              lineWidth: 2.4,
+            },
+            {
+              baseY: 0.46,
+              thickness: 95,
+              speed: 0.017 * speed,
+              amp: 86,
+              freq: 0.0021,
+              phase: 1.8,
+              harmonics: [
+                { freq: 0.0042, amp: 38, speed: -0.014 * speed },
+                { freq: 0.0085, amp: 19, speed: 0.022 * speed },
+              ],
+              colorStart: "rgba(251, 191, 36, 0.55)", // Bright Amber
+              colorMid: "rgba(245, 158, 11, 0.32)",
+              colorEnd: "rgba(120, 53, 15, 0.08)",
+              edgeColor: "rgba(255, 255, 255, 0.98)", // Specular Crest
+              lineWidth: 2.2,
+            },
+            {
+              baseY: 0.62,
+              thickness: 100,
+              speed: 0.011 * speed,
+              amp: 78,
+              freq: 0.0019,
+              phase: 3.4,
+              harmonics: [
+                { freq: 0.0038, amp: 34, speed: 0.013 * speed },
+                { freq: 0.0078, amp: 18, speed: -0.01 * speed },
+              ],
+              colorStart: "rgba(217, 119, 6, 0.45)",
+              colorMid: "rgba(180, 83, 9, 0.25)",
+              colorEnd: "rgba(67, 20, 7, 0.06)",
+              edgeColor: "rgba(253, 230, 138, 0.92)",
+              lineWidth: 2.0,
+            },
+            {
+              baseY: 0.38,
+              thickness: 60,
+              speed: 0.021 * speed,
+              amp: 54,
+              freq: 0.0032,
+              phase: 4.6,
+              harmonics: [
+                { freq: 0.0068, amp: 24, speed: 0.024 * speed },
+                { freq: 0.0125, amp: 11, speed: -0.016 * speed },
+              ],
+              colorStart: "rgba(167, 139, 250, 0.48)", // ZK Violet Harmonic
+              colorMid: "rgba(139, 92, 246, 0.28)",
+              colorEnd: "rgba(76, 29, 149, 0.05)",
+              edgeColor: "rgba(245, 243, 255, 0.95)",
+              lineWidth: 1.8,
+            },
+          ];
+
+        case "cyan":
+          // Theme 2: Cyber Cyan, Neon Teal, and ZK Violet
+          return [
+            {
+              baseY: 0.52,
+              thickness: 82,
+              speed: 0.014 * speed,
+              amp: 72,
+              freq: 0.0025,
+              phase: 0.0,
+              harmonics: [
+                { freq: 0.0052, amp: 30, speed: 0.019 * speed },
+                { freq: 0.0105, amp: 14, speed: -0.012 * speed },
+              ],
+              colorStart: "rgba(34, 211, 238, 0.65)", // Cyber Cyan
+              colorMid: "rgba(6, 182, 212, 0.42)",    // Cyan 600
+              colorEnd: "rgba(14, 116, 144, 0.10)",
+              edgeColor: "rgba(207, 250, 254, 1.0)",  // Ice White Crest
+              lineWidth: 2.4,
+            },
+            {
+              baseY: 0.46,
+              thickness: 95,
+              speed: 0.017 * speed,
+              amp: 86,
+              freq: 0.0021,
+              phase: 1.8,
+              harmonics: [
+                { freq: 0.0042, amp: 38, speed: -0.014 * speed },
+                { freq: 0.0085, amp: 19, speed: 0.022 * speed },
+              ],
+              colorStart: "rgba(103, 232, 249, 0.55)", // Neon Cyan
+              colorMid: "rgba(34, 211, 238, 0.35)",
+              colorEnd: "rgba(8, 145, 178, 0.08)",
+              edgeColor: "rgba(255, 255, 255, 0.98)",
+              lineWidth: 2.2,
+            },
+            {
+              baseY: 0.62,
+              thickness: 100,
+              speed: 0.011 * speed,
+              amp: 78,
+              freq: 0.0019,
+              phase: 3.4,
+              harmonics: [
+                { freq: 0.0038, amp: 34, speed: 0.013 * speed },
+                { freq: 0.0078, amp: 18, speed: -0.01 * speed },
+              ],
+              colorStart: "rgba(139, 92, 246, 0.50)", // ZK Violet Stream
+              colorMid: "rgba(109, 40, 217, 0.32)",
+              colorEnd: "rgba(76, 29, 149, 0.06)",
+              edgeColor: "rgba(237, 233, 254, 0.95)",
+              lineWidth: 2.0,
+            },
+            {
+              baseY: 0.38,
+              thickness: 60,
+              speed: 0.021 * speed,
+              amp: 54,
+              freq: 0.0032,
+              phase: 4.6,
+              harmonics: [
+                { freq: 0.0068, amp: 24, speed: 0.024 * speed },
+                { freq: 0.0125, amp: 11, speed: -0.016 * speed },
+              ],
+              colorStart: "rgba(251, 191, 36, 0.42)", // Money Accent
+              colorMid: "rgba(245, 158, 11, 0.22)",
+              colorEnd: "rgba(146, 64, 14, 0.04)",
+              edgeColor: "rgba(254, 240, 138, 0.9)",
+              lineWidth: 1.8,
+            },
+          ];
+
+        case "stealth":
+          // Theme 3: Platinum Silver, ZK Violet, and Lilac
+          return [
+            {
+              baseY: 0.52,
+              thickness: 82,
+              speed: 0.014 * speed,
+              amp: 72,
+              freq: 0.0025,
+              phase: 0.0,
+              harmonics: [
+                { freq: 0.0052, amp: 30, speed: 0.019 * speed },
+                { freq: 0.0105, amp: 14, speed: -0.012 * speed },
+              ],
+              colorStart: "rgba(226, 232, 240, 0.60)", // Platinum Slate
+              colorMid: "rgba(148, 163, 184, 0.38)",
+              colorEnd: "rgba(51, 65, 85, 0.09)",
+              edgeColor: "rgba(255, 255, 255, 1.0)",
+              lineWidth: 2.4,
+            },
+            {
+              baseY: 0.46,
+              thickness: 95,
+              speed: 0.017 * speed,
+              amp: 86,
+              freq: 0.0021,
+              phase: 1.8,
+              harmonics: [
+                { freq: 0.0042, amp: 38, speed: -0.014 * speed },
+                { freq: 0.0085, amp: 19, speed: 0.022 * speed },
+              ],
+              colorStart: "rgba(196, 181, 253, 0.55)", // ZK Bright Lilac
+              colorMid: "rgba(139, 92, 246, 0.35)",
+              colorEnd: "rgba(76, 29, 149, 0.07)",
+              edgeColor: "rgba(245, 243, 255, 0.98)",
+              lineWidth: 2.2,
+            },
+            {
+              baseY: 0.62,
+              thickness: 100,
+              speed: 0.011 * speed,
+              amp: 78,
+              freq: 0.0019,
+              phase: 3.4,
+              harmonics: [
+                { freq: 0.0038, amp: 34, speed: 0.013 * speed },
+                { freq: 0.0078, amp: 18, speed: -0.01 * speed },
+              ],
+              colorStart: "rgba(161, 161, 170, 0.45)", // Slate
+              colorMid: "rgba(113, 113, 122, 0.28)",
+              colorEnd: "rgba(39, 39, 42, 0.05)",
+              edgeColor: "rgba(244, 244, 245, 0.92)",
+              lineWidth: 2.0,
+            },
+            {
+              baseY: 0.38,
+              thickness: 60,
+              speed: 0.021 * speed,
+              amp: 54,
+              freq: 0.0032,
+              phase: 4.6,
+              harmonics: [
+                { freq: 0.0068, amp: 24, speed: 0.024 * speed },
+                { freq: 0.0125, amp: 11, speed: -0.016 * speed },
+              ],
+              colorStart: "rgba(16, 185, 129, 0.45)", // Success Emerald Accent
+              colorMid: "rgba(5, 150, 105, 0.25)",
+              colorEnd: "rgba(4, 120, 87, 0.05)",
+              edgeColor: "rgba(209, 250, 229, 0.95)",
+              lineWidth: 1.8,
             },
           ];
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
+import ThemeSwitcher, { THEMES_LIST, ThemeId } from "@/component/UI/ThemeSwitcher";
 import {
   Radar,
   Unlink,
@@ -10,8 +11,6 @@ import {
   Gauge,
   ArrowDown,
   ExternalLink,
-  Sun,
-  Moon,
   Copy,
   Check,
   CheckCircle2,
@@ -24,28 +23,43 @@ import {
 
 function subscribeTheme(callback: () => void) {
   if (typeof window === "undefined") return () => {};
-  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  mediaQuery.addEventListener("change", callback);
   window.addEventListener("storage", callback);
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.attributeName === "data-theme" || m.attributeName === "class") {
+        callback();
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
   return () => {
-    mediaQuery.removeEventListener("change", callback);
     window.removeEventListener("storage", callback);
+    observer.disconnect();
   };
 }
 
-function getThemeSnapshot(): "light" | "dark" {
-  if (typeof document === "undefined") return "dark";
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+function getThemeSnapshot(): ThemeId {
+  if (typeof window === "undefined") return "solar-obsidian";
+  const saved = localStorage.getItem("theme") as ThemeId | null;
+  if (saved && THEMES_LIST.some((t) => t.id === saved)) {
+    return saved;
+  }
+  const dataTheme = document.documentElement.getAttribute("data-theme") as ThemeId;
+  if (dataTheme && THEMES_LIST.some((t) => t.id === dataTheme)) {
+    return dataTheme;
+  }
+  return document.documentElement.classList.contains("dark") ? "solar-obsidian" : "light";
 }
 
-function getThemeServerSnapshot(): "light" | "dark" {
-  return "dark";
+function getThemeServerSnapshot(): ThemeId {
+  return "solar-obsidian";
 }
 
 export default function Home() {
   const systemTheme = React.useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
-  const [themeOverride, setThemeOverride] = useState<"light" | "dark" | null>(null);
+  const [themeOverride, setThemeOverride] = useState<ThemeId | null>(null);
   const theme = themeOverride ?? systemTheme;
+  const currentThemeConfig = THEMES_LIST.find((t) => t.id === theme) || THEMES_LIST[0];
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string>("Copy GitHub Command");
   
@@ -53,18 +67,21 @@ export default function Home() {
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: -1000, y: -1000 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setThemeOverride(next);
-    localStorage.setItem("theme", next);
-    if (next === "dark") {
-      document.documentElement.classList.add("dark");
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.setAttribute("data-theme", "light");
-    }
+  const handleThemeChange = (nextTheme: ThemeId) => {
+    setThemeOverride(nextTheme);
+    localStorage.setItem("theme", nextTheme);
   };
+
+  // Sync DOM document attributes to match active theme
+  useEffect(() => {
+    const themeObj = THEMES_LIST.find((t) => t.id === theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    if (themeObj && !themeObj.isDark) {
+      document.documentElement.classList.remove("dark");
+    } else {
+      document.documentElement.classList.add("dark");
+    }
+  }, [theme]);
 
   // Track cursor position globally for spotlight overlay
   useEffect(() => {
@@ -147,19 +164,11 @@ export default function Home() {
           </div>
 
           <div className="pl-2 border-l border-white/10 flex items-center gap-2.5">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle color theme"
-              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
-              className="w-8 h-8 rounded-full flex items-center justify-center border border-white/15 bg-white/5 hover:bg-white/15 text-white transition-all cursor-pointer shadow-sm"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-amber-300" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-300" />
-              )}
-            </button>
+            {/* Multi-Palette Theme Switcher */}
+            <ThemeSwitcher
+              currentTheme={theme}
+              onThemeChange={handleThemeChange}
+            />
 
             {/* Coming Soon Status Pill */}
             <a
@@ -178,11 +187,11 @@ export default function Home() {
         <div className="absolute top-0 inset-x-0 h-screen overflow-hidden pointer-events-none z-0">
           <SineRibbonBackground
             className="w-full h-full"
-            palette="arc"
+            palette={currentThemeConfig.paletteKey}
             speed={0.85}
             interactive={true}
             transparentBg={true}
-            opacity={theme === "dark" ? 0.75 : 0.45}
+            opacity={currentThemeConfig.isDark ? 0.75 : 0.45}
           />
           {/* Soft fade out to background color at the bottom of the backdrop */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--bg-app)] pointer-events-none" />
@@ -273,7 +282,7 @@ export default function Home() {
               {/* Interactive Sine Ribbon Background Canvas */}
               <SineRibbonBackground
                 className="absolute inset-0 z-0 w-full h-full"
-                palette="arc"
+                palette={currentThemeConfig.paletteKey}
                 speed={0.9}
                 interactive={true}
               />
