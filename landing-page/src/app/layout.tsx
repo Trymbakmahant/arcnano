@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ArcNano — Shielded Nanopayments For The Autonomous Agent Era",
   description: "Private, compliant, and decoupled machine-to-machine payments via HTTP 402 and Zero-Knowledge proofs on the Arc Network.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/arcnano-icon.png",
+  },
 };
 
 export default function RootLayout({
