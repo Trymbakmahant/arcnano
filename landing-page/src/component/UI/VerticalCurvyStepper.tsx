@@ -262,8 +262,8 @@ export default function VerticalCurvyStepper() {
   const getStepIcon = (idx: number, isSelected = false) => {
     const iconClass = `w-4 h-4 ${
       isSelected
-        ? "text-amber-400"
-        : "text-neutral-600 group-hover:text-neutral-900 transition-colors"
+        ? "text-amber-600"
+        : "text-neutral-500 group-hover:text-neutral-800 transition-colors"
     }`;
     switch (idx) {
       case 0:
@@ -411,13 +411,13 @@ export default function VerticalCurvyStepper() {
               <div
                 className={`relative w-10 h-10 md:w-11 md:h-11 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm border ${
                   isSelected
-                    ? "bg-neutral-950 border-neutral-900 text-white shadow-neutral-950/15 ring-2 ring-neutral-900/10 scale-105"
-                    : "bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400 hover:scale-105"
+                    ? "bg-white border-amber-500 text-neutral-950 shadow-md shadow-amber-500/10 ring-4 ring-amber-500/15 scale-105"
+                    : "bg-white border-neutral-200/90 text-neutral-600 hover:border-neutral-300 hover:scale-105"
                 }`}
               >
                 <div
                   className={`text-[10px] md:text-[11px] font-mono font-semibold tracking-tight ${
-                    isSelected ? "text-amber-400" : "text-neutral-400"
+                    isSelected ? "text-amber-600" : "text-neutral-500"
                   }`}
                 >
                   {SOLUTIONS_DATA[idx].stepNumber}
@@ -459,8 +459,8 @@ export default function VerticalCurvyStepper() {
                 onClick={() => setActiveStep(idx)}
                 className={`cursor-pointer rounded-2xl sm:rounded-3xl p-5 sm:p-6 transition-all duration-300 relative border ${
                   isSelected
-                    ? "bg-white border-neutral-400/90 shadow-lg shadow-neutral-900/5 ring-1 ring-neutral-300/60"
-                    : "bg-white/90 border-neutral-200/90 hover:border-neutral-300 shadow-xs hover:shadow-md"
+                    ? "bg-white border-amber-400/80 shadow-lg shadow-neutral-900/5 ring-1 ring-amber-300/50"
+                    : "bg-white/95 border-neutral-200/90 hover:border-neutral-300 shadow-xs hover:shadow-md"
                 }`}
               >
                 {/* Subtle Warm Accent Top Rim Highlight */}
