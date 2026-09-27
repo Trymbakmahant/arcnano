@@ -13,39 +13,39 @@ const STATUS_MESSAGES = [
 export default function Preloader() {
   const [loading, setLoading] = useState(true);
   const [fading, setFading] = useState(false);
-  const [progress, setProgress] = useState(12);
+  const [progress, setProgress] = useState(15);
   const [statusIdx, setStatusIdx] = useState(0);
 
   useEffect(() => {
     // Lock scroll during initial load
     document.body.style.overflow = "hidden";
 
-    // Progress counter animation
+    // Smooth progress counter animation
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        const step = Math.floor(Math.random() * 14) + 12;
+        const step = Math.floor(Math.random() * 12) + 10;
         return Math.min(prev + step, 100);
       });
-    }, 90);
+    }, 110);
 
     // Status message switcher
     const statusInterval = setInterval(() => {
       setStatusIdx((prev) => (prev < STATUS_MESSAGES.length - 1 ? prev + 1 : prev));
-    }, 320);
+    }, 360);
 
-    // Fade-out trigger once progress reaches 100%
+    // Fade-out trigger once loading sequence completes (~1.6s)
     const timeout = setTimeout(() => {
       setFading(true);
       const exitTimer = setTimeout(() => {
         setLoading(false);
         document.body.style.overflow = "";
-      }, 650);
+      }, 700);
       return () => clearTimeout(exitTimer);
-    }, 1250);
+    }, 1600);
 
     return () => {
       clearInterval(progressInterval);
@@ -68,7 +68,7 @@ export default function Preloader() {
       <div className="absolute inset-0 bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:24px_24px] opacity-70 pointer-events-none" />
 
       {/* Subtle Ambient Radial Glow */}
-      <div className="absolute w-[420px] h-[420px] rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
+      <div className="absolute w-[440px] h-[440px] rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
       {/* Architectural Corner Telemetry Markers */}
       <div className="absolute top-6 left-6 text-[10px] font-mono text-neutral-400 tracking-wider hidden sm:block">
@@ -86,8 +86,8 @@ export default function Preloader() {
 
       {/* Centerpiece Logo & Loading Telemetry */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Logo Container with Orbiting Precision Halo */}
-        <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
+        {/* Emblem Container with Precision Halo */}
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
           {/* Subtle Outer Ping Wave */}
           <div className="absolute inset-0 rounded-full border border-amber-500/25 animate-ping opacity-25" />
 
@@ -95,23 +95,35 @@ export default function Preloader() {
           <div className="absolute inset-1 rounded-full border border-dashed border-neutral-300 animate-spin [animation-duration:12s]" />
 
           {/* Concentric Accent Ring */}
-          <div className="absolute inset-3.5 rounded-full border border-neutral-200/90" />
+          <div className="absolute inset-3 rounded-full border border-neutral-200/90" />
 
-          {/* Central Logo Disk */}
-          <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-white shadow-xl shadow-neutral-900/5 border border-neutral-200/90 flex items-center justify-center p-3 transition-transform">
+          {/* Dark Emblem Badge with White ArcNano Icon */}
+          <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-neutral-950 shadow-xl shadow-neutral-950/15 border border-neutral-800 flex items-center justify-center p-3 transition-transform">
             <Image
-              src="/arcnano-logo.png"
-              alt="ArcNano Logo"
-              width={64}
-              height={64}
+              src="/arcnano-icon-white.png"
+              alt="ArcNano Icon"
+              width={40}
+              height={40}
               priority
-              className="object-contain"
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain"
             />
           </div>
         </div>
 
+        {/* Full ArcNano Brand Logo */}
+        <div className="mt-5 flex items-center justify-center">
+          <Image
+            src="/arcnano-logo.png"
+            alt="ArcNano Logo"
+            width={240}
+            height={42}
+            priority
+            className="h-7 sm:h-8 w-auto object-contain"
+          />
+        </div>
+
         {/* Telemetry Status Line */}
-        <div className="mt-7 flex flex-col items-center gap-2.5">
+        <div className="mt-5 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2 text-xs font-mono tracking-widest text-neutral-700 uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             <span className="min-w-[210px] text-center">{STATUS_MESSAGES[statusIdx]}</span>
@@ -119,7 +131,7 @@ export default function Preloader() {
           </div>
 
           {/* High-Precision Progress Bar */}
-          <div className="w-48 sm:w-56 h-[3px] bg-neutral-200/90 rounded-full overflow-hidden relative">
+          <div className="w-48 sm:w-56 h-[3px] bg-neutral-200/90 rounded-full overflow-hidden relative mt-1">
             <div
               className="h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 transition-all duration-150 ease-out rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"
               style={{ width: `${progress}%` }}
