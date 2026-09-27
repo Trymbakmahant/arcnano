@@ -470,8 +470,9 @@ export default function Home() {
         {/* SECTION 3: HOW ARCNANO SOLVES IT */}
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-800 mb-3">
-              {"// 03 ARCHITECTURAL RESOLUTION"}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-mono text-emerald-800 mb-4 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{"// 03 ARCHITECTURAL RESOLUTION"}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
               How ArcNano Solves Every Trap
