@@ -263,7 +263,7 @@ export default function Home() {
                       className="w-3.5 h-3.5 object-contain"
                     />
                   </div>
-                  <span>{"// 01 PROTOCOL BLUEPRINT"}</span>
+                  <span>{"01 // Protocol Blueprint"}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-amber-500/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-amber-500/30 text-xs font-mono text-amber-300">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
@@ -349,9 +349,9 @@ export default function Home() {
 
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono uppercase tracking-wider text-rose-600 mb-4 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>{"// 02 THREAT MODEL & TRAPS"}</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 mb-4 shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span>{"02 // Threat Model & Traps"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950 max-w-4xl mx-auto leading-[1.15]">
                 Why Existing Machine Payments Fail for AI Agents
@@ -470,9 +470,9 @@ export default function Home() {
         {/* SECTION 3: HOW ARCNANO SOLVES IT */}
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-mono text-emerald-800 mb-4 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{"// 03 ARCHITECTURAL RESOLUTION"}</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 mb-4 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              <span>{"03 // Architectural Resolution"}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
               How ArcNano Solves Every Trap
@@ -493,9 +493,9 @@ export default function Home() {
           <div className="min-h-screen flex flex-col justify-center py-16 md:py-24 px-6 sm:px-8 max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="mb-12">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-4 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>{"// 04 DEVELOPMENT ROADMAP"}</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 mb-4 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              <span>{"04 // Development Roadmap"}</span>
             </div>
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-neutral-950">
               Development roadmap
