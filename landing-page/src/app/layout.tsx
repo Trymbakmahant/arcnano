@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Preloader } from "@/component/UI";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://arcnano.dev";
@@ -175,6 +176,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased selection:bg-sky-500 selection:text-white transition-colors duration-300">
+        <Preloader />
         {children}
       </body>
     </html>
