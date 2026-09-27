@@ -637,6 +637,7 @@ export default function Home() {
                 <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">Agent SDK Suite</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Circom Prover (spend.circom)</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">ArcShieldPool.sol</a></li>
+                <li><a className="hover:text-white transition-colors" href="/llms.txt" target="_blank" rel="noopener noreferrer">LLM Reference (llms.txt) &rarr;</a></li>
                 <li><a className="hover:text-white transition-colors" href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer">Circle Testnet Faucet &rarr;</a></li>
                 <li><a className="hover:text-white transition-colors" href="https://docs.arc.network" target="_blank" rel="noopener noreferrer">Arc Network Docs &rarr;</a></li>
               </ul>
@@ -677,10 +678,14 @@ export default function Home() {
 
           <div className="mt-8 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
             <div>&copy; 2026 ArcNano Protocol &bull; MIT License.</div>
-            <div className="flex items-center gap-6">
-              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub</a>
               <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="https://www.arc.io" target="_blank" rel="noopener noreferrer">Arc Network</a>
+              <a className="hover:text-neutral-400 transition-colors" href="https://www.arc.io" target="_blank" rel="noopener noreferrer">Arc</a>
+              <span className="text-neutral-700">•</span>
+              <a className="hover:text-neutral-400 transition-colors" href="/sitemap.xml" target="_blank">Sitemap</a>
+              <span className="text-neutral-700">•</span>
+              <a className="hover:text-neutral-400 transition-colors" href="/llms.txt" target="_blank">llms.txt</a>
               <span className="text-neutral-700">•</span>
               <a className="hover:text-neutral-400 transition-colors" href="#roadmap">Roadmap</a>
             </div>

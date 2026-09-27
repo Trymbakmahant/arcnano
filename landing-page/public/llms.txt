@@ -1,0 +1,28 @@
+# ArcNano (ArcShield-402)
+> Shielded Nanopayments For The Autonomous AI Agent Era on the Arc Network.
+
+ArcNano is an open-source Zero-Knowledge HTTP 402 micropayment protocol engineered specifically for autonomous AI agent-to-agent (A2A) and machine-to-machine (M2M) commerce on the Arc blockchain. It eliminates on-chain signer leakage (`msg.sender` surveillance), enforces Association Set Provider (ASP) non-membership proofs for regulatory compliance (Privacy Pools), and achieves sub-8 millisecond off-chain verification with batched zero-gas on-chain settlement via Arc's native Circle Gas Station.
+
+## Core Capabilities
+- **Decoupled Identity:** The paying agent never signs or broadcasts the spending transaction on-chain. Groth16 zero-knowledge proofs are delivered off-chain via standard `X-PAYMENT` HTTP headers, completely severing the `msg.sender` link.
+- **Privacy Pools Compliance:** Inherent Association Set Provider (ASP) exclusion checks in Circom prove non-membership in illicit or sanctioned addresses without doxxing clean agents.
+- **Two-Stage HTTP 402 Verification:**
+  - Stage 1 (Off-Chain / Instant): API servers verify Groth16 proofs locally in memory in <8ms with zero gas cost, serving responses immediately.
+  - Stage 2 (On-Chain / Batch): API receivers batch-settle accumulated nullifiers on Arc, amortizing gas costs.
+- **Circle Gas Station Paymaster:** Arc's native account abstraction and paymaster sponsor gas fees for settlement, requiring zero native gas tokens from agents.
+- **Denominated Vaults:** Fixed note denominations in native USDC ($0.01, $0.10, $1.00) eliminate exchange rate volatility for agent operational wallets.
+
+## Key Resources
+- [Full Technical Specification](https://arcnano.dev/llms-full.txt): Complete architectural mechanics, Circom circuits, sequence diagrams, and cryptographic proofs.
+- [Official Website](https://arcnano.dev): Protocol overview, interactive simulator, and development roadmap.
+- [GitHub Repository](https://github.com/trymbakmahant/p2pzkpayment): Smart contracts, Circom circuits, Python agent SDK, and gateway middleware.
+
+## Technical Stack
+- **Cryptography:** Circom 2.1, Groth16, SnarkJS, Poseidon Merkle Trees (20-level).
+- **Smart Contracts:** Solidity, Arc Network, Circle Gas Station (ERC-4337 Paymaster).
+- **Application Layer:** HTTP 402 Payment Required (`x402`), Next.js 16, TypeScript, Tailwind CSS.
+- **SDKs:** Python (`arczk-agent`), Node.js/Express (`@arczk/x402-express`).
+
+## Author & Community
+- **Author:** Trymbak Mahant ([@trymbakmahant](https://github.com/trymbakmahant))
+- **License:** MIT License

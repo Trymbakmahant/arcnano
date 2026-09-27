@@ -1,0 +1,107 @@
+# ArcNano (ArcShield-402) — Full Technical Specification & LLM Reference
+> Comprehensive Architectural, Cryptographic, and Economic Documentation for Large Language Models and AI Research Agents.
+
+## 1. Problem Definition: The Four Traps of Machine-to-Machine Crypto Payments
+
+As autonomous AI agents transact over the web using HTTP 402, standard public blockchain payments introduce fatal failure modes:
+
+1. **The Surveillance Trap (msg.sender Leakage):** Standard ERC-20 / USDC transfers permanently log both the sender and receiver addresses to public block explorers. Competitors can track an agent's queries, model providers, and strategic data pipelines.
+2. **The Naive ZK Trap:** Even if a zero-knowledge proof verifies note ownership, if the paying agent's wallet signs the on-chain `spend()` transaction, its Ethereum address is broadcast as `msg.sender`, immediately destroying anonymity.
+3. **The Mixer Dilemma:** Legacy privacy protocols (such as Tornado Cash) pool clean funds with sanctioned capital without selective disclosure, resulting in OFAC blacklisting and automatic rejection by enterprise API gateways (Cloudflare, AWS).
+4. **The Latency and Gas Mismatch:** LLM inference and tool execution require sub-second round-trip latency. Waiting 10–15 seconds for on-chain block confirmations halts agent pipelines, and a $0.05 gas fee destroys the economics of a $0.001 micropayment.
+
+---
+
+## 2. Core Protocol Mechanics
+
+ArcNano resolves these challenges through four interconnected pillars:
+
+### A. Receiver-Batched Settlement (Breaking the Signer Link)
+Instead of the agent broadcasting an on-chain transaction:
+1. The agent computes an off-chain Groth16 proof:
+   - Proving possession of a note in the active Poseidon Merkle tree.
+   - Deriving a deterministic nullifier = Poseidon(seed, leafIndex).
+   - Proving non-membership in the Association Set Provider (ASP) exclusion list.
+2. The agent includes this proof in the `X-PAYMENT` header of its HTTP request.
+3. The API server (receiver) validates the proof locally in <8ms and serves the request immediately.
+4. The API server batches multiple nullifiers and calls `batchSpend()` on Arc.
+5. Arc's native **Circle Gas Station Paymaster** sponsors the gas. The agent never signs an on-chain transaction.
+
+### B. Association Set Provider (ASP) Non-Membership Proofs
+Inspired by Vitalik Buterin's *Privacy Pools* research:
+- A registry of flagged or illicit deposit commitments is maintained as an exclusion Merkle tree root (`aspExclusionRoot`).
+- The Circom circuit includes an exclusion constraint:
+  `VerifyNonMembership(aspExclusionRoot, commitment) == 1`
+- Clean agents prove their funds are legal without revealing which note is theirs.
+
+### C. Two-Stage HTTP 402 Verification Flow
+```
+[Agent] ─── GET /api/inference ───> [API Gateway]
+[Agent] <── 402 Payment Required ── [API Gateway] (invoice with pool_root & recipient)
+[Agent] ─── POST with X-PAYMENT ──> [API Gateway] (Groth16 proof + nullifier)
+                                     │
+                                     ├─ Stage 1: Local SnarkJS verify (<8ms, $0 gas)
+                                     │  ↳ Return HTTP 200 OK + Inference payload
+                                     │
+                                     └─ Stage 2: Batch settlement to Arc via Gas Station
+```
+
+---
+
+## 3. Cryptographic Primitives & Circuit Architecture
+
+- **Proving System:** Groth16 over BN254 (alt_bn128) elliptic curve.
+- **Hash Function:** Poseidon Hash (optimized for algebraic SNARK efficiency).
+- **Merkle Tree Depth:** 20 levels (capacity: 1,048,576 notes per denomination pool).
+- **Fixed Denominations:** Fixed 0.01, 0.10, and 1.00 USDC pools to maintain anonymity sets.
+
+### Spend Circuit Inputs:
+- **Public Inputs:**
+  - `root`: Current Merkle root of the Shield Pool.
+  - `nullifierHash`: Deterministic nullifier preventing double-spending.
+  - `recipient`: Ethereum address of the API provider authorized to claim the note.
+  - `aspExclusionRoot`: Current root of the Association Set Provider exclusion tree.
+- **Private Inputs (Witness):**
+  - `secret`: Secret salt known only to the depositor.
+  - `nullifierSeed`: Private seed for nullifier generation.
+  - `pathElements[20]`: Merkle inclusion proof siblings.
+  - `pathIndices[20]`: Directional bits for Merkle tree path.
+  - `aspPathElements[20]`: Merkle non-inclusion proof siblings in the ASP tree.
+
+---
+
+## 4. Benchmark & Comparative Matrix
+
+| Feature | Standard Public USDC | Tornado Cash | Privacy Pools | ArcNano |
+| :--- | :--- | :--- | :--- | :--- |
+| **Agent Anonymity** | 0% (Fully Doxxed) | High (Mixed) | High (Shielded) | 100% Zero-Knowledge |
+| **Signer Link** | msg.sender leaks | Needs Relayers | Needs Relayers | Receiver-Batched + Arc Paymaster |
+| **Compliance** | Centralized Freeze | OFAC Sanctioned | Post-proofs | Inherent ASP Non-Membership |
+| **API Latency** | 2–15s Block Time | Minutes | Minutes | < 8ms Local Verification |
+| **Agent Gas Cost** | Gas > Payment | High Mixer Fee | High Single Gas | $0 (Circle Gas Station) |
+| **HTTP Native** | Manual Signing | Web UI Only | CLI / Wallet | Standard X-PAYMENT Header |
+
+---
+
+## 5. Development Roadmap
+
+- **R.01 (Completed):** Architecture & Protocol Spec — Formulation of two-stage HTTP 402 verification, signer decoupling, and foundational whitepaper.
+- **R.02 (In Progress):** Circom Circuits & Arc Testnet — 20-level Poseidon Merkle tree inclusion circuit (`spend.circom`), ASP non-membership constraint, and `ArcShieldPool.sol` deployment.
+- **R.03 (Upcoming):** Agent SDK & Gateway Tooling — Python client library (`arczk-agent`) for LangChain/AutoGPT/CrewAI and Express/Fastify HTTP 402 middleware.
+- **R.04 (Upcoming):** Circle Gas Station & AI Pilot — Production integration with Circle Gas Station Paymaster on Arc and live pilot connecting autonomous AI agents to live inference nodes.
+
+---
+
+## 6. Known Security Considerations & Mitigations
+
+- **Double-Spend Race Condition in Off-Chain Stage 1:** If an adversarial agent submits identical nullifiers to two independent API providers at the exact same millisecond, only the first to settle on Arc succeeds. Providers mitigate this by enforcing micro-threshold limits ($0.001 - $0.01) before settlement.
+- **Network-Level Privacy (IP Leakage):** While cryptographic transactions are shielded, raw TCP/IP connections could associate IP addresses with request timings. Production agents should pair ArcNano with Oblivious HTTP (OHTTP), Tor, or residential proxy relays.
+
+---
+
+## 7. Metadata & Links
+
+- **Repository:** https://github.com/trymbakmahant/p2pzkpayment
+- **Website:** https://arcnano.dev
+- **Author:** Trymbak Mahant (GitHub: @trymbakmahant)
+- **License:** MIT
