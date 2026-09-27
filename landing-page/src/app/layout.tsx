@@ -10,12 +10,12 @@ export const metadata: Metadata = {
     template: "%s | ArcNano",
   },
   description:
-    "Decoupled, zero-knowledge HTTP 402 micropayments for autonomous AI agents on the Arc Network. Zero msg.sender surveillance, Privacy Pools ASP compliance, and sub-8ms verification.",
+    "Decoupled, zero-knowledge X402 micropayments for autonomous AI agents on the Arc Network. Zero msg.sender surveillance, Privacy Pools ASP compliance, and sub-8ms verification.",
   keywords: [
     "ArcNano",
-    "ArcShield-402",
+    "ArcShield-X402",
     "Arc Network",
-    "HTTP 402",
+    "X402",
     "x402",
     "Zero-Knowledge Proofs",
     "ZK Nanopayments",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "Decoupled Signer Settlement",
     "M2M Crypto",
   ],
-  authors: [{ name: "Trymbak Mahant", url: "https://github.com/trymbakmahant" }],
+  authors: [{ name: "Trymbak Mahant", url: "https://github.com/Trymbakmahant" }],
   creator: "Trymbak Mahant",
   publisher: "ArcNano",
   formatDetection: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ArcNano — Shielded Nanopayments For The Autonomous Agent Era",
     description:
-      "Private, compliant, and decoupled machine-to-machine payments via HTTP 402 and Zero-Knowledge proofs on Arc.",
+      "Private, compliant, and decoupled machine-to-machine payments via X402 and Zero-Knowledge proofs on Arc.",
     url: siteUrl,
     siteName: "ArcNano",
     locale: "en_US",
@@ -74,9 +74,10 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ArcNano — Shielded Nanopayments For The Autonomous Agent Era",
     description:
-      "Private, compliant, and decoupled machine-to-machine payments via HTTP 402 and Zero-Knowledge proofs on Arc.",
+      "Private, compliant, and decoupled machine-to-machine payments via X402 and Zero-Knowledge proofs on Arc.",
     images: ["/arcnano-logo.png"],
-    creator: "@trymbakmahant",
+    creator: "@0xarcnano",
+    site: "@0xarcnano",
   },
   robots: {
     index: true,
@@ -104,7 +105,10 @@ const jsonLd = {
       name: "ArcNano",
       url: siteUrl,
       logo: `${siteUrl}/arcnano-logo.png`,
-      sameAs: ["https://github.com/trymbakmahant/p2pzkpayment"],
+      sameAs: [
+        "https://x.com/0xarcnano",
+        "https://github.com/Trymbakmahant/arcnano",
+      ],
     },
     {
       "@type": "WebSite",
@@ -119,16 +123,16 @@ const jsonLd = {
     {
       "@type": "SoftwareApplication",
       "@id": `${siteUrl}/#software`,
-      name: "ArcNano Protocol (ArcShield-402)",
+      name: "ArcNano Protocol (ArcShield-X402)",
       applicationCategory: "BlockchainApplication",
       operatingSystem: "Arc Network, EVM",
       description:
-        "Zero-Knowledge HTTP 402 micropayment protocol for autonomous AI agents with signer decoupling, Privacy Pools ASP compliance, and sub-8ms off-chain verification.",
+        "Zero-Knowledge X402 micropayment protocol for autonomous AI agents with signer decoupling, Privacy Pools ASP compliance, and sub-8ms off-chain verification.",
       license: "https://opensource.org/licenses/MIT",
       author: {
         "@type": "Person",
         name: "Trymbak Mahant",
-        url: "https://github.com/trymbakmahant",
+        url: "https://github.com/Trymbakmahant",
       },
       offers: {
         "@type": "Offer",
@@ -141,11 +145,11 @@ const jsonLd = {
       "@id": `${siteUrl}/#techarticle`,
       headline: "ArcNano: Shielded Nanopayments For The Autonomous Agent Era",
       description:
-        "Architectural and cryptographic specification of decoupled, compliant machine-to-machine payments via HTTP 402 on the Arc Network.",
+        "Architectural and cryptographic specification of decoupled, compliant machine-to-machine payments via X402 on the Arc Network.",
       author: {
         "@type": "Person",
         name: "Trymbak Mahant",
-        url: "https://github.com/trymbakmahant",
+        url: "https://github.com/Trymbakmahant",
       },
       publisher: {
         "@id": `${siteUrl}/#organization`,

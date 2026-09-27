@@ -1,9 +1,9 @@
-# ArcNano (ArcShield-402) — Full Technical Specification & LLM Reference
+# ArcNano (ArcShield-X402) — Full Technical Specification & LLM Reference
 > Comprehensive Architectural, Cryptographic, and Economic Documentation for Large Language Models and AI Research Agents.
 
 ## 1. Problem Definition: The Four Traps of Machine-to-Machine Crypto Payments
 
-As autonomous AI agents transact over the web using HTTP 402, standard public blockchain payments introduce fatal failure modes:
+As autonomous AI agents transact over the web using X402, standard public blockchain payments introduce fatal failure modes:
 
 1. **The Surveillance Trap (msg.sender Leakage):** Standard ERC-20 / USDC transfers permanently log both the sender and receiver addresses to public block explorers. Competitors can track an agent's queries, model providers, and strategic data pipelines.
 2. **The Naive ZK Trap:** Even if a zero-knowledge proof verifies note ownership, if the paying agent's wallet signs the on-chain `spend()` transaction, its Ethereum address is broadcast as `msg.sender`, immediately destroying anonymity.
@@ -34,10 +34,10 @@ Inspired by Vitalik Buterin's *Privacy Pools* research:
   `VerifyNonMembership(aspExclusionRoot, commitment) == 1`
 - Clean agents prove their funds are legal without revealing which note is theirs.
 
-### C. Two-Stage HTTP 402 Verification Flow
+### C. Two-Stage X402 Verification Flow
 ```
 [Agent] ─── GET /api/inference ───> [API Gateway]
-[Agent] <── 402 Payment Required ── [API Gateway] (invoice with pool_root & recipient)
+[Agent] <── X402 Payment Required ── [API Gateway] (invoice with pool_root & recipient)
 [Agent] ─── POST with X-PAYMENT ──> [API Gateway] (Groth16 proof + nullifier)
                                      │
                                      ├─ Stage 1: Local SnarkJS verify (<8ms, $0 gas)
@@ -85,9 +85,9 @@ Inspired by Vitalik Buterin's *Privacy Pools* research:
 
 ## 5. Development Roadmap
 
-- **R.01 (Completed):** Architecture & Protocol Spec — Formulation of two-stage HTTP 402 verification, signer decoupling, and foundational whitepaper.
+- **R.01 (Completed):** Architecture & Protocol Spec — Formulation of two-stage X402 verification, signer decoupling, and foundational whitepaper.
 - **R.02 (In Progress):** Circom Circuits & Arc Testnet — 20-level Poseidon Merkle tree inclusion circuit (`spend.circom`), ASP non-membership constraint, and `ArcShieldPool.sol` deployment.
-- **R.03 (Upcoming):** Agent SDK & Gateway Tooling — Python client library (`arczk-agent`) for LangChain/AutoGPT/CrewAI and Express/Fastify HTTP 402 middleware.
+- **R.03 (Upcoming):** Agent SDK & Gateway Tooling — Python client library (`arczk-agent`) for LangChain/AutoGPT/CrewAI and Express/Fastify X402 middleware.
 - **R.04 (Upcoming):** Circle Gas Station & AI Pilot — Production integration with Circle Gas Station Paymaster on Arc and live pilot connecting autonomous AI agents to live inference nodes.
 
 ---
@@ -101,7 +101,8 @@ Inspired by Vitalik Buterin's *Privacy Pools* research:
 
 ## 7. Metadata & Links
 
-- **Repository:** https://github.com/trymbakmahant/p2pzkpayment
+- **Repository:** https://github.com/Trymbakmahant/arcnano
 - **Website:** https://arcnano.dev
-- **Author:** Trymbak Mahant (GitHub: @trymbakmahant)
+- **X / Twitter:** https://x.com/0xarcnano (@0xarcnano)
+- **Author:** Trymbak Mahant (GitHub: @Trymbakmahant)
 - **License:** MIT

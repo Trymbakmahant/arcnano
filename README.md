@@ -1,27 +1,28 @@
-# ArcShield-402: Shielded Agent Nanopayments on Arc
+# ArcShield-X402: Shielded Agent Nanopayments on Arc
 
 > **An independent solo project & grant proposal for the Arc Ecosystem.**  
-> **Author:** Trymbak Mahant ([@trymbakmahant](https://github.com/trymbakmahant)) — Solo Builder  
-> **Category:** Zero-Knowledge Cryptography • Autonomous AI Agent Infrastructure • HTTP 402 Micropayments  
+> **Author:** Trymbak Mahant ([@trymbakmahant](https://github.com/Trymbakmahant)) — Solo Builder  
+> **Official X:** [@0xarcnano](https://x.com/0xarcnano)  
+> **Category:** Zero-Knowledge Cryptography • Autonomous AI Agent Infrastructure • X402 Micropayments  
 > **Target Network:** Arc (leveraging Circle Gas Station / Paymaster & native USDC)
 
 ---
 
 ## 💡 Origin Story & Why I Built This
 
-Autonomous AI agents are beginning to transact with one another over the web using the emerging **HTTP 402 Payment Required (`x402`)** protocol. As an independent builder exploring the intersection of Zero-Knowledge proofs and M2M (machine-to-machine) micropayments, I noticed a severe architectural flaw in how people are approaching crypto payments for AI agents:
+Autonomous AI agents are beginning to transact with one another over the web using the emerging **X402 Payment Required (`x402`)** protocol. As an independent builder exploring the intersection of Zero-Knowledge proofs and M2M (machine-to-machine) micropayments, I noticed a severe architectural flaw in how people are approaching crypto payments for AI agents:
 
 1. **The Surveillance Nightmare:** If my autonomous agent pays an LLM API or scraper service using standard on-chain transactions, its wallet address (`msg.sender`) permanently logs every counterpart, prompt API call, and financial pattern on-chain for competitors to see.
 2. **The Naive ZK Trap:** Beginners often think, *"I'll just use a ZK proof to hide the payment."* But who signs the Ethereum transaction to call the smart contract? If the agent's wallet calls `spend()`, **the signer's address is broadcast to Arc's explorer**, destroying privacy on the spot.
 3. **The Mixer Dilemma:** Traditional mixers like Tornado Cash are heavily sanctioned and blacklisted by enterprise APIs because they cannot prove non-involvement in illicit funds.
 4. **The Latency Mismatch:** Web APIs expect sub-second responses. An AI agent cannot wait 15 seconds for an on-chain block confirmation just to fetch a $0.001 inference snippet.
 
-### My Solution: `ArcShield-402`
+### My Solution: `ArcShield-X402`
 I designed this protocol to solve all four issues by uniting:
 - **Shielded Fixed-Denomination Note Pools** (Poseidon Merkle trees on Arc).
 - **Association Set (ASP) Compliance Proofs** (inspired by Vitalik's *Privacy Pools* paper, proving non-membership in sanctioned funds).
 - **Signer Decoupling via Arc Circle Gas Station & Receiver Settlement** (the agent never signs an on-chain spend transaction).
-- **Two-Stage HTTP 402 Verification** (<10ms local Groth16 verification off-chain for immediate API delivery, followed by batched settlement on Arc).
+- **Two-Stage X402 Verification** (<10ms local Groth16 verification off-chain for immediate API delivery, followed by batched settlement on Arc).
 
 ---
 
@@ -149,8 +150,8 @@ I built an interactive browser-based testbed in the `landing-page/` directory th
 ### How to Run:
 ```bash
 # Clone the repository
-git clone https://github.com/trymbakmahant/p2pzkpayment.git
-cd p2pzkpayment/landing-page
+git clone https://github.com/Trymbakmahant/arcnano.git
+cd arcnano/landing-page
 
 # Launch a simple local server (using Python or Node)
 python3 -m http.server 3000
@@ -159,7 +160,7 @@ python3 -m http.server 3000
 
 Open `http://localhost:3000` in your browser. You can:
 1. **Deposit 0.01 USDC:** Watch the Poseidon commitment calculate and insert into the live visual Merkle tree.
-2. **Simulate an HTTP 402 Challenge:** Trigger an unauthenticated request to an AI inference endpoint and receive the structured 402 challenge.
+2. **Simulate an X402 Challenge:** Trigger an unauthenticated request to an AI inference endpoint and receive the structured X402 challenge.
 3. **Generate Off-Chain Groth16 Proof:** Inspect the elliptic curve points ($\pi_A, \pi_B, \pi_C$) and deterministic nullifier derivation.
 4. **Verify Instantly (<8ms):** Watch the local verifier approve the payload and return the AI output.
 5. **Flush Batch Settlement:** Trigger the simulated Arc Gas Station paymaster transaction and see $0 gas charged to the agent!
@@ -205,6 +206,7 @@ As an independent researcher, I believe in transparently documenting technical t
 
 I am **Trymbak Mahant**, a solo software engineer and researcher passionate about Zero-Knowledge cryptography, privacy-preserving infrastructure, and the emerging autonomous agent economy.
 
-- **GitHub:** [@trymbakmahant](https://github.com/trymbakmahant)
-- **Project Repository:** [p2pzkpayment](https://github.com/trymbakmahant/p2pzkpayment)
+- **GitHub:** [@trymbakmahant](https://github.com/Trymbakmahant)
+- **Project Repository:** [arcnano](https://github.com/Trymbakmahant/arcnano)
+- **Official X:** [@0xarcnano](https://x.com/0xarcnano)
 - **License:** MIT License — Open for the Arc and Web3 builder community.

@@ -40,7 +40,7 @@ export default function Home() {
   };
 
   const marqueeItems = [
-    "HTTP 402 Protocol",
+    "X402 Protocol",
     "Zero msg.sender Leakage",
     "Receiver-Batched Settlement",
     "Arc Circle Gas Station",
@@ -154,7 +154,7 @@ export default function Home() {
           <p className="mt-6 text-base sm:text-lg md:text-xl text-neutral-600 font-normal max-w-3xl leading-relaxed tracking-tight transition-colors">
             When autonomous AI agents pay for inference or data using public blockchain transactions, their wallet permanently logs every model call and trade secret. <strong className="text-neutral-900 font-medium">ArcNano</strong> is building private, compliant, sub-cent micropayments via native{" "}
             <span className="inline-flex items-center whitespace-nowrap font-mono text-xs px-2.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-semibold text-neutral-900 shadow-xs align-baseline">
-              HTTP 402
+              X402
             </span>{" "}
             on the Arc Network.
           </p>
@@ -179,11 +179,21 @@ export default function Home() {
 
             <a
               className="bg-white/60 hover:bg-white/90 text-neutral-600 hover:text-neutral-900 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
-              href="https://github.com/trymbakmahant/p2pzkpayment"
+              href="https://github.com/Trymbakmahant/arcnano"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span>GitHub Repository</span>
+              <span>GitHub</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <a
+              className="bg-white/60 hover:bg-white/90 text-neutral-600 hover:text-neutral-900 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
+              href="https://x.com/0xarcnano"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>X (@0xarcnano)</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -274,9 +284,9 @@ export default function Home() {
 
                   <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 2</div>
-                    <div className="text-base font-medium text-white mt-1">HTTP 402 Challenge</div>
+                    <div className="text-base font-medium text-white mt-1">X402 Challenge</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                      Agent queries an AI inference API and receives an automated HTTP 402 challenge with root parameters.
+                      Agent queries an AI inference API and receives an automated X402 challenge with root parameters.
                     </p>
                   </div>
 
@@ -515,7 +525,7 @@ export default function Home() {
                 </h3>
 
                 <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Formulated the two-stage HTTP 402 verification model, solved <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification.
+                  Formulated the two-stage X402 verification model, solved <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification.
                 </p>
               </div>
             </div>
@@ -562,7 +572,7 @@ export default function Home() {
                 </h3>
 
                 <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify HTTP 402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
+                  Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify X402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
                 </p>
               </div>
             </div>
@@ -634,7 +644,7 @@ export default function Home() {
                 {"// BUILD"}
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">Agent SDK Suite</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/Trymbakmahant/arcnano" target="_blank" rel="noopener noreferrer">Agent SDK Suite</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Circom Prover (spend.circom)</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">ArcShieldPool.sol</a></li>
                 <li><a className="hover:text-white transition-colors" href="/llms.txt" target="_blank" rel="noopener noreferrer">LLM Reference (llms.txt) &rarr;</a></li>
@@ -661,11 +671,12 @@ export default function Home() {
                 {"// PROTOCOL & ARC"}
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
+                <li><a className="hover:text-white transition-colors" href="https://x.com/0xarcnano" target="_blank" rel="noopener noreferrer">X / Twitter (@0xarcnano) &rarr;</a></li>
                 <li><a className="hover:text-white transition-colors" href="https://www.arc.io/" target="_blank" rel="noopener noreferrer">Arc Platform (arc.io) &rarr;</a></li>
                 <li><a className="hover:text-white transition-colors" href="https://circle.com" target="_blank" rel="noopener noreferrer">Circle Internet Group &rarr;</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Circle Gas Station (Paymaster)</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Privacy Pools (ASP Compliance)</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT Open License</a></li>
+                <li><a className="hover:text-white transition-colors" href="https://github.com/Trymbakmahant/arcnano/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT Open License</a></li>
               </ul>
             </div>
           </div>
@@ -679,7 +690,9 @@ export default function Home() {
           <div className="mt-8 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
             <div>&copy; 2026 ArcNano Protocol &bull; MIT License.</div>
             <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/trymbakmahant/p2pzkpayment" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/Trymbakmahant/arcnano" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <span className="text-neutral-700">•</span>
+              <a className="hover:text-neutral-400 transition-colors" href="https://x.com/0xarcnano" target="_blank" rel="noopener noreferrer">X (@0xarcnano)</a>
               <span className="text-neutral-700">•</span>
               <a className="hover:text-neutral-400 transition-colors" href="https://www.arc.io" target="_blank" rel="noopener noreferrer">Arc</a>
               <span className="text-neutral-700">•</span>

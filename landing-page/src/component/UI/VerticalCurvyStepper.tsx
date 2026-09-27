@@ -45,7 +45,7 @@ const SOLUTIONS_DATA: SolutionStep[] = [
       label: "Payer Traceability",
     },
     summary:
-      "In ArcNano, the spending agent never broadcasts an on-chain transaction. Instead, it generates a Groth16 proof locally in memory and embeds it in the HTTP 402 request header.",
+      "In ArcNano, the spending agent never broadcasts an on-chain transaction. Instead, it generates a Groth16 proof locally in memory and embeds it in the X402 request header.",
     details: [
       "The client proves knowledge of a secret deposit note commitment without disclosing its nullifier or secret key to the wire.",
       "The API receiver collects valid proofs from multiple agents and aggregates them into a single batchSpend() transaction broadcasted on Arc.",
@@ -58,7 +58,7 @@ const SOLUTIONS_DATA: SolutionStep[] = [
         type: "agent",
       },
       {
-        label: "HTTP 402 Header",
+        label: "X402 Header",
         sublabel: "X-PAYMENT Payload",
         type: "gateway",
       },
@@ -159,7 +159,7 @@ const SOLUTIONS_DATA: SolutionStep[] = [
   {
     id: "solution-04",
     stepNumber: "04",
-    title: "Two-Stage HTTP 402 Verification",
+    title: "Two-Stage X402 Verification",
     subtitle: "Sub-10ms Delivery + Periodic Batching",
     problemCountered: "Solves Trap 04: Block Mining Latency & Gas Waste",
     tag: "Architecture Pillar 04",
@@ -177,7 +177,7 @@ const SOLUTIONS_DATA: SolutionStep[] = [
     flowSteps: [
       {
         label: "Agent Query",
-        sublabel: "HTTP 402 Request",
+        sublabel: "X402 Request",
         type: "agent",
       },
       {
