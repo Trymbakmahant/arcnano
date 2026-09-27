@@ -604,104 +604,61 @@ export default function Home() {
       </section>
       </main>
 
-      {/* Main Footer (Inspired by arc.io clean taxonomy) */}
-      <footer className="bg-[#090D16] text-white pt-16 pb-12 border-t border-neutral-800 relative z-10">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 pb-16 border-b border-neutral-800">
-            <div className="md:col-span-2 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center p-1.5 shadow-sm">
-                  <Image
-                    src="/arcnano-icon-white.png"
-                    alt="ArcNano Icon"
-                    width={24}
-                    height={24}
-                    className="w-5 h-5 object-contain"
-                  />
-                </div>
-                <Image
-                  src="/arcnano-logo-white.png"
-                  alt="ArcNano"
-                  width={130}
-                  height={24}
-                  className="h-6 w-auto object-contain"
-                />
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-white/10 text-neutral-300 border border-white/10">
-                  Arc Native
-                </span>
-              </div>
-              <p className="text-neutral-400 text-xs sm:text-sm max-w-sm leading-relaxed">
-                Shielded zero-knowledge payment infrastructure purpose-built for autonomous machine-to-machine interactions and agentic economic activity on the Arc Network.
-              </p>
-              <div className="flex items-center gap-2 text-xs font-mono text-amber-300 pt-2">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                <span>Active Research &amp; Circuit Implementation Phase</span>
-              </div>
+      {/* Minimized Clean Footer */}
+      <footer className="border-t border-neutral-200/90 bg-white/70 backdrop-blur-md py-6 px-6 sm:px-8 relative z-10 transition-colors">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 rounded-md bg-neutral-950 flex items-center justify-center p-1 shadow-xs">
+              <Image
+                src="/arcnano-icon-white.png"
+                alt="ArcNano Icon"
+                width={16}
+                height={16}
+                className="w-3.5 h-3.5 object-contain"
+              />
             </div>
-
-            <div>
-              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
-                {"// BUILD"}
-              </h4>
-              <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="https://github.com/Trymbakmahant/arcnano" target="_blank" rel="noopener noreferrer">Agent SDK Suite</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Circom Prover (spend.circom)</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">ArcShieldPool.sol</a></li>
-                <li><a className="hover:text-white transition-colors" href="/llms.txt" target="_blank" rel="noopener noreferrer">LLM Reference (llms.txt) &rarr;</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://faucet.circle.com/" target="_blank" rel="noopener noreferrer">Circle Testnet Faucet &rarr;</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://docs.arc.network" target="_blank" rel="noopener noreferrer">Arc Network Docs &rarr;</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
-                {"// EXPLORE"}
-              </h4>
-              <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#blueprint">Protocol Blueprint</a></li>
-                <li><a className="hover:text-white transition-colors" href="#problem">Threat Model &amp; Traps</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">How ArcNano Solves It</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Architectural Resolution</a></li>
-                <li><a className="hover:text-white transition-colors" href="#roadmap">Development Roadmap</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4 font-semibold">
-                {"// PROTOCOL & ARC"}
-              </h4>
-              <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="https://x.com/0xarcnano" target="_blank" rel="noopener noreferrer">X / Twitter (@0xarcnano) &rarr;</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://www.arc.io/" target="_blank" rel="noopener noreferrer">Arc Platform (arc.io) &rarr;</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://circle.com" target="_blank" rel="noopener noreferrer">Circle Internet Group &rarr;</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Circle Gas Station (Paymaster)</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Privacy Pools (ASP Compliance)</a></li>
-                <li><a className="hover:text-white transition-colors" href="https://github.com/Trymbakmahant/arcnano/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT Open License</a></li>
-              </ul>
-            </div>
+            <Image
+              src="/arcnano-logo.png"
+              alt="ArcNano"
+              width={100}
+              height={18}
+              className="h-4 w-auto object-contain"
+            />
+            <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
+              • MIT License
+            </span>
           </div>
 
-          <div className="pt-8 text-neutral-500 text-[11px] leading-relaxed font-sans max-w-4xl">
-            <p>
-              ArcNano is an open-source zero-knowledge protocol research project engineered for the Arc ecosystem. Arc is an open Layer-1 blockchain launched by Arc Network Services LLC and Circle Internet Group, Inc. USDC is issued by Circle.
-            </p>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-mono gap-4">
-            <div>&copy; 2026 ArcNano Protocol &bull; MIT License.</div>
-            <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-              <a className="hover:text-neutral-400 transition-colors" href="https://github.com/Trymbakmahant/arcnano" target="_blank" rel="noopener noreferrer">GitHub</a>
-              <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="https://x.com/0xarcnano" target="_blank" rel="noopener noreferrer">X (@0xarcnano)</a>
-              <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="https://www.arc.io" target="_blank" rel="noopener noreferrer">Arc</a>
-              <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="/sitemap.xml" target="_blank">Sitemap</a>
-              <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="/llms.txt" target="_blank">llms.txt</a>
-              <span className="text-neutral-700">•</span>
-              <a className="hover:text-neutral-400 transition-colors" href="#roadmap">Roadmap</a>
-            </div>
+          <div className="flex items-center gap-4 sm:gap-6 text-xs font-mono text-neutral-600">
+            <a
+              className="hover:text-neutral-950 transition-colors"
+              href="https://github.com/Trymbakmahant/arcnano"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a
+              className="hover:text-neutral-950 transition-colors"
+              href="https://x.com/0xarcnano"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              X (@0xarcnano)
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a className="hover:text-neutral-950 transition-colors" href="/llms.txt" target="_blank">
+              llms.txt
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a className="hover:text-neutral-950 transition-colors" href="/sitemap.xml" target="_blank">
+              Sitemap
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a className="hover:text-neutral-950 transition-colors" href="#roadmap">
+              Roadmap
+            </a>
           </div>
         </div>
       </footer>
