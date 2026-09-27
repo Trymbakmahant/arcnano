@@ -1,7 +1,7 @@
-# ArcShield-402: Shielded Agent Nanopayments on Arc
+# ArcNano: Shielded Agent Nanopayments on Arc
 
 > **An independent solo project & grant proposal for the Arc Ecosystem.**  
-> **Project Name:** ArcShield-402 (Repository: [`arcnano`](https://github.com/Trymbakmahant/arcnano))  
+> **Project Name:** ArcNano (Repository: [`arcnano`](https://github.com/Trymbakmahant/arcnano))  
 > **Author:** Trymbak Mahant ([@trymbakmahant](https://github.com/Trymbakmahant)) — Solo Builder  
 > **Official X:** [@0xarcnano](https://x.com/0xarcnano)  
 > **Category:** Zero-Knowledge Cryptography • Autonomous AI Agent Infrastructure • X402 Micropayments  
@@ -18,7 +18,7 @@ Autonomous AI agents are beginning to transact with one another over the web usi
 3. **The Mixer Dilemma:** Traditional mixers like Tornado Cash pool clean and dirty funds indistinguishably, leading to regulatory bans and instant blacklisting by enterprise APIs that cannot prove non-involvement in illicit clusters.
 4. **The Latency Mismatch:** Web APIs expect sub-second responses. An AI agent in an execution loop cannot wait 10–15 seconds for an on-chain block confirmation just to fetch a $0.001 inference snippet.
 
-### The Solution: `ArcShield-402`
+### The Solution: `ArcNano`
 I designed this protocol from first principles to decouple payments from identity, guarantee legal compliance, and deliver instant sub-second verification by uniting:
 - **Shielded Fixed-Denomination Note Pools** (Poseidon Merkle trees on Arc).
 - **Association Set (ASP) Compliance Proofs** (inspired by the *Privacy Pools* standard, mathematically proving non-membership in sanctioned funds).
@@ -31,9 +31,9 @@ I designed this protocol from first principles to decouple payments from identit
 
 ```
    ┌────────────────────────────────────────────────────────┐
-   │             ARCSHIELD-402 PROTOCOL STACK               │
+   │                ARCNANO PROTOCOL STACK                  │
    │                                                        │
-   │  [Circom + Groth16]  ──>  [ArcShield.sol]  ──>  [X402] │
+   │  [Circom + Groth16]  ──>  [ArcNano.sol]   ──>  [X402]   │
    │   Off-chain proofs        Arc Note Pool      HTTP API  │
    └────────────────────────────────────────────────────────┘
 ```
@@ -45,7 +45,7 @@ sequenceDiagram
     autonumber
     actor Agent as Autonomous AI Agent
     participant ASP as Sanction Registry (ASP Root)
-    participant ArcPool as ArcShield Contract (on Arc)
+    participant ArcPool as ArcNano Contract (on Arc)
     participant Receiver as API Gateway (X402)
     participant GasStation as Arc Circle Gas Station
 
@@ -81,7 +81,7 @@ sequenceDiagram
 ### 1. Breaking the Signer Link (Solving `msg.sender` Surveillance)
 In naive ZK contracts, the person who spends the note calls `contract.spend(proof)`. But that means their public key is `msg.sender`.
 
-In **ArcShield-402**, **the spending agent never broadcasts an on-chain transaction**:
+In **ArcNano**, **the spending agent never broadcasts an on-chain transaction**:
 - When an agent pays an API, it hands the complete, self-verifying Groth16 proof to the **API provider (receiver)** inside the `X-PAYMENT` header.
 - The **receiver** is the one who claims the money on-chain!
 - The receiver batches 20, 50, or 100 proofs together and broadcasts a single `batchSpend()` transaction to Arc.
@@ -90,7 +90,7 @@ In **ArcShield-402**, **the spending agent never broadcasts an on-chain transact
 ### 2. Solving the Mixer Sanctions Trap (Privacy Pools)
 Legacy mixers pool clean and dirty funds indistinguishably, leading to global regulatory bans.
 
-ArcShield-402 enforces an **Association Set Provider (ASP) Exclusion Check**:
+ArcNano enforces an **Association Set Provider (ASP) Exclusion Check**:
 - Sanctioned or flagged deposit commitments are published as an exclusion Merkle tree root.
 - The Circom circuit includes an exclusion constraint:
   $$\text{VerifyNonMembership}(\text{aspExclusionRoot}, \text{commitment}) == 1$$
@@ -100,7 +100,7 @@ ArcShield-402 enforces an **Association Set Provider (ASP) Exclusion Check**:
 ### 3. Sub-10ms API Delivery (Two-Stage Verification)
 Normal blockchain transactions take seconds or minutes to confirm. For an AI agent making dozens of API calls per minute, waiting for block confirmations breaks real-time agent loops.
 
-ArcShield-402 utilizes a **Two-Stage Verification Model**:
+ArcNano utilizes a **Two-Stage Verification Model**:
 - **Stage 1 (Synchronous / Off-Chain — <8ms):** The API gateway runs the Groth16 verifier (`snarkjs.groth16.verify`) in local RAM against its known Merkle root and an in-memory nullifier cache. If the math holds and the nullifier is new, the server unblocks the LLM response stream immediately.
 - **Stage 2 (Asynchronous / On-Chain):** The API provider aggregates nullifiers and flushes them to Arc in batches once per hour or upon hitting a threshold, amortizing settlement costs to fractions of a cent per request.
 
@@ -108,7 +108,7 @@ ArcShield-402 utilizes a **Two-Stage Verification Model**:
 
 ## 📊 Industry Standard Benchmark (My Analysis)
 
-| Dimension | Standard Public USDC | Tornado Cash (Mixer) | Privacy Pools (Railgun) | **ArcShield-402 (My Project)** |
+| Dimension | Standard Public USDC | Tornado Cash (Mixer) | Privacy Pools (Railgun) | **ArcNano (My Project)** |
 | :--- | :--- | :--- | :--- | :--- |
 | **Agent Anonymity** | ❌ 0% (Fully Doxxed) | ⚠️ High (Mixed Pool) | ⚠️ High (Shielded) | ✅ **100% Zero-Knowledge** |
 | **Signer Link** | ❌ `msg.sender` leaks identity | ⚠️ Needs third-party relayers | ⚠️ Relayer dependent | ✅ **Receiver-Batched + Arc Gas Station** |
@@ -189,7 +189,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. You can:
 - [ ] **Milestone 2: Production Circom Circuit & Arc Testnet Contracts (In Progress)**
   - Finalize `spend.circom` with 20-level Poseidon Merkle tree.
   - Implement ASP exclusion proof circuit (`asp_check.circom`).
-  - Deploy `ArcShieldPool.sol` on Arc Testnet.
+  - Deploy `ArcNanoPool.sol` on Arc Testnet.
 - [ ] **Milestone 3: Agent SDK & Gateway Middleware**
   - Publish `arczk-agent` Python package for LangChain / AutoGPT / CrewAI.
   - Publish `@arczk/x402-express` middleware for API providers.
