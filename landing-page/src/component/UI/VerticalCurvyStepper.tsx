@@ -38,40 +38,23 @@ const SOLUTIONS_DATA: SolutionStep[] = [
     stepNumber: "01",
     title: "Receiver-Batched Settlement",
     subtitle: "Eliminating the Payer's msg.sender",
-    problemCountered: "Solves Trap 01: msg.sender On-Chain Surveillance",
+    problemCountered: "Solves Trap 01: msg.sender Surveillance",
     tag: "Architecture Pillar 01",
     metric: {
       value: "0%",
-      label: "Payer Traceability",
+      label: "Traceability",
     },
     summary:
       "In ArcNano, the spending agent never broadcasts an on-chain transaction. Instead, it generates a Groth16 proof locally in memory and embeds it in the X402 request header.",
     details: [
-      "The client proves knowledge of a secret deposit note commitment without disclosing its nullifier or secret key to the wire.",
-      "The API receiver collects valid proofs from multiple agents and aggregates them into a single batchSpend() transaction broadcasted on Arc.",
-      "Because the receiver is the transaction signer and msg.sender, the payer's wallet address never touches the Arc mempool or blockchain ledger.",
+      "The client proves knowledge of a secret deposit note commitment without disclosing its nullifier or secret key.",
+      "The API receiver collects valid proofs and aggregates them into a single batchSpend() transaction broadcasted on Arc.",
     ],
     flowSteps: [
-      {
-        label: "Agent Client",
-        sublabel: "Local Groth16 Proof",
-        type: "agent",
-      },
-      {
-        label: "X402 Header",
-        sublabel: "X-PAYMENT Payload",
-        type: "gateway",
-      },
-      {
-        label: "Receiver Aggregator",
-        sublabel: "Proof Collection",
-        type: "gateway",
-      },
-      {
-        label: "Arc Blockchain",
-        sublabel: "batchSpend() by Receiver",
-        type: "chain",
-      },
+      { label: "Agent", sublabel: "Local ZK Proof", type: "agent" },
+      { label: "X402 Header", sublabel: "X-PAYMENT", type: "gateway" },
+      { label: "Receiver", sublabel: "Batch Aggregate", type: "gateway" },
+      { label: "Arc Chain", sublabel: "batchSpend()", type: "chain" },
     ],
   },
   {
@@ -79,81 +62,47 @@ const SOLUTIONS_DATA: SolutionStep[] = [
     stepNumber: "02",
     title: "Arc Circle Gas Station Sponsorship",
     subtitle: "$0 Gas & Zero Funding Paper Trails",
-    problemCountered: "Solves Trap 02: Burner Wallet Gas Funding Linkage",
+    problemCountered: "Solves Trap 02: Gas Funding Linkage",
     tag: "Architecture Pillar 02",
     metric: {
       value: "$0",
-      label: "Agent Native Gas Required",
+      label: "Native Gas",
     },
     summary:
-      "Normally, funding burner wallets with native gas tokens links them back to a master exchange account. ArcNano eliminates native gas through Circle Gas Station paymasters.",
+      "Normally, funding burner wallets with native gas tokens links them back to master accounts. ArcNano eliminates native gas through Circle Gas Station paymasters.",
     details: [
       "Settlement transactions on Arc are submitted via the Circle Gas Station (ERC-4337 Paymaster).",
-      "Settlement gas is fully sponsored or deducted from off-chain USDC fee allowances. Agents only manage confidential cryptographic commitments.",
-      "No native gas tokens are ever transferred to agent wallets, permanently closing the centralized exchange funding graph leak.",
+      "No native gas tokens are ever transferred to agent wallets, permanently closing the centralized exchange graph leak.",
     ],
     flowSteps: [
-      {
-        label: "Agent Wallet",
-        sublabel: "Zero Gas Needed",
-        type: "agent",
-      },
-      {
-        label: "Circle Paymaster",
-        sublabel: "Gas Station Sponsor",
-        type: "gateway",
-      },
-      {
-        label: "Sponsored Relayer",
-        sublabel: "USDC Batch Settle",
-        type: "chain",
-      },
-      {
-        label: "Arc Finality",
-        sublabel: "No Funding Graph",
-        type: "chain",
-      },
+      { label: "Agent Wallet", sublabel: "Zero Gas Needed", type: "agent" },
+      { label: "Circle Paymaster", sublabel: "Gas Sponsor", type: "gateway" },
+      { label: "Relayer", sublabel: "USDC Settle", type: "chain" },
+      { label: "Arc Finality", sublabel: "No Graph Leak", type: "chain" },
     ],
   },
   {
     id: "solution-03",
     stepNumber: "03",
-    title: "Association Set Provider (ASP) Proofs",
+    title: "Association Set Provider Proofs",
     subtitle: "Compliance by Mathematics (Privacy Pools)",
-    problemCountered: "Solves Trap 03: Blacklist Sanctions & Mixer Taint",
+    problemCountered: "Solves Trap 03: Blacklist Sanctions",
     tag: "Architecture Pillar 03",
     metric: {
       value: "100%",
-      label: "Math-Guaranteed Clean Funds",
+      label: "Math-Clean",
     },
     summary:
       "Inspired by the Privacy Pools standard, ArcNano uses dual Merkle membership circuits so legitimate agents prove clean origin without revealing their individual deposit leaf.",
     details: [
-      "Every Circom spend circuit enforces dual constraints: inclusion in the verified deposit Merkle tree, plus non-inclusion in the ASP sanctioned root.",
-      "The agent mathematically proves: 'My deposit is authentic AND is not part of any OFAC/illicit cluster.'",
-      "Enterprise APIs verify compliance with mathematical certainty before fulfilling requests, remaining 100% compliant with global regulations.",
+      "Enforces dual constraints: inclusion in the deposit Merkle tree, plus non-inclusion in the ASP sanctioned root.",
+      "Enterprise APIs verify compliance mathematically before fulfilling requests, remaining 100% compliant.",
     ],
     flowSteps: [
-      {
-        label: "Circom Circuit",
-        sublabel: "Dual Merkle Constraints",
-        type: "math",
-      },
-      {
-        label: "Deposit Tree",
-        sublabel: "ZK Membership Proof",
-        type: "math",
-      },
-      {
-        label: "ASP Sanction Root",
-        sublabel: "ZK Non-Membership",
-        type: "math",
-      },
-      {
-        label: "API Verification",
-        sublabel: "Zero OFAC Risk",
-        type: "gateway",
-      },
+      { label: "Circom Circuit", sublabel: "Dual Merkle", type: "math" },
+      { label: "Deposit Tree", sublabel: "ZK Member", type: "math" },
+      { label: "ASP Root", sublabel: "Non-Sanctioned", type: "math" },
+      { label: "API Gateway", sublabel: "Verified Clean", type: "gateway" },
     ],
   },
   {
@@ -161,40 +110,23 @@ const SOLUTIONS_DATA: SolutionStep[] = [
     stepNumber: "04",
     title: "Two-Stage X402 Verification",
     subtitle: "Sub-10ms Delivery + Periodic Batching",
-    problemCountered: "Solves Trap 04: Block Mining Latency & Gas Waste",
+    problemCountered: "Solves Trap 04: Block Mining Latency",
     tag: "Architecture Pillar 04",
     metric: {
       value: "< 10ms",
-      label: "Off-Chain Gateway Latency",
+      label: "Off-Chain Latency",
     },
     summary:
       "We decouple high-frequency API responses from on-chain block mining times through an in-memory two-stage verification architecture.",
     details: [
-      "Stage 1 (Off-Chain Verification): The gateway executes an in-memory Groth16 pairing check and consults a Redis nullifier cache in under 10ms, instantly serving the LLM response.",
-      "Stage 2 (On-Chain Settlement): The gateway queues spent nullifiers and settles 50–100 transactions together in periodic batches on Arc.",
-      "This reduces per-query settlement overhead to fractions of a cent while enabling high-throughput autonomous agent loops.",
+      "Stage 1: Gateway executes in-memory Groth16 pairing check and Redis nullifier cache in < 10ms for instant responses.",
+      "Stage 2: Gateway queues spent nullifiers and settles 50–100 transactions together in periodic batches on Arc.",
     ],
     flowSteps: [
-      {
-        label: "Agent Query",
-        sublabel: "X402 Request",
-        type: "agent",
-      },
-      {
-        label: "Stage 1 (<10ms)",
-        sublabel: "In-Memory Pairing Check",
-        type: "gateway",
-      },
-      {
-        label: "Instant 200 OK",
-        sublabel: "Unblocked LLM Stream",
-        type: "agent",
-      },
-      {
-        label: "Stage 2 (Async)",
-        sublabel: "Batch Arc Settlement",
-        type: "chain",
-      },
+      { label: "Agent Query", sublabel: "X402 Request", type: "agent" },
+      { label: "Stage 1 (<10ms)", sublabel: "Pairing Check", type: "gateway" },
+      { label: "Instant 200 OK", sublabel: "Unblocked Stream", type: "agent" },
+      { label: "Stage 2 (Async)", sublabel: "Batch Settle", type: "chain" },
     ],
   },
 ];
@@ -204,91 +136,114 @@ export default function VerticalCurvyStepper() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeStep, setActiveStep] = useState<number>(0);
 
-  // Measurements for SVG Curvy Path
-  const [trackWidth, setTrackWidth] = useState<number>(88);
+  // Dynamic Layout Measurements
+  const [containerWidth, setContainerWidth] = useState<number>(1000);
   const [svgHeight, setSvgHeight] = useState<number>(1200);
-  const [nodePositions, setNodePositions] = useState<{ x: number; y: number }[]>([
-    { x: 44, y: 50 },
-    { x: 44, y: 360 },
-    { x: 44, y: 670 },
-    { x: 44, y: 980 },
+  const [isMobileView, setIsMobileView] = useState<boolean>(false);
+  const [nodePositions, setNodePositions] = useState<
+    { x: number; y: number; isLeft: boolean }[]
+  >([
+    { x: 456, y: 60, isLeft: true },
+    { x: 544, y: 360, isLeft: false },
+    { x: 456, y: 660, isLeft: true },
+    { x: 544, y: 960, isLeft: false },
   ]);
-  const [curvyPath, setCurvyPath] = useState<string>(
-    "M 44 0 L 44 50 C 72 158.5, 24.4 251.5, 44 360 C 24.4 468.5, 72 561.5, 44 670 C 72 778.5, 24.4 871.5, 44 980 C 44 1020, 44 1060, 44 1090"
-  );
-  const [branchPaths, setBranchPaths] = useState<string[]>([
-    "M 44 50 L 100 50",
-    "M 44 360 L 100 360",
-    "M 44 670 L 100 670",
-    "M 44 980 L 100 980",
-  ]);
+  const [curvyPath, setCurvyPath] = useState<string>("");
+  const [branchPaths, setBranchPaths] = useState<string[]>([]);
 
   // Framer Motion Scroll Progress for Drawing the Curvy Line
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 65%", "end 75%"],
+    offset: ["start 70%", "end 75%"],
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 280,
-    damping: 45,
+    stiffness: 260,
+    damping: 40,
     restDelta: 0.001,
   });
 
-  // Calculate Node Positions and Curvy Bezier Path dynamically
+  // Calculate Node Positions and S-Curve Bezier Path
   useEffect(() => {
     const updateMeasurements = () => {
       if (!containerRef.current) return;
       const containerRect = containerRef.current.getBoundingClientRect();
+      const width = containerRect.width;
+      const height = containerRect.height;
       const isMobile = window.innerWidth < 768;
-      const currentTrackWidth = isMobile ? 56 : 88;
-      setTrackWidth(currentTrackWidth);
-      setSvgHeight(containerRect.height);
 
-      const cx = currentTrackWidth / 2;
-      const positions: { x: number; y: number }[] = [];
+      setIsMobileView(isMobile);
+      setContainerWidth(width);
+      setSvgHeight(height);
 
-      stepRefs.current.forEach((el) => {
+      const cx = width / 2;
+      const positions: { x: number; y: number; isLeft: boolean }[] = [];
+      const branches: string[] = [];
+
+      stepRefs.current.forEach((el, idx) => {
         if (!el) return;
         const rect = el.getBoundingClientRect();
-        // Center of the step orb relative to container top
-        const relativeY = rect.top - containerRect.top + 36;
-        positions.push({ x: cx, y: Math.max(36, relativeY) });
+        // Align node level with the top header of each card
+        const relativeY = rect.top - containerRect.top + 38;
+        const isLeft = idx % 2 === 0;
+
+        let nx: number;
+        if (isMobile) {
+          nx = 24;
+          const cardLeft = rect.left - containerRect.left;
+          branches.push(`M 24 ${relativeY} L ${cardLeft} ${relativeY}`);
+        } else {
+          // Node is placed in the center gap (Left 1, Right 2, Left 3, Right 4)
+          nx = isLeft ? cx - 44 : cx + 44;
+          if (isLeft) {
+            const cardRight = rect.right - containerRect.left;
+            branches.push(`M ${cardRight} ${relativeY} L ${nx} ${relativeY}`);
+          } else {
+            const cardLeft = rect.left - containerRect.left;
+            branches.push(`M ${nx} ${relativeY} L ${cardLeft} ${relativeY}`);
+          }
+        }
+
+        positions.push({ x: nx, y: Math.max(30, relativeY), isLeft });
       });
 
       setNodePositions(positions);
 
       if (positions.length > 1) {
-        let d = `M ${cx} 0 L ${cx} ${positions[0].y}`;
-        const branches: string[] = [];
+        if (isMobile) {
+          let d = `M 24 0 L 24 ${positions[0].y}`;
+          for (let i = 0; i < positions.length - 1; i++) {
+            const p1 = positions[i];
+            const p2 = positions[i + 1];
+            const dy = p2.y - p1.y;
+            d += ` C 36 ${p1.y + dy * 0.35}, 12 ${p2.y - dy * 0.35}, 24 ${p2.y}`;
+          }
+          const last = positions[positions.length - 1];
+          d += ` C 24 ${last.y + 40}, 24 ${last.y + 70}, 24 ${last.y + 90}`;
+          setCurvyPath(d);
+        } else {
+          // Serpentine Curve: Left (1) -> Right (2) -> Left (3) -> Right (4)
+          const p0 = positions[0];
+          let d = `M ${cx} 0 C ${cx} ${p0.y * 0.4}, ${p0.x} ${p0.y * 0.6}, ${p0.x} ${p0.y}`;
 
-        for (let i = 0; i < positions.length - 1; i++) {
-          const p1 = positions[i];
-          const p2 = positions[i + 1];
-          const dy = p2.y - p1.y;
+          for (let i = 0; i < positions.length - 1; i++) {
+            const pA = positions[i];
+            const pB = positions[i + 1];
+            const dy = pB.y - pA.y;
 
-          // Serpentine S-curve with alternating wave amplitudes
-          const curveAmp = isMobile ? 18 : 28;
-          const direction = i % 2 === 0 ? 1 : -1;
-          const c1x = cx + curveAmp * direction;
-          const c1y = p1.y + dy * 0.35;
-          const c2x = cx - curveAmp * direction * 0.7;
-          const c2y = p2.y - dy * 0.35;
+            // Natural S-curve crossing the center line smoothly
+            const c1x = pA.x + (pB.x - pA.x) * 0.15;
+            const c1y = pA.y + dy * 0.5;
+            const c2x = pB.x - (pB.x - pA.x) * 0.15;
+            const c2y = pB.y - dy * 0.5;
 
-          d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${cx} ${p2.y}`;
+            d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${pB.x} ${pB.y}`;
+          }
 
-          // Horizontal branch connector to card
-          branches.push(`M ${cx} ${p1.y} L ${currentTrackWidth + 12} ${p1.y}`);
+          const last = positions[positions.length - 1];
+          d += ` C ${last.x} ${last.y + 40}, ${cx} ${last.y + 80}, ${cx} ${last.y + 110}`;
+          setCurvyPath(d);
         }
-
-        // Branch for last node
-        const lastNode = positions[positions.length - 1];
-        branches.push(`M ${cx} ${lastNode.y} L ${currentTrackWidth + 12} ${lastNode.y}`);
-
-        // Trail out smoothly at bottom
-        d += ` C ${cx} ${lastNode.y + 40}, ${cx} ${lastNode.y + 80}, ${cx} ${lastNode.y + 110}`;
-
-        setCurvyPath(d);
         setBranchPaths(branches);
       }
     };
@@ -305,7 +260,11 @@ export default function VerticalCurvyStepper() {
   }, []);
 
   const getStepIcon = (idx: number, isSelected = false) => {
-    const iconClass = `w-4 h-4 ${isSelected ? "text-amber-400" : "text-neutral-600 group-hover:text-neutral-900 transition-colors"}`;
+    const iconClass = `w-4 h-4 ${
+      isSelected
+        ? "text-amber-400"
+        : "text-neutral-600 group-hover:text-neutral-900 transition-colors"
+    }`;
     switch (idx) {
       case 0:
         return <Layers className={iconClass} />;
@@ -336,19 +295,12 @@ export default function VerticalCurvyStepper() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full max-w-6xl mx-auto">
       {/* Dynamic Curvy Stepper SVG Track */}
-      <div
-        className="absolute top-0 bottom-0 pointer-events-none z-10"
-        style={{
-          left: 0,
-          width: `${trackWidth + 14}px`,
-        }}
-      >
+      <div className="absolute inset-0 pointer-events-none z-10 w-full h-full">
         <svg
           className="w-full h-full overflow-visible"
-          style={{ height: `${svgHeight}px` }}
-          viewBox={`0 0 ${trackWidth + 14} ${svgHeight}`}
+          viewBox={`0 0 ${containerWidth} ${svgHeight}`}
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -385,7 +337,7 @@ export default function VerticalCurvyStepper() {
             <path
               key={`branch-${idx}`}
               d={bp}
-              stroke="rgba(0, 0, 0, 0.09)"
+              stroke="rgba(0, 0, 0, 0.12)"
               strokeWidth="1.5"
               strokeDasharray="3 3"
               strokeLinecap="round"
@@ -412,9 +364,9 @@ export default function VerticalCurvyStepper() {
               stroke="url(#stepperLaserBeam)"
               strokeWidth="3"
               strokeLinecap="round"
-              strokeDasharray="40 320"
+              strokeDasharray="36 280"
               animate={{
-                strokeDashoffset: [0, -720],
+                strokeDashoffset: [0, -620],
               }}
               transition={{
                 duration: 4.2,
@@ -431,7 +383,7 @@ export default function VerticalCurvyStepper() {
           return (
             <div
               key={`node-${idx}`}
-              className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+              className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-20"
               style={{
                 left: `${pos.x}px`,
                 top: `${pos.y}px`,
@@ -440,7 +392,7 @@ export default function VerticalCurvyStepper() {
             >
               {/* Subtle Pulsing Ring */}
               <motion.div
-                className={`absolute -inset-2.5 rounded-2xl border transition-colors ${
+                className={`absolute -inset-2 rounded-2xl border transition-colors ${
                   isSelected ? "border-amber-500/40" : "border-neutral-300/40"
                 }`}
                 animate={{
@@ -457,7 +409,7 @@ export default function VerticalCurvyStepper() {
 
               {/* Stepper Node Orb */}
               <div
-                className={`relative w-11 h-11 md:w-12 md:h-12 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm border ${
+                className={`relative w-10 h-10 md:w-11 md:h-11 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm border ${
                   isSelected
                     ? "bg-neutral-950 border-neutral-900 text-white shadow-neutral-950/15 ring-2 ring-neutral-900/10 scale-105"
                     : "bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400 hover:scale-105"
@@ -479,138 +431,138 @@ export default function VerticalCurvyStepper() {
         })}
       </div>
 
-      {/* Steps Content Stack (aligned with the curvy track) */}
-      <div
-        className="space-y-8 md:space-y-12"
-        style={{
-          paddingLeft: `${trackWidth + 18}px`,
-        }}
-      >
+      {/* Alternating Steps Content: Left (1) -> Right (2) -> Left (3) -> Right (4) */}
+      <div className="space-y-10 sm:space-y-12 md:space-y-14 relative z-0">
         {SOLUTIONS_DATA.map((step, idx) => {
           const isSelected = activeStep === idx;
+          const isLeft = idx % 2 === 0;
+
           return (
-            <motion.div
+            <div
               key={step.id}
               ref={(el) => {
                 stepRefs.current[idx] = el;
               }}
-              initial={{ opacity: 0, x: 28, y: 20 }}
-              whileInView={{ opacity: 1, x: 0, y: 0 }}
-              viewport={{ once: true, margin: "-70px" }}
-              transition={{
-                duration: 0.55,
-                ease: [0.16, 1, 0.3, 1],
-                delay: idx * 0.1,
-              }}
-              className={`rounded-3xl p-6 sm:p-8 md:p-10 transition-all duration-300 relative border ${
-                isSelected
-                  ? "bg-white border-neutral-400/90 shadow-lg shadow-neutral-900/5 ring-1 ring-neutral-300/60"
-                  : "bg-white/90 border-neutral-200/90 hover:border-neutral-300 shadow-xs hover:shadow-md"
-              }`}
+              className={`w-full md:w-[calc(50%-60px)] ${
+                isLeft ? "md:mr-auto" : "md:ml-auto"
+              } ${isMobileView ? "pl-14" : ""}`}
             >
-              {/* Subtle Warm Accent Top Rim Highlight */}
-              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent pointer-events-none" />
+              <motion.div
+                initial={{ opacity: 0, x: isLeft ? -20 : 20, y: 15 }}
+                whileInView={{ opacity: 1, x: 0, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.16, 1, 0.3, 1],
+                  delay: idx * 0.08,
+                }}
+                onClick={() => setActiveStep(idx)}
+                className={`cursor-pointer rounded-2xl sm:rounded-3xl p-5 sm:p-6 transition-all duration-300 relative border ${
+                  isSelected
+                    ? "bg-white border-neutral-400/90 shadow-lg shadow-neutral-900/5 ring-1 ring-neutral-300/60"
+                    : "bg-white/90 border-neutral-200/90 hover:border-neutral-300 shadow-xs hover:shadow-md"
+                }`}
+              >
+                {/* Subtle Warm Accent Top Rim Highlight */}
+                <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent pointer-events-none" />
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Left Header Column */}
-                <div className="lg:col-span-5 space-y-4">
-                  {/* Step Category Badge & Problem Countered */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span>Solution {step.stepNumber}</span>
-                    </span>
-                    <span className="text-[11px] font-mono text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
-                      {step.tag}
-                    </span>
-                  </div>
+                {/* Compact Card Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        <span>Solution {step.stepNumber}</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">
+                        {step.tag}
+                      </span>
+                    </div>
 
-                  <div>
-                    <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-neutral-950">
+                    <h3 className="text-xl sm:text-2xl font-medium tracking-tight text-neutral-950 pt-1">
                       {step.title}
                     </h3>
-                    <div className="text-xs sm:text-sm font-mono text-neutral-500 mt-1.5 font-medium">
+                    <div className="text-xs font-mono text-neutral-500 font-medium">
                       {step.subtitle}
-                    </div>
-                    <div className="text-xs font-mono text-neutral-500 mt-2 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span>{step.problemCountered}</span>
                     </div>
                   </div>
 
-                  {/* Impact Metric Pill */}
-                  <div className="inline-flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200/80">
-                    <div className="text-2xl font-bold font-mono text-neutral-950 tracking-tight">
+                  {/* Impact Metric Chip */}
+                  <div className="shrink-0 text-right bg-neutral-50 border border-neutral-200/80 px-3 py-1.5 rounded-xl">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-neutral-950 tracking-tight leading-tight">
                       {step.metric.value}
                     </div>
-                    <div className="text-xs text-neutral-600 font-medium leading-tight">
+                    <div className="text-[10px] text-neutral-500 font-medium uppercase tracking-wider font-mono">
                       {step.metric.label}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Content Column */}
-                <div className="lg:col-span-7 space-y-6">
-                  {/* Summary Callout */}
-                  <p className="text-base sm:text-lg text-neutral-800 font-normal leading-relaxed">
-                    {step.summary}
-                  </p>
+                {/* Problem Countered Badge */}
+                <div className="text-[11px] font-mono text-amber-800 bg-amber-50/70 border border-amber-200/60 rounded-lg px-2.5 py-1 mt-3 inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>{step.problemCountered}</span>
+                </div>
 
-                  {/* In-Depth Technical Details */}
-                  <div className="space-y-2.5 text-sm sm:text-base text-neutral-600 leading-relaxed">
-                    {step.details.map((detail, dIdx) => (
-                      <div key={dIdx} className="flex items-start gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500/80 mt-2.5 shrink-0" />
-                        <p>{detail}</p>
+                {/* Summary & Core Mechanism */}
+                <p className="text-sm text-neutral-700 font-normal leading-relaxed mt-3">
+                  {step.summary}
+                </p>
+
+                {/* Concise Technical Highlights */}
+                <div className="mt-3 space-y-1.5 text-xs sm:text-[13px] text-neutral-600 leading-relaxed">
+                  {step.details.map((detail, dIdx) => (
+                    <div key={dIdx} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500/80 mt-1.5 shrink-0" />
+                      <p>{detail}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Compact Pipeline Breadcrumb Strip */}
+                <div className="mt-4 pt-3.5 border-t border-neutral-100">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Terminal className="w-3 h-3 text-neutral-500" />
+                      Execution Flow
+                    </span>
+                    <span className="text-[9px] text-amber-700 font-mono bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded">
+                      Autonomous Pipeline
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {step.flowSteps.map((flow, fIdx) => (
+                      <div
+                        key={fIdx}
+                        className="relative p-2 rounded-xl bg-neutral-50/80 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 transition-all flex flex-col justify-between"
+                      >
+                        <div>
+                          <span
+                            className={`inline-block px-1 py-0.2 rounded text-[8px] font-mono uppercase tracking-wide border mb-1 ${getFlowTypeBadge(
+                              flow.type
+                            )}`}
+                          >
+                            {flow.type}
+                          </span>
+                          <div className="text-[11px] font-semibold text-neutral-900 leading-tight truncate">
+                            {flow.label}
+                          </div>
+                        </div>
+                        <div className="text-[9px] font-mono text-neutral-500 mt-1 leading-tight truncate">
+                          {flow.sublabel}
+                        </div>
+                        {fIdx < step.flowSteps.length - 1 && (
+                          <div className="hidden sm:block absolute -right-1.5 top-1/2 -translate-y-1/2 z-10">
+                            <ArrowRight className="w-2.5 h-2.5 text-neutral-400" />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-
-                  {/* Sleek Interactive / Visual Protocol Flow Diagram */}
-                  <div className="pt-2">
-                    <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2.5 flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Terminal className="w-3.5 h-3.5 text-neutral-500" />
-                        Execution Flow Breakdown
-                      </span>
-                      <span className="text-[10px] text-amber-700 font-mono bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded">
-                        Autonomous Pipeline
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      {step.flowSteps.map((flow, fIdx) => (
-                        <div
-                          key={fIdx}
-                          className="relative p-3 rounded-2xl bg-neutral-50/80 border border-neutral-200/80 hover:border-neutral-300 hover:bg-white transition-all flex flex-col justify-between"
-                        >
-                          <div>
-                            <span
-                              className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wide border mb-1.5 ${getFlowTypeBadge(
-                                flow.type
-                              )}`}
-                            >
-                              {flow.type}
-                            </span>
-                            <div className="text-xs font-semibold text-neutral-900 leading-tight">
-                              {flow.label}
-                            </div>
-                          </div>
-                          <div className="text-[11px] font-mono text-neutral-500 mt-2 leading-tight">
-                            {flow.sublabel}
-                          </div>
-                          {fIdx < step.flowSteps.length - 1 && (
-                            <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10">
-                              <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           );
         })}
       </div>
