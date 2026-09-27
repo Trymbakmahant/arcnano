@@ -478,7 +478,8 @@ export default function Home() {
         </section>
 
         {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN - 100VH) */}
-        <section className="min-h-screen flex flex-col justify-center py-12 md:py-16 bg-white border-t border-neutral-200/90 px-6 sm:px-8 max-w-7xl mx-auto relative z-10" id="roadmap">
+        <section className="w-full relative z-10" id="roadmap">
+          <div className="min-h-screen flex flex-col justify-center py-16 md:py-24 px-6 sm:px-8 max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="mb-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-4 shadow-xs">
@@ -589,7 +590,8 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
       </main>
 
       {/* Main Footer (Inspired by arc.io clean taxonomy) */}
