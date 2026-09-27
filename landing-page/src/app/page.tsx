@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
-import ArcAgentSimulator from "@/component/UI/ArcAgentSimulator";
-import ArcRoleTabs from "@/component/UI/ArcRoleTabs";
 import {
   Radar,
   Unlink,
@@ -13,8 +11,6 @@ import {
   Gauge,
   ArrowDown,
   ExternalLink,
-  Copy,
-  Check,
   CheckCircle2,
   Clock,
   Cpu,
@@ -24,9 +20,6 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const [isCopied, setIsCopied] = useState<boolean>(false);
-  const [copyFeedback, setCopyFeedback] = useState<string>("Copy GitHub Command");
-  
   // Spotlight grid mouse tracking
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: -1000, y: -1000 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,17 +41,6 @@ export default function Home() {
     setMousePos({
       x: e.clientX,
       y: e.clientY,
-    });
-  };
-
-  const copyCloneCommand = () => {
-    navigator.clipboard.writeText("git clone https://github.com/trymbakmahant/p2pzkpayment.git").then(() => {
-      setIsCopied(true);
-      setCopyFeedback("Copied to Clipboard!");
-      setTimeout(() => {
-        setIsCopied(false);
-        setCopyFeedback("Copy GitHub Command");
-      }, 2200);
     });
   };
 
@@ -372,9 +354,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* SECTION 1: WHAT WE ARE (TAKES FULL VIEWPORT) */}
-        <section className="py-20 px-4 max-w-7xl mx-auto relative z-10" id="about">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+        {/* SECTION 1: WHAT WE ARE (TAKES FULL VIEWPORT - 100vh) */}
+        <section className="min-h-screen flex flex-col justify-center py-12 md:py-16 px-4 max-w-7xl mx-auto relative z-10" id="about">
+          <div className="max-w-3xl mx-auto text-center mb-12">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-[11px] font-mono uppercase tracking-wider text-sky-800 mb-3">
               {"// 02 ARCHITECTURE & MISSION"}
             </div>
@@ -441,9 +423,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          {/* Arc.io Persona Segmentation Tabs */}
-          <ArcRoleTabs />
         </section>
 
         {/* SECTION 2: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
@@ -601,7 +580,7 @@ export default function Home() {
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-800 mb-3">
-              {"// 05 ARCHITECTURAL RESOLUTION"}
+              {"// 04 ARCHITECTURAL RESOLUTION"}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
               How ArcNano Solves Every Trap
@@ -613,9 +592,6 @@ export default function Home() {
 
           {/* Animated Vertical Curvy Stepper */}
           <VerticalCurvyStepper />
-
-          {/* Interactive Protocol Playground (arc.io inspiration) */}
-          <ArcAgentSimulator />
 
           {/* Arc Ecosystem Reference Strip (Direct arc.io REF. 01 / REF. 02 inspiration) */}
           <div className="mt-20 pt-14 border-t border-neutral-200/80 max-w-5xl mx-auto">
@@ -659,7 +635,7 @@ export default function Home() {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>{"// 06 DEVELOPMENT ROADMAP"}</span>
+                <span>{"// 05 DEVELOPMENT ROADMAP"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
                 Development Roadmap
@@ -758,44 +734,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
-            {/* Coming Soon Callout Box */}
-            <div className="mt-12 bg-neutral-950 rounded-3xl p-8 md:p-10 border border-neutral-800 text-white shadow-2xl text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-mono mb-4">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                <span>Open Source • Public Research</span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-normal tracking-tight">
-                Follow the Development of ArcNano
-              </h3>
-              <p className="text-neutral-400 text-sm md:text-base max-w-xl mx-auto mt-3 leading-relaxed">
-                As circuits, testnet contracts, and the agent client library are committed, all code is published openly on GitHub under the MIT License.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <a
-                  href="https://github.com/trymbakmahant/p2pzkpayment"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white text-black hover:bg-neutral-200 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-md cursor-pointer"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Star &amp; View Repository</span>
-                </a>
-
-                <button
-                  onClick={copyCloneCommand}
-                  className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs sm:text-sm font-mono px-5 py-3 rounded-full transition-all border border-neutral-700 cursor-pointer flex items-center gap-2"
-                >
-                  {isCopied ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  <span>{copyFeedback}</span>
-                </button>
-              </div>
-            </div>
           </div>
         </section>
       </main>
@@ -854,10 +792,10 @@ export default function Home() {
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
                 <li><a className="hover:text-white transition-colors" href="#about">What Is ArcNano?</a></li>
-                <li><a className="hover:text-white transition-colors" href="#about">Actor Perspectives</a></li>
+                <li><a className="hover:text-white transition-colors" href="#about">Architecture &amp; Mission</a></li>
                 <li><a className="hover:text-white transition-colors" href="#problem">Threat Model &amp; Traps</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Curvy Execution Stepper</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Live Protocol Simulator</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">Architectural Resolution</a></li>
                 <li><a className="hover:text-white transition-colors" href="#roadmap">Development Roadmap</a></li>
               </ul>
             </div>
