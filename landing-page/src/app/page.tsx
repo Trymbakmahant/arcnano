@@ -2,6 +2,25 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
+import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
+import {
+  Radar,
+  Unlink,
+  ShieldBan,
+  Gauge,
+  ArrowDown,
+  ExternalLink,
+  Sun,
+  Moon,
+  Copy,
+  Check,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  Globe,
+  Coins,
+  ChevronDown,
+} from "lucide-react";
 
 function subscribeTheme(callback: () => void) {
   if (typeof window === "undefined") return () => {};
@@ -27,6 +46,7 @@ export default function Home() {
   const systemTheme = React.useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
   const [themeOverride, setThemeOverride] = useState<"light" | "dark" | null>(null);
   const theme = themeOverride ?? systemTheme;
+  const [isCopied, setIsCopied] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string>("Copy GitHub Command");
   
   // Spotlight grid mouse tracking
@@ -68,8 +88,12 @@ export default function Home() {
 
   const copyCloneCommand = () => {
     navigator.clipboard.writeText("git clone https://github.com/trymbakmahant/p2pzkpayment.git").then(() => {
+      setIsCopied(true);
       setCopyFeedback("Copied to Clipboard!");
-      setTimeout(() => setCopyFeedback("Copy GitHub Command"), 2200);
+      setTimeout(() => {
+        setIsCopied(false);
+        setCopyFeedback("Copy GitHub Command");
+      }, 2200);
     });
   };
 
@@ -131,28 +155,9 @@ export default function Home() {
               className="w-8 h-8 rounded-full flex items-center justify-center border border-white/15 bg-white/5 hover:bg-white/15 text-white transition-all cursor-pointer shadow-sm"
             >
               {theme === "dark" ? (
-                // Sun Icon
-                <svg className="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="5" strokeWidth="2"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="12" y1="21" x2="12" y2="23" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="1" y1="12" x2="3" y2="12" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="21" y1="12" x2="23" y2="12" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" strokeWidth="2" strokeLinecap="round"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" strokeWidth="2" strokeLinecap="round"></line>
-                </svg>
+                <Sun className="w-4 h-4 text-amber-300" />
               ) : (
-                // Moon Icon
-                <svg className="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>
-                </svg>
+                <Moon className="w-4 h-4 text-indigo-300" />
               )}
             </button>
 
@@ -218,16 +223,14 @@ export default function Home() {
                 on the Arc Network.
               </p>
 
-              {/* Genuine Intent Action Buttons */}
+              {/* Action Buttons */}
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5 relative z-10">
                 <a
                   className="bg-white text-black hover:bg-neutral-100 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
                   href="#problem"
                 >
                   <span>The Problem We Are Solving</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                  </svg>
+                  <ArrowDown className="w-4 h-4" />
                 </a>
 
                 <a
@@ -245,9 +248,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                 >
                   <span>GitHub Repository</span>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                  </svg>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -260,9 +261,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/30 dark:bg-white/[0.06] hover:bg-white/50 dark:hover:bg-white/[0.12] border border-white/40 dark:border-white/10 backdrop-blur-xl text-[11px] font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm animate-bounce cursor-pointer"
             >
               <span>Protocol Architecture</span>
-              <svg className="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-              </svg>
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-400" />
             </a>
           </div>
         </section>
@@ -380,10 +379,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/80 dark:border-white/10 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-lg mb-6">
-                  01
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6">
+                  <Cpu className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
                   Zero-Knowledge for Agents
@@ -392,16 +391,16 @@ export default function Home() {
                   Cryptographic payment infrastructure specifically designed for machine-to-machine interactions. Autonomous software agents and LLMs require private payments that do not dox their operational logic, prompt pipelines, or trading intelligence.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
+              <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] text-xs font-mono text-[var(--text-muted)]">
                 Poseidon Merkle Trees • Groth16
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/80 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-lg mb-6">
-                  02
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6">
+                  <Globe className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
                   Native Web Standard (x402)
@@ -410,16 +409,16 @@ export default function Home() {
                   Instead of requiring manual wallet popups or custom RPC bridges, payments occur naturally over the Internet&apos;s standard <code className="font-mono text-xs">HTTP 402 Payment Required</code> protocol via standard HTTP request/response headers.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
+              <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] text-xs font-mono text-[var(--text-muted)]">
                 RFC-Standardized Header Exchange
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all flex flex-col justify-between">
+            <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/80 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-amber-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-lg mb-6">
-                  03
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-6">
+                  <Coins className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-medium text-[var(--text-primary)] tracking-tight">
                   Purpose-Built for Arc
@@ -428,7 +427,7 @@ export default function Home() {
                   Leveraging Arc&apos;s native Circle Gas Station (ERC-4337 Paymaster) and native USDC. Receiver-sponsored gas eliminates the need for agents to hold native gas tokens, preventing the gas-funding paper trail that destroys privacy.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[var(--card-border)] text-xs font-mono text-[var(--text-muted)]">
+              <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] text-xs font-mono text-[var(--text-muted)]">
                 Circle Paymaster • Native USDC
               </div>
             </div>
@@ -436,106 +435,150 @@ export default function Home() {
         </section>
 
         {/* SECTION 2: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
-        <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors" id="problem">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-[11px] font-mono uppercase tracking-wider text-rose-500 mb-3">
-                The Problem
+        <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors overflow-hidden" id="problem">
+          {/* Subtle atmospheric ambient glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] md:w-[900px] h-[450px] bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono uppercase tracking-wider text-rose-400 mb-4 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                <span>The Core Dilemma</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)]">
-                Why Existing Machine Payments Fail
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-[var(--text-primary)] max-w-4xl mx-auto leading-[1.15]">
+                Why Existing Machine Payments Fail for AI Agents
               </h2>
-              <p className="text-[var(--text-secondary)] text-base mt-3">
-                Paying for AI compute and tools with public crypto creates 4 fatal traps.
+              <p className="text-[var(--text-secondary)] text-base md:text-lg mt-4 max-w-2xl mx-auto">
+                Paying for autonomous compute and LLM tools with public blockchain transactions creates 4 fatal traps.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Problem 1 */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-rose-500/40 transition-all flex flex-col justify-between">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/80 dark:border-white/10 hover:border-rose-500/40 dark:hover:border-rose-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono uppercase tracking-wider text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-md font-semibold">
-                      01 • Surveillance
+                  <div className="flex items-center justify-between gap-4 mb-5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
+                        <Radar className="w-4 h-4 text-rose-400" />
+                      </div>
+                      <span className="text-xs font-mono uppercase tracking-wider text-rose-400 font-semibold">
+                        01 • Surveillance
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--text-muted)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                      msg.sender Doxxing
                     </span>
-                    <span className="text-xs font-mono text-[var(--text-muted)]">msg.sender Doxxing</span>
                   </div>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tracking-tight">
                     Public Ledgers Dox Your AI Agents
                   </h3>
-                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                  <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2.5 leading-relaxed">
                     Standard crypto payments permanently log every prompt, tool call, and model supplier to block explorers for competitors to copy.
                   </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-rose-500">
-                  <span>Impact</span>
-                  <span className="font-semibold">Zero business or operational privacy</span>
+                <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                    Zero business or prompt privacy
+                  </span>
                 </div>
               </div>
 
               {/* Problem 2 */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-amber-500/40 transition-all flex flex-col justify-between">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/80 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-amber-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md font-semibold">
-                      02 • Transport Leak
+                  <div className="flex items-center justify-between gap-4 mb-5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
+                        <Unlink className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold">
+                        02 • Transport Leak
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--text-muted)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                      Naive ZK Trap
                     </span>
-                    <span className="text-xs font-mono text-[var(--text-muted)]">Naive ZK Trap</span>
                   </div>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tracking-tight">
                     Naive ZK Still Leaks The Signer
                   </h3>
-                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                  <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2.5 leading-relaxed">
                     Even with a ZK proof, if the agent signs the transaction on-chain, its wallet address is broadcast to every node in the network.
                   </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-amber-500">
-                  <span>Impact</span>
-                  <span className="font-semibold">Privacy broken at the network layer</span>
+                <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Privacy broken at network layer
+                  </span>
                 </div>
               </div>
 
               {/* Problem 3 */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-rose-500/40 transition-all flex flex-col justify-between">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/80 dark:border-white/10 hover:border-rose-500/40 dark:hover:border-rose-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono uppercase tracking-wider text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-md font-semibold">
-                      03 • Sanctions Ban
+                  <div className="flex items-center justify-between gap-4 mb-5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
+                        <ShieldBan className="w-4 h-4 text-rose-400" />
+                      </div>
+                      <span className="text-xs font-mono uppercase tracking-wider text-rose-400 font-semibold">
+                        03 • Sanctions Ban
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--text-muted)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                      Mixer Ban
                     </span>
-                    <span className="text-xs font-mono text-[var(--text-muted)]">Mixer Ban</span>
                   </div>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tracking-tight">
                     Mixers Are Blocked By Enterprise APIs
                   </h3>
-                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                  <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2.5 leading-relaxed">
                     Traditional mixers pool dirty and clean funds together, causing AI gateways, AWS, and Cloudflare to automatically blacklist them.
                   </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-rose-500">
-                  <span>Impact</span>
-                  <span className="font-semibold">Banned by compliant API gateways</span>
+                <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                    Banned by compliant API gateways
+                  </span>
                 </div>
               </div>
 
               {/* Problem 4 */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-8 border border-[var(--card-border)] shadow-sm hover:border-amber-500/40 transition-all flex flex-col justify-between">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-7 md:p-8 border border-neutral-200/80 dark:border-white/10 hover:border-amber-500/40 dark:hover:border-amber-500/40 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-md font-semibold">
-                      04 • Latency &amp; Gas
+                  <div className="flex items-center justify-between gap-4 mb-5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
+                        <Gauge className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold">
+                        04 • Latency &amp; Gas
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--text-muted)] bg-black/5 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                      Economic Trap
                     </span>
-                    <span className="text-xs font-mono text-[var(--text-muted)]">Economic Trap</span>
                   </div>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tracking-tight">
                     Block Times &amp; Gas Kill Nanopayments
                   </h3>
-                  <p className="text-[var(--text-secondary)] text-base mt-3 leading-relaxed">
+                  <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2.5 leading-relaxed">
                     Waiting 10–15 seconds for a block stalls real-time agent loops, while gas fees cost 10x more than a $0.001 inference call.
                   </p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-[var(--card-border)] flex items-center justify-between text-xs font-mono text-amber-500">
-                  <span>Impact</span>
-                  <span className="font-semibold">Economically &amp; computationally broken</span>
+                <div className="mt-6 pt-4 border-t border-neutral-200/60 dark:border-white/[0.08] flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400">Impact</span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Economically &amp; computationally broken
+                  </span>
                 </div>
               </div>
             </div>
@@ -556,110 +599,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="space-y-6">
-            {/* Solution Card 1 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-5">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 01</span>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
-                    Receiver-Batched Settlement
-                  </h3>
-                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
-                    Eliminating the Payer&apos;s msg.sender
-                  </div>
-                </div>
-                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
-                  <p>
-                    In ArcNano, <strong className="text-[var(--text-primary)] font-medium">the agent never broadcasts an on-chain transaction to spend a note</strong>.
-                  </p>
-                  <p>
-                    Instead, the agent computes the Groth16 proof locally in memory and embeds it directly into the HTTP header (<code className="font-mono text-xs bg-[var(--badge-bg)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">X-PAYMENT</code>) when calling the API.
-                  </p>
-                  <p>
-                    The <em>receiver</em> (the API service) collects valid proofs from multiple agents and broadcasts an aggregated <code className="font-mono text-xs">batchSpend()</code> transaction to Arc. Because the receiver is the transaction signer, the payer&apos;s wallet address is never published to the blockchain.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Solution Card 2 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-5">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 02</span>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
-                    Arc Circle Gas Station Sponsorship
-                  </h3>
-                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
-                    $0 Gas &amp; No Funding Paper Trails
-                  </div>
-                </div>
-                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
-                  <p>
-                    Normally, funding burner wallets with native gas tokens creates a traceable link back to the funding exchange or master account.
-                  </p>
-                  <p>
-                    On Arc, settlement transactions are submitted via the <strong className="text-[var(--text-primary)] font-medium">Circle Gas Station (Paymaster)</strong>. Receiver settlement gas is sponsored, meaning agents only need to manage stable USDC commitments. No gas tokens are held, and no funding trails are created.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Solution Card 3 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-5">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 03</span>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
-                    Association Set Provider (ASP) Proofs
-                  </h3>
-                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
-                    Compliance by Mathematics (Privacy Pools)
-                  </div>
-                </div>
-                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
-                  <p>
-                    To avoid the regulatory fate of legacy mixers, ArcNano integrates Association Set Providers (ASPs) inspired by the <em>Privacy Pools</em> research paper.
-                  </p>
-                  <p>
-                    Every Circom spend circuit includes a cryptographic non-membership constraint against sanctioned deposit roots. The agent mathematically proves: <em className="text-[var(--text-primary)]">&ldquo;My deposited note exists in the legitimate tree, AND my note is NOT present in any flagged/OFAC sanctioned root.&rdquo;</em>
-                  </p>
-                  <p>
-                    Enterprise APIs can verify clean funds with 100% mathematical certainty without learning the depositor&apos;s identity.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Solution Card 4 */}
-            <div className="bg-[var(--card-bg)] rounded-3xl p-8 md:p-10 border border-[var(--card-border)] shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition-all">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-5">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-500 block mb-2">Solution 04</span>
-                  <h3 className="text-2xl font-medium text-[var(--text-primary)] tracking-tight">
-                    Two-Stage HTTP 402 Verification
-                  </h3>
-                  <div className="text-xs font-mono text-[var(--text-muted)] mt-1">
-                    Sub-10ms Delivery + Periodic Batching
-                  </div>
-                </div>
-                <div className="lg:col-span-7 text-sm md:text-base text-[var(--text-secondary)] leading-relaxed space-y-3">
-                  <p>
-                    We decouple the API response from on-chain block mining times:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-sm md:text-base">
-                    <li>
-                      <strong className="text-[var(--text-primary)] font-medium">Stage 1 (Off-Chain Verification):</strong> When the API gateway receives the HTTP 402 payment header, it executes an in-memory Groth16 pairing check and checks an in-memory nullifier cache. The verification completes in milliseconds, and the API payload is returned to the agent without delay.
-                    </li>
-                    <li>
-                      <strong className="text-[var(--text-primary)] font-medium">Stage 2 (On-Chain Settlement):</strong> The gateway queues the nullifiers and settles 50–100 transactions together on Arc in periodic background batches, dropping per-request settlement costs to fractions of a cent.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Animated Vertical Curvy Stepper */}
+          <VerticalCurvyStepper />
         </section>
 
         {/* SECTION 4: DEVELOPMENT ROADMAP & COMING SOON */}
@@ -680,7 +621,7 @@ export default function Home() {
 
             <div className="space-y-6">
               {/* Milestone 1 - Completed */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/80 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
@@ -696,15 +637,13 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-emerald-500 text-xs font-mono shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckCircle2 className="w-5 h-5" />
                   <span>Completed</span>
                 </div>
               </div>
 
               {/* Milestone 2 - In Progress / Coming Soon */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border-2 border-amber-500/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 border-amber-500/40 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
                 <div className="space-y-2 relative z-10">
                   <div className="flex items-center gap-3">
@@ -722,13 +661,13 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-amber-500 text-xs font-mono shrink-0 relative z-10">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                  <Clock className="w-5 h-5 animate-pulse" />
                   <span>In Progress</span>
                 </div>
               </div>
 
               {/* Milestone 3 - Coming Soon */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/80 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">
@@ -749,7 +688,7 @@ export default function Home() {
               </div>
 
               {/* Milestone 4 - Coming Soon */}
-              <div className="bg-[var(--card-bg)] rounded-3xl p-6 md:p-8 border border-[var(--card-border)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
+              <div className="bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/80 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-85">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">
@@ -790,9 +729,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="bg-white text-black hover:bg-neutral-200 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-md cursor-pointer"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
+                  <ExternalLink className="w-4 h-4" />
                   <span>Star &amp; View Repository</span>
                 </a>
 
@@ -800,9 +737,11 @@ export default function Home() {
                   onClick={copyCloneCommand}
                   className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs sm:text-sm font-mono px-5 py-3 rounded-full transition-all border border-neutral-700 cursor-pointer flex items-center gap-2"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  {isCopied ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                   <span>{copyFeedback}</span>
                 </button>
               </div>
