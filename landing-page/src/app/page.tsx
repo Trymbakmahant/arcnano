@@ -11,11 +11,6 @@ import {
   Gauge,
   ArrowDown,
   ExternalLink,
-  CheckCircle2,
-  Clock,
-  Cpu,
-  Globe,
-  Coins,
   ChevronDown,
 } from "lucide-react";
 
@@ -99,7 +94,7 @@ export default function Home() {
           </a>
 
           <div className="hidden md:flex items-center gap-6 text-xs font-medium text-neutral-600">
-            <a className="hover:text-neutral-950 transition-colors" href="#about">What We Are</a>
+            <a className="hover:text-neutral-950 transition-colors" href="#blueprint">Blueprint</a>
             <a className="hover:text-neutral-950 transition-colors" href="#problem">The Problem</a>
             <a className="hover:text-neutral-950 transition-colors" href="#solution">How It Works</a>
             <a className="hover:text-neutral-950 transition-colors" href="#roadmap">Roadmap</a>
@@ -134,85 +129,67 @@ export default function Home() {
         </div>
 
         {/* Hero Section (100vh) */}
-        <section className="min-h-screen flex flex-col justify-center items-center text-center px-4 max-w-7xl mx-auto relative z-10 py-12 md:py-16">
-          {/* Glassmorphism Hero Card */}
-          <div className="w-full max-w-5xl md:max-w-6xl liquid-glass-border shadow-2xl">
-            <div className="w-full rounded-[40px] px-8 sm:px-14 md:px-20 py-12 md:py-16 liquid-glass flex flex-col items-center text-center relative overflow-hidden">
-              {/* Prismatic glass refraction flares */}
-              <div className="absolute -top-28 -left-20 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-28 -right-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-              
-              {/* Glass specular top reflection sheen */}
-              <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-white/[0.4] via-white/[0.1] to-transparent pointer-events-none rounded-t-[40px]" />
+        <section className="min-h-screen flex flex-col justify-center items-center text-center px-4 max-w-5xl mx-auto relative z-10 py-16 md:py-24">
+          {/* Brand Logo Presentation */}
+          <div className="mb-6 flex items-center justify-center">
+            <Image
+              src="/arcnano-logo.png"
+              alt="ArcNano Logo"
+              width={220}
+              height={40}
+              className="h-9 sm:h-11 w-auto object-contain"
+              priority
+            />
+          </div>
 
-              {/* Brand Logo Presentation */}
-              <div className="mb-5 flex items-center justify-center relative z-10">
-                <Image
-                  src="/arcnano-logo.png"
-                  alt="ArcNano Logo"
-                  width={220}
-                  height={40}
-                  className="h-9 sm:h-11 w-auto object-contain"
-                  priority
-                />
-              </div>
+     
 
-              {/* Status Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-neutral-200/90 backdrop-blur-xl text-xs font-mono text-neutral-800 mb-6 shadow-sm relative z-10">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span className="text-neutral-900 font-semibold">Arc Ecosystem Protocol</span>
-                <span className="text-neutral-300">•</span>
-                <span className="text-amber-700 font-medium">Under Active Development</span>
-              </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-[-0.035em] text-neutral-950 max-w-4xl leading-[1.08] transition-colors">
+            Shielded Nanopayments
+            <span className="block text-neutral-500 font-light mt-2">
+              For Autonomous AI Agents
+            </span>
+          </h1>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-[-0.035em] text-neutral-950 max-w-4xl leading-[1.08] transition-colors relative z-10">
-                Shielded Nanopayments
-                <span className="block text-neutral-500 font-light mt-1.5">
-                  For Autonomous AI Agents
-                </span>
-              </h1>
+          <p className="mt-6 text-base sm:text-lg md:text-xl text-neutral-600 font-normal max-w-3xl leading-relaxed tracking-tight transition-colors">
+            When autonomous AI agents pay for inference or data using public blockchain transactions, their wallet permanently logs every model call and trade secret. <strong className="text-neutral-900 font-medium">ArcNano</strong> is building private, compliant, sub-cent micropayments via native{" "}
+            <span className="inline-flex items-center whitespace-nowrap font-mono text-xs px-2.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-semibold text-neutral-900 shadow-xs align-baseline">
+              HTTP 402
+            </span>{" "}
+            on the Arc Network.
+          </p>
 
-              <p className="mt-6 text-base sm:text-lg md:text-xl text-neutral-600 font-normal max-w-3xl leading-relaxed tracking-tight transition-colors relative z-10">
-                When autonomous AI agents pay for inference or data using public blockchain transactions, their wallet permanently logs every model call and trade secret. <strong className="text-neutral-900 font-medium">ArcNano</strong> is building private, compliant, sub-cent micropayments via native{" "}
-                <span className="inline-flex items-center whitespace-nowrap font-mono text-xs px-2.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-semibold text-neutral-900 shadow-sm align-baseline">
-                  HTTP 402
-                </span>{" "}
-                on the Arc Network.
-              </p>
+          {/* Action Buttons */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5">
+            <a
+              className="bg-neutral-950 text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+              href="#problem"
+            >
+              <span>The Problem We Are Solving</span>
+              <ArrowDown className="w-4 h-4" />
+            </a>
 
-              {/* Action Buttons */}
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3.5 relative z-10">
-                <a
-                  className="bg-neutral-950 text-white hover:bg-neutral-800 text-xs sm:text-sm font-semibold px-6 py-3 rounded-full transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
-                  href="#problem"
-                >
-                  <span>The Problem We Are Solving</span>
-                  <ArrowDown className="w-4 h-4" />
-                </a>
+            <a
+              className="bg-white/80 hover:bg-white text-neutral-800 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+              href="#roadmap"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Roadmap (Coming Soon)</span>
+            </a>
 
-                <a
-                  className="bg-white/80 hover:bg-white text-neutral-800 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
-                  href="#roadmap"
-                >
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                  <span>Roadmap (Coming Soon)</span>
-                </a>
-
-                <a
-                  className="bg-white/60 hover:bg-white/90 text-neutral-600 hover:text-neutral-900 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
-                  href="https://github.com/trymbakmahant/p2pzkpayment"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>GitHub Repository</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
+            <a
+              className="bg-white/60 hover:bg-white/90 text-neutral-600 hover:text-neutral-900 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer"
+              href="https://github.com/trymbakmahant/p2pzkpayment"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>GitHub Repository</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
 
           {/* Arc L1 Institutional Spec Ribbon (Direct arc.io inspiration) */}
-          <div className="w-full max-w-5xl mx-auto mt-8 mb-2 relative z-10">
+          <div className="w-full max-w-5xl mx-auto mt-12 mb-2">
             <div className="bg-white/80 backdrop-blur-xl border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70">
               <div className="pt-2 md:pt-0 md:px-3 text-left">
                 <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// SETTLEMENT LAYER"}</div>
@@ -238,7 +215,7 @@ export default function Home() {
           </div>
 
           {/* Floating Glass Scroll Cue */}
-          <div className="mt-5 hidden sm:flex items-center justify-center">
+          <div className="mt-8 hidden sm:flex items-center justify-center">
             <a
               href="#blueprint"
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 hover:bg-white border border-neutral-200 backdrop-blur-xl text-[11px] font-mono uppercase tracking-widest text-neutral-600 hover:text-neutral-950 transition-all shadow-sm animate-bounce cursor-pointer"
@@ -354,76 +331,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* SECTION 1: WHAT WE ARE (TAKES FULL VIEWPORT - 100vh) */}
-        <section className="min-h-screen flex flex-col justify-center py-12 md:py-16 px-4 max-w-7xl mx-auto relative z-10" id="about">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-[11px] font-mono uppercase tracking-wider text-sky-800 mb-3">
-              {"// 02 ARCHITECTURE & MISSION"}
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-neutral-950">
-              What Is ArcNano?
-            </h2>
-            <p className="text-neutral-600 text-base md:text-xl mt-4 leading-relaxed">
-              ArcNano is an open-source zero-knowledge payment protocol engineered for the <strong className="text-neutral-950 font-medium">Arc Ecosystem</strong>, designed to enable true private machine-to-machine commerce.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/90 hover:border-sky-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-600 flex items-center justify-center mb-6">
-                  <Cpu className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-medium text-neutral-950 tracking-tight">
-                  Zero-Knowledge for Agents
-                </h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
-                  Cryptographic payment infrastructure specifically designed for machine-to-machine interactions. Autonomous software agents and LLMs require private payments that do not dox their operational logic, prompt pipelines, or trading intelligence.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-neutral-200/70 text-xs font-mono text-neutral-400">
-                Poseidon Merkle Trees • Groth16
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/90 hover:border-emerald-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center mb-6">
-                  <Globe className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-medium text-neutral-950 tracking-tight">
-                  Native Web Standard (x402)
-                </h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
-                  Instead of requiring manual wallet popups or custom RPC bridges, payments occur naturally over the Internet&apos;s standard <code className="font-mono text-xs text-neutral-900 bg-neutral-100 px-1 py-0.5 rounded">HTTP 402 Payment Required</code> protocol via standard HTTP request/response headers.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-neutral-200/70 text-xs font-mono text-neutral-400">
-                RFC-Standardized Header Exchange
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-neutral-200/90 hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center mb-6">
-                  <Coins className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-medium text-neutral-950 tracking-tight">
-                  Purpose-Built for Arc
-                </h3>
-                <p className="text-neutral-600 text-sm mt-3 leading-relaxed">
-                  Leveraging Arc&apos;s native Circle Gas Station (ERC-4337 Paymaster) and native USDC. Receiver-sponsored gas eliminates the need for agents to hold native gas tokens, preventing the gas-funding paper trail that destroys privacy.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-neutral-200/70 text-xs font-mono text-neutral-400">
-                Circle Paymaster • Native USDC
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* SECTION 2: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
         <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors overflow-hidden" id="problem">
@@ -434,7 +341,7 @@ export default function Home() {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono uppercase tracking-wider text-rose-600 mb-4 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>{"// 03 THREAT MODEL & TRAPS"}</span>
+                <span>{"// 02 THREAT MODEL & TRAPS"}</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950 max-w-4xl mx-auto leading-[1.15]">
                 Why Existing Machine Payments Fail for AI Agents
@@ -554,7 +461,7 @@ export default function Home() {
         <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono uppercase tracking-wider text-emerald-800 mb-3">
-              {"// 04 ARCHITECTURAL RESOLUTION"}
+              {"// 03 ARCHITECTURAL RESOLUTION"}
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
               How ArcNano Solves Every Trap
@@ -603,109 +510,115 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SECTION 4: DEVELOPMENT ROADMAP & COMING SOON */}
-        <section className="py-24 bg-[var(--section-alt-bg)] border-t border-[var(--card-border)] px-4 relative z-10 transition-colors" id="roadmap">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>{"// 05 DEVELOPMENT ROADMAP"}</span>
+        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN) */}
+        <section className="py-24 bg-white border-t border-neutral-200/90 px-6 sm:px-8 max-w-7xl mx-auto relative z-10" id="roadmap">
+          {/* Section Header */}
+          <div className="mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-700 mb-4 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>{"// 04 DEVELOPMENT ROADMAP"}</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-neutral-950">
+              Development roadmap
+            </h2>
+            <p className="text-neutral-600 text-base md:text-lg mt-3 max-w-2xl leading-relaxed">
+              Transparent, step-by-step progress from foundational circuit formulation to live testnet deployment on Arc.
+            </p>
+          </div>
+
+          {/* 4-Column Horizontal Minimalist Grid (Direct arc.io inspiration) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            {/* Column 1: R.01 */}
+            <div className="flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400 font-medium">{"// R.01"}</span>
+                  <span className="text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Completed
+                  </span>
+                </div>
+                {/* Thin divider line */}
+                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
+
+                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
+                  <span>Architecture &amp; protocol spec</span>
+                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
+                </h3>
+
+                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
+                  Formulated the two-stage HTTP 402 verification model, solved <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification.
+                </p>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-tight text-neutral-950">
-                Development Roadmap
-              </h2>
-              <p className="text-neutral-600 text-base md:text-lg mt-4 leading-relaxed">
-                We believe in total transparency. Here is our honest, step-by-step progress from architectural design to live testnet deployment on Arc.
-              </p>
             </div>
 
-            <div className="space-y-6">
-              {/* Milestone 1 - Completed */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Milestone 1 • Completed
-                    </span>
-                    <span className="text-xs font-mono text-neutral-500">Research &amp; Specification</span>
-                  </div>
-                  <h3 className="text-xl font-medium text-neutral-950">
-                    System Architecture &amp; Protocol Specification Formulation
-                  </h3>
-                  <p className="text-sm text-neutral-600 max-w-2xl leading-relaxed">
-                    Designed the two-stage HTTP 402 verification model, solved the <code className="font-mono text-xs text-neutral-900 bg-neutral-100 px-1 py-0.5 rounded">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification for the Arc ecosystem.
-                  </p>
+            {/* Column 2: R.02 */}
+            <div className="flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400 font-medium">{"// R.02"}</span>
+                  <span className="text-amber-800 font-medium flex items-center gap-1.5 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    In Progress
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 text-emerald-600 text-xs font-mono shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>Completed</span>
-                </div>
-              </div>
+                {/* Thin divider line */}
+                <div className="w-full h-[1px] bg-amber-300/80 mt-3 mb-6 group-hover:bg-amber-500 transition-colors" />
 
-              {/* Milestone 2 - In Progress / Coming Soon */}
-              <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 border-amber-500/40 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="space-y-2 relative z-10">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                      Milestone 2 • In Active Development
-                    </span>
-                    <span className="text-xs font-mono text-amber-700 font-medium">Coming Soon</span>
-                  </div>
-                  <h3 className="text-xl font-medium text-neutral-950">
-                    Circom Circuits &amp; Arc Testnet Smart Contracts
-                  </h3>
-                  <p className="text-sm text-neutral-600 max-w-2xl leading-relaxed">
-                    Finalizing the 20-level Poseidon Merkle tree inclusion circuit (<code className="font-mono text-xs text-neutral-900 bg-neutral-100 px-1 py-0.5 rounded">spend.circom</code>), implementing Association Set non-membership constraints (<code className="font-mono text-xs text-neutral-900 bg-neutral-100 px-1 py-0.5 rounded">asp_check.circom</code>), and preparing <code className="font-mono text-xs text-neutral-900 bg-neutral-100 px-1 py-0.5 rounded">ArcShieldPool.sol</code> for deployment on Arc Testnet.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-amber-600 text-xs font-mono shrink-0 relative z-10">
-                  <Clock className="w-5 h-5 animate-pulse" />
-                  <span>In Progress</span>
-                </div>
-              </div>
+                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-amber-600 transition-colors cursor-pointer">
+                  <span>Circom circuits &amp; testnet</span>
+                  <span className="text-neutral-400 group-hover:text-amber-600 transition-colors text-lg">&rarr;</span>
+                </h3>
 
-              {/* Milestone 3 - Coming Soon */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-90">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
-                      Milestone 3 • Coming Soon
-                    </span>
-                    <span className="text-xs font-mono text-neutral-400">Developer Tooling</span>
-                  </div>
-                  <h3 className="text-xl font-medium text-neutral-950">
-                    Autonomous Agent SDK &amp; Gateway Middleware
-                  </h3>
-                  <p className="text-sm text-neutral-600 max-w-2xl leading-relaxed">
-                    Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify HTTP 402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
-                  </p>
-                </div>
-                <div className="text-neutral-500 text-xs font-mono shrink-0">
-                  Coming Soon
-                </div>
+                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
+                  Finalizing the 20-level Poseidon Merkle tree inclusion circuit (<code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">spend.circom</code>), ASP non-membership constraints, and preparing <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">ArcShieldPool.sol</code> for Arc Testnet.
+                </p>
               </div>
+            </div>
 
-              {/* Milestone 4 - Coming Soon */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-neutral-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 opacity-90">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
-                      Milestone 4 • Coming Soon
-                    </span>
-                    <span className="text-xs font-mono text-neutral-400">Live Ecosystem Pilot</span>
-                  </div>
-                  <h3 className="text-xl font-medium text-neutral-950">
-                    Circle Gas Station Relayer &amp; AI Pilot on Arc
-                  </h3>
-                  <p className="text-sm text-neutral-600 max-w-2xl leading-relaxed">
-                    Production integration with Arc&apos;s Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.
-                  </p>
+            {/* Column 3: R.03 */}
+            <div className="flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400 font-medium">{"// R.03"}</span>
+                  <span className="text-neutral-500 font-normal text-[11px] bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
+                    Coming Soon
+                  </span>
                 </div>
-                <div className="text-neutral-500 text-xs font-mono shrink-0">
-                  Coming Soon
+                {/* Thin divider line */}
+                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
+
+                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
+                  <span>Agent SDK &amp; gateway tooling</span>
+                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
+                </h3>
+
+                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
+                  Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify HTTP 402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
+                </p>
+              </div>
+            </div>
+
+            {/* Column 4: R.04 */}
+            <div className="flex flex-col justify-between group">
+              <div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400 font-medium">{"// R.04"}</span>
+                  <span className="text-neutral-500 font-normal text-[11px] bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
+                    Coming Soon
+                  </span>
                 </div>
+                {/* Thin divider line */}
+                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
+
+                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
+                  <span>Circle Gas Station &amp; AI pilot</span>
+                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
+                </h3>
+
+                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
+                  Production integration with Arc&apos;s Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.
+                </p>
               </div>
             </div>
           </div>
@@ -765,10 +678,9 @@ export default function Home() {
                 {"// EXPLORE"}
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-400 font-sans">
-                <li><a className="hover:text-white transition-colors" href="#about">What Is ArcNano?</a></li>
-                <li><a className="hover:text-white transition-colors" href="#about">Architecture &amp; Mission</a></li>
+                <li><a className="hover:text-white transition-colors" href="#blueprint">Protocol Blueprint</a></li>
                 <li><a className="hover:text-white transition-colors" href="#problem">Threat Model &amp; Traps</a></li>
-                <li><a className="hover:text-white transition-colors" href="#solution">Curvy Execution Stepper</a></li>
+                <li><a className="hover:text-white transition-colors" href="#solution">How ArcNano Solves It</a></li>
                 <li><a className="hover:text-white transition-colors" href="#solution">Architectural Resolution</a></li>
                 <li><a className="hover:text-white transition-colors" href="#roadmap">Development Roadmap</a></li>
               </ul>
