@@ -648,14 +648,6 @@ export default function Home() {
               X (@0xarcnano)
             </a>
             <span className="text-neutral-300">•</span>
-            <a className="hover:text-neutral-950 transition-colors" href="/llms.txt" target="_blank">
-              llms.txt
-            </a>
-            <span className="text-neutral-300">•</span>
-            <a className="hover:text-neutral-950 transition-colors" href="/sitemap.xml" target="_blank">
-              Sitemap
-            </a>
-            <span className="text-neutral-300">•</span>
             <a className="hover:text-neutral-950 transition-colors" href="#roadmap">
               Roadmap
             </a>
