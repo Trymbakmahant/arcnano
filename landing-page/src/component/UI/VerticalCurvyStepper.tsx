@@ -189,9 +189,9 @@ export default function VerticalCurvyStepper() {
 
         let nx: number;
         if (isMobile) {
-          nx = 24;
+          nx = 20;
           const cardLeft = rect.left - containerRect.left;
-          branches.push(`M 24 ${relativeY} L ${cardLeft} ${relativeY}`);
+          branches.push(`M 20 ${relativeY} L ${cardLeft} ${relativeY}`);
         } else {
           // Node is placed in the center gap (Left 1, Right 2, Left 3, Right 4)
           nx = isLeft ? cx - 44 : cx + 44;
@@ -211,15 +211,15 @@ export default function VerticalCurvyStepper() {
 
       if (positions.length > 1) {
         if (isMobile) {
-          let d = `M 24 0 L 24 ${positions[0].y}`;
+          let d = `M 20 0 L 20 ${positions[0].y}`;
           for (let i = 0; i < positions.length - 1; i++) {
             const p1 = positions[i];
             const p2 = positions[i + 1];
             const dy = p2.y - p1.y;
-            d += ` C 36 ${p1.y + dy * 0.35}, 12 ${p2.y - dy * 0.35}, 24 ${p2.y}`;
+            d += ` C 30 ${p1.y + dy * 0.35}, 10 ${p2.y - dy * 0.35}, 20 ${p2.y}`;
           }
           const last = positions[positions.length - 1];
-          d += ` C 24 ${last.y + 40}, 24 ${last.y + 70}, 24 ${last.y + 90}`;
+          d += ` C 20 ${last.y + 40}, 20 ${last.y + 70}, 20 ${last.y + 90}`;
           setCurvyPath(d);
         } else {
           // Serpentine Curve: Left (1) -> Right (2) -> Left (3) -> Right (4)
@@ -409,20 +409,20 @@ export default function VerticalCurvyStepper() {
 
               {/* Stepper Node Orb */}
               <div
-                className={`relative w-10 h-10 md:w-11 md:h-11 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm border ${
+                className={`relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm border ${
                   isSelected
-                    ? "bg-white border-amber-500 text-neutral-950 shadow-md shadow-amber-500/10 ring-4 ring-amber-500/15 scale-105"
+                    ? "bg-white border-amber-500 text-neutral-950 shadow-md shadow-amber-500/10 ring-2 sm:ring-4 ring-amber-500/15 scale-105"
                     : "bg-white border-neutral-200/90 text-neutral-600 hover:border-neutral-300 hover:scale-105"
                 }`}
               >
                 <div
-                  className={`text-[10px] md:text-[11px] font-mono font-semibold tracking-tight ${
+                  className={`text-[9px] sm:text-[10px] md:text-[11px] font-mono font-semibold tracking-tight ${
                     isSelected ? "text-amber-600" : "text-neutral-500"
                   }`}
                 >
                   {SOLUTIONS_DATA[idx].stepNumber}
                 </div>
-                <div className="scale-75 transform -mt-0.5">
+                <div className="scale-[0.65] sm:scale-75 transform -mt-0.5">
                   {getStepIcon(idx, isSelected)}
                 </div>
               </div>
@@ -432,7 +432,7 @@ export default function VerticalCurvyStepper() {
       </div>
 
       {/* Alternating Steps Content: Left (1) -> Right (2) -> Left (3) -> Right (4) */}
-      <div className="space-y-10 sm:space-y-12 md:space-y-14 relative z-0">
+      <div className="space-y-8 sm:space-y-12 md:space-y-14 relative z-0">
         {SOLUTIONS_DATA.map((step, idx) => {
           const isSelected = activeStep === idx;
           const isLeft = idx % 2 === 0;
@@ -445,7 +445,7 @@ export default function VerticalCurvyStepper() {
               }}
               className={`w-full md:w-[calc(50%-60px)] ${
                 isLeft ? "md:mr-auto" : "md:ml-auto"
-              } ${isMobileView ? "pl-14" : ""}`}
+              } pl-12 sm:pl-14 md:pl-0`}
             >
               <motion.div
                 initial={{ opacity: 0, x: isLeft ? -20 : 20, y: 15 }}
@@ -457,7 +457,7 @@ export default function VerticalCurvyStepper() {
                   delay: idx * 0.08,
                 }}
                 onClick={() => setActiveStep(idx)}
-                className={`cursor-pointer rounded-2xl sm:rounded-3xl p-5 sm:p-6 transition-all duration-300 relative border ${
+                className={`cursor-pointer rounded-2xl sm:rounded-3xl p-4 sm:p-6 transition-all duration-300 relative border ${
                   isSelected
                     ? "bg-white border-amber-400/80 shadow-lg shadow-neutral-900/5 ring-1 ring-amber-300/50"
                     : "bg-white/95 border-neutral-200/90 hover:border-neutral-300 shadow-xs hover:shadow-md"
@@ -466,51 +466,51 @@ export default function VerticalCurvyStepper() {
                 {/* Subtle Warm Accent Top Rim Highlight */}
                 <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/25 to-transparent pointer-events-none" />
 
-                {/* Compact Card Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25">
+                {/* Compact Responsive Card Header */}
+                <div className="flex items-start justify-between gap-2.5 sm:gap-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-mono font-medium bg-amber-500/10 text-amber-800 border border-amber-500/25">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                         <span>Solution {step.stepNumber}</span>
                       </span>
-                      <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200">
+                      <span className="text-[9px] sm:text-[10px] font-mono text-neutral-500 bg-neutral-100 px-1.5 sm:px-2 py-0.5 rounded-full border border-neutral-200">
                         {step.tag}
                       </span>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-medium tracking-tight text-neutral-950 pt-1">
+                    <h3 className="text-lg sm:text-2xl font-medium tracking-tight text-neutral-950 pt-0.5 sm:pt-1 leading-snug">
                       {step.title}
                     </h3>
-                    <div className="text-xs font-mono text-neutral-500 font-medium">
+                    <div className="text-[11px] sm:text-xs font-mono text-neutral-500 font-medium">
                       {step.subtitle}
                     </div>
                   </div>
 
                   {/* Impact Metric Chip */}
-                  <div className="shrink-0 text-right bg-neutral-50 border border-neutral-200/80 px-3 py-1.5 rounded-xl">
-                    <div className="text-lg sm:text-xl font-bold font-mono text-neutral-950 tracking-tight leading-tight">
+                  <div className="shrink-0 text-right bg-neutral-50 border border-neutral-200/80 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl self-start">
+                    <div className="text-base sm:text-xl font-bold font-mono text-neutral-950 tracking-tight leading-tight">
                       {step.metric.value}
                     </div>
-                    <div className="text-[10px] text-neutral-500 font-medium uppercase tracking-wider font-mono">
+                    <div className="text-[9px] sm:text-[10px] text-neutral-500 font-medium uppercase tracking-wider font-mono">
                       {step.metric.label}
                     </div>
                   </div>
                 </div>
 
                 {/* Problem Countered Badge */}
-                <div className="text-[11px] font-mono text-amber-800 bg-amber-50/70 border border-amber-200/60 rounded-lg px-2.5 py-1 mt-3 inline-flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span>{step.problemCountered}</span>
+                <div className="text-[10px] sm:text-[11px] font-mono text-amber-800 bg-amber-50/70 border border-amber-200/60 rounded-lg px-2 sm:px-2.5 py-1 mt-2.5 sm:mt-3 inline-flex items-center gap-1.5 max-w-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="truncate">{step.problemCountered}</span>
                 </div>
 
                 {/* Summary & Core Mechanism */}
-                <p className="text-sm text-neutral-700 font-normal leading-relaxed mt-3">
+                <p className="text-xs sm:text-sm text-neutral-700 font-normal leading-relaxed mt-2.5 sm:mt-3">
                   {step.summary}
                 </p>
 
                 {/* Concise Technical Highlights */}
-                <div className="mt-3 space-y-1.5 text-xs sm:text-[13px] text-neutral-600 leading-relaxed">
+                <div className="mt-2.5 sm:mt-3 space-y-1.5 text-xs sm:text-[13px] text-neutral-600 leading-relaxed">
                   {step.details.map((detail, dIdx) => (
                     <div key={dIdx} className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500/80 mt-1.5 shrink-0" />
@@ -520,13 +520,13 @@ export default function VerticalCurvyStepper() {
                 </div>
 
                 {/* Compact Pipeline Breadcrumb Strip */}
-                <div className="mt-4 pt-3.5 border-t border-neutral-100">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mb-2 flex items-center justify-between">
+                <div className="mt-3.5 sm:mt-4 pt-3 sm:pt-3.5 border-t border-neutral-100">
+                  <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-neutral-400 mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
-                      <Terminal className="w-3 h-3 text-neutral-500" />
+                      <Terminal className="w-3 h-3 text-neutral-500 shrink-0" />
                       Execution Flow
                     </span>
-                    <span className="text-[9px] text-amber-700 font-mono bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded">
+                    <span className="text-[8px] sm:text-[9px] text-amber-700 font-mono bg-amber-50 border border-amber-200/80 px-1.5 py-0.2 rounded">
                       Autonomous Pipeline
                     </span>
                   </div>
@@ -535,21 +535,21 @@ export default function VerticalCurvyStepper() {
                     {step.flowSteps.map((flow, fIdx) => (
                       <div
                         key={fIdx}
-                        className="relative p-2 rounded-xl bg-neutral-50/80 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 transition-all flex flex-col justify-between"
+                        className="relative p-1.5 sm:p-2 rounded-xl bg-neutral-50/80 border border-neutral-200/80 hover:bg-white hover:border-neutral-300 transition-all flex flex-col justify-between"
                       >
                         <div>
                           <span
-                            className={`inline-block px-1 py-0.2 rounded text-[8px] font-mono uppercase tracking-wide border mb-1 ${getFlowTypeBadge(
+                            className={`inline-block px-1 py-0.2 rounded text-[7px] sm:text-[8px] font-mono uppercase tracking-wide border mb-0.5 sm:mb-1 ${getFlowTypeBadge(
                               flow.type
                             )}`}
                           >
                             {flow.type}
                           </span>
-                          <div className="text-[11px] font-semibold text-neutral-900 leading-tight truncate">
+                          <div className="text-[10px] sm:text-[11px] font-semibold text-neutral-900 leading-tight truncate">
                             {flow.label}
                           </div>
                         </div>
-                        <div className="text-[9px] font-mono text-neutral-500 mt-1 leading-tight truncate">
+                        <div className="text-[8px] sm:text-[9px] font-mono text-neutral-500 mt-0.5 leading-tight truncate">
                           {flow.sublabel}
                         </div>
                         {fIdx < step.flowSteps.length - 1 && (
