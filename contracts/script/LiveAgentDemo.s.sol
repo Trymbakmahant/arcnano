@@ -17,12 +17,13 @@ contract LiveAgentDemo is Script {
     address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000;
     bytes32 public constant ASP_ROOT = 0x0000000000000000000000000000000000000000000000000000000000001337;
 
-    uint256 public constant AGENT_A_PK = 0x3ef97bc3606af1dfddb56846fb031279841d4cc504ca51c40a49cf2fc2fe1618;
-    uint256 public constant AGENT_B_PK = 0xb6142aa2ee20cdc2d86b4d821362948c064363bbe09778559d11a14c9d24515e;
+    uint256 public agentAPk = vm.envOr("AGENT_A_PRIVATE_KEY", uint256(0));
+    uint256 public agentBPk = vm.envOr("AGENT_B_PRIVATE_KEY", uint256(0));
 
     function run() external {
-        address agentA = vm.addr(AGENT_A_PK);
-        address agentB = vm.addr(AGENT_B_PK);
+        require(agentAPk != 0 && agentBPk != 0, "AGENT_A_PRIVATE_KEY and AGENT_B_PRIVATE_KEY must be set in .env");
+        address agentA = vm.addr(agentAPk);
+        address agentB = vm.addr(agentBPk);
 
         ArcNanoPool pool = ArcNanoPool(POOL_ADDRESS);
         IERC20 usdc = IERC20(USDC_ADDRESS);
@@ -45,7 +46,7 @@ contract LiveAgentDemo is Script {
         console.log("Nullifier Hash:", vm.toString(nullifierHash));
 
         // Agent A broadcasts approval + deposit
-        vm.startBroadcast(AGENT_A_PK);
+        vm.startBroadcast(agentAPk);
         usdc.approve(POOL_ADDRESS, denomination);
         pool.deposit(commitment);
         vm.stopBroadcast();
@@ -70,7 +71,7 @@ contract LiveAgentDemo is Script {
 
         // --- STEP 3: Agent B settles note on Arc Testnet ---
         console.log("Agent B triggers on-chain settlement on Arc L1...");
-        vm.startBroadcast(AGENT_B_PK);
+        vm.startBroadcast(agentBPk);
         pool.spend(proof, agentB);
         vm.stopBroadcast();
 

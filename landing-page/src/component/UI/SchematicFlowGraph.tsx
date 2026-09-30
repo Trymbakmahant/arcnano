@@ -155,6 +155,52 @@ export default function SchematicFlowGraph() {
     ]);
   }, [stepDescriptions]);
 
+  const handleTogglePlay = useCallback(() => {
+    setIsPlaying((prev) => {
+      const nextState = !prev;
+      if (nextState) {
+        // Trigger on-chain transaction if anti-spam cooldown allows
+        if (typeof window !== "undefined") {
+          const lastTimeStr = localStorage.getItem("arcnano_last_tx_time");
+          const elapsed = lastTimeStr ? Date.now() - parseInt(lastTimeStr, 10) : 999999;
+          const todayKey = `arcnano_tx_day_${new Date().toISOString().substring(0, 10)}`;
+          const todayCount = parseInt(localStorage.getItem(todayKey) || "0", 10);
+
+          if (elapsed >= 30000 && todayCount < 5) {
+            localStorage.setItem("arcnano_last_tx_time", Date.now().toString());
+            localStorage.setItem(todayKey, (todayCount + 1).toString());
+            const time = new Date().toISOString().substring(11, 23);
+            setLogs((l) => [
+              ...l.slice(-14),
+              `[${time}] [ARCSCAN] Broadcasting real live Arc Testnet transaction (0.01 USDC note)...`,
+            ]);
+
+            fetch("/api/agent-demo/execute", { method: "POST" })
+              .then((res) => res.json())
+              .then((data) => {
+                if (data && data.success) {
+                  const t = new Date().toISOString().substring(11, 23);
+                  setLogs((l) => [
+                    ...l.slice(-14),
+                    `[${t}] [ARCSCAN_CONFIRMED] Real L1 Tx Settled: ${data.spendTx.hash.substring(0, 14)}... Block #${data.spendTx.block}`,
+                  ]);
+                }
+              })
+              .catch(() => {});
+          } else if (elapsed < 30000) {
+            const waitSec = Math.ceil((30000 - elapsed) / 1000);
+            const time = new Date().toISOString().substring(11, 23);
+            setLogs((l) => [
+              ...l.slice(-14),
+              `[${time}] [ANTI_SPAM] Blockchain cooldown active (${waitSec}s remaining). Circuit schematic playing locally.`,
+            ]);
+          }
+        }
+      }
+      return nextState;
+    });
+  }, []);
+
   // Keyboard navigation shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -168,7 +214,7 @@ export default function SchematicFlowGraph() {
         handlePrev();
       } else if (e.key === " ") {
         e.preventDefault();
-        setIsPlaying((p) => !p);
+        handleTogglePlay();
       } else if (e.key >= "1" && e.key <= "7") {
         handleSelectStep(parseInt(e.key, 10));
       }
@@ -176,7 +222,7 @@ export default function SchematicFlowGraph() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev, handleSelectStep]);
+  }, [handleNext, handlePrev, handleSelectStep, handleTogglePlay]);
 
   // Check URL query param ?step= on initial load
   useEffect(() => {
@@ -338,7 +384,7 @@ export default function SchematicFlowGraph() {
 
             {/* Play/Pause */}
             <button
-              onClick={() => setIsPlaying((p) => !p)}
+              onClick={handleTogglePlay}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
                 isPlaying
                   ? "bg-neutral-950 text-white hover:bg-neutral-800"
