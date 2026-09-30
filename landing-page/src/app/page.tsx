@@ -5,6 +5,7 @@ import Image from "next/image";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
 import RoadmapCarousel from "@/component/UI/RoadmapCarousel";
+import CornerTicks from "@/component/UI/CornerTicks";
 import {
   Radar,
   Unlink,
@@ -99,6 +100,10 @@ export default function Home() {
             <a className="hover:text-neutral-950 transition-colors" href="#problem">The Problem</a>
             <a className="hover:text-neutral-950 transition-colors" href="#solution">How It Works</a>
             <a className="hover:text-neutral-950 transition-colors" href="#roadmap">Roadmap</a>
+            <a className="text-amber-600 hover:text-amber-700 font-semibold transition-colors flex items-center gap-1" href="/demo">
+              <span>Demo</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            </a>
           </div>
 
           <div className="pl-2 border-l border-neutral-200 flex items-center gap-2.5">
@@ -171,6 +176,14 @@ export default function Home() {
             </a>
 
             <a
+              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-500/30 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+              href="/demo"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Flowchart Demo</span>
+            </a>
+
+            <a
               className="bg-white/80 hover:bg-white text-neutral-800 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
               href="#roadmap"
             >
@@ -201,7 +214,9 @@ export default function Home() {
 
           {/* Arc L1 Institutional Spec Ribbon (Direct arc.io inspiration) */}
           <div className="w-full max-w-5xl mx-auto mt-12 mb-2">
-            <div className="bg-white/80 backdrop-blur-xl border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70">
+            <div className="relative bg-white/80 backdrop-blur-xl border border-neutral-200/90 p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70 group">
+              {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
+              <CornerTicks activeColor="text-neutral-400 group-hover:text-amber-500" />
               <div className="pt-2 md:pt-0 md:px-3 text-left">
                 <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// SETTLEMENT LAYER"}</div>
                 <div className="text-sm font-semibold text-neutral-900 mt-0.5">Arc Network (Circle)</div>
@@ -275,7 +290,8 @@ export default function Home() {
               {/* Center Conceptual Diagram */}
               <div className="relative z-10 my-8 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 1</div>
                     <div className="text-base font-medium text-white mt-1">Shielded Note Deposit</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -283,7 +299,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 2</div>
                     <div className="text-base font-medium text-white mt-1">X402 Challenge</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -291,7 +308,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 3</div>
                     <div className="text-base font-medium text-white mt-1">Off-Chain Groth16 Proof</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -299,7 +317,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 4</div>
                     <div className="text-base font-medium text-white mt-1">Receiver Arc Settlement</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">

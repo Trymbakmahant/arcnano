@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   Cpu,
   Fuel,
 } from "lucide-react";
+import CornerTicks from "./CornerTicks";
 
 export interface RoadmapCard {
   id: string;
@@ -40,7 +41,7 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "01",
     tags: ["ZK Cryptography", "HTTP X402", "Spec RFC"],
     name: "Architecture & Protocol Spec",
-    date: "August 2026",
+    date: "Completed",
     status: "completed",
     statusLabel: "Completed",
     strokeColor: "#10b981", // emerald
@@ -70,7 +71,7 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "02",
     tags: ["Circom 2.1", "Groth16", "Privacy Pools"],
     name: "Circom Circuits & Arc Testnet",
-    date: "September – October 2026",
+    date: "In Progress",
     status: "in-progress",
     statusLabel: "In Progress",
     strokeColor: "#f59e0b", // amber
@@ -102,7 +103,7 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "03",
     tags: ["Python SDK", "AI Agent Toolchains", "Middleware"],
     name: "Agent SDK & Gateway Tooling",
-    date: "November 2026",
+    date: "Coming Soon",
     status: "coming-soon",
     statusLabel: "Coming Soon",
     strokeColor: "#0284c7", // sky
@@ -135,9 +136,9 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "04",
     tags: ["Circle Paymaster", "ERC-4337", "Live Pilot"],
     name: "Circle Gas Station & AI Pilot",
-    date: "December 2026",
+    date: "Coming Soon",
     status: "coming-soon",
-    statusLabel: "Upcoming",
+    statusLabel: "Coming Soon",
     strokeColor: "#8b5cf6", // violet
     summary:
       "Production integration with Arc's Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.",
@@ -239,9 +240,9 @@ export default function RoadmapCarousel() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 85,
-    damping: 26,
-    mass: 0.8,
+    stiffness: 140,
+    damping: 13,
+    mass: 0.35,
     restDelta: 0.001,
   });
 
@@ -326,17 +327,41 @@ export default function RoadmapCarousel() {
               {ROADMAP_CARDS.map((card, idx) => {
                 const isSelected = activeIndex === idx;
                 return (
-                  <button
+                  <motion.button
                     key={card.id}
                     onClick={() => scrollToSlide(idx)}
-                    className={`px-3 py-1.5 text-xs font-mono rounded-lg transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-white text-neutral-950 font-semibold shadow-xs"
-                        : "text-neutral-500 hover:text-neutral-900"
-                    }`}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 450,
+                      damping: 14,
+                      bounce: 0.45,
+                    }}
+                    className="relative px-3 py-1.5 text-xs font-mono rounded-lg transition-colors cursor-pointer select-none"
                   >
-                    R.{card.number}
-                  </button>
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeRoadmapPill"
+                        className="absolute inset-0 bg-white rounded-lg shadow-xs border border-neutral-200/80"
+                        transition={{
+                          type: "spring",
+                          stiffness: 420,
+                          damping: 20,
+                          bounce: 0.45,
+                        }}
+                      />
+                    )}
+                    <span
+                      className={`relative z-10 transition-colors ${
+                        isSelected
+                          ? "text-neutral-950 font-semibold"
+                          : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      R.{card.number}
+                    </span>
+                  </motion.button>
                 );
               })}
             </div>
@@ -351,22 +376,38 @@ export default function RoadmapCarousel() {
 
             {/* Left & Right Chevron Buttons */}
             <div className="flex items-center gap-1.5">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.15, rotate: -3 }}
+                whileTap={{ scale: 0.88, rotate: 2 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 450,
+                  damping: 12,
+                  bounce: 0.5,
+                }}
                 onClick={handlePrev}
                 disabled={activeIndex === 0}
                 aria-label="Previous milestone"
                 className="w-9 h-9 rounded-xl border border-neutral-200/90 bg-white/90 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-neutral-800 transition-colors shadow-xs cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.15, rotate: 3 }}
+                whileTap={{ scale: 0.88, rotate: -2 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 450,
+                  damping: 12,
+                  bounce: 0.5,
+                }}
                 onClick={handleNext}
                 disabled={activeIndex === ROADMAP_CARDS.length - 1}
                 aria-label="Next milestone"
                 className="w-9 h-9 rounded-xl border border-neutral-200/90 bg-white/90 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-neutral-800 transition-colors shadow-xs cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -383,7 +424,8 @@ export default function RoadmapCarousel() {
               const Icon = card.icon;
 
               return (
-                <article
+                <motion.article
+                  layout
                   key={card.id}
                   onClick={() => scrollToSlide(index)}
                   style={
@@ -391,7 +433,35 @@ export default function RoadmapCarousel() {
                       "--stroke": card.strokeColor,
                     } as React.CSSProperties
                   }
-                  className={`group relative shrink-0 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer select-none ${
+                  whileHover={{
+                    y: isFeatured ? -6 : -12,
+                    scale: isFeatured ? 1.012 : 1.038,
+                    transition: {
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 13,
+                      bounce: 0.46,
+                    },
+                  }}
+                  whileTap={{
+                    scale: 0.97,
+                    transition: {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 14,
+                      bounce: 0.35,
+                    },
+                  }}
+                  transition={{
+                    layout: {
+                      type: "spring",
+                      stiffness: 280,
+                      damping: 16,
+                      bounce: 0.42,
+                    },
+                    opacity: { duration: 0.25 },
+                  }}
+                  className={`group relative shrink-0 cursor-pointer select-none ${
                     isFeatured
                       ? "w-[330px] sm:w-[520px] md:w-[640px] lg:w-[700px] opacity-100 z-20"
                       : "w-[280px] sm:w-[340px] md:w-[350px] opacity-65 hover:opacity-90 z-10"
@@ -409,9 +479,18 @@ export default function RoadmapCarousel() {
                     ))}
                   </p>
 
-                  {/* card__image container: Expands in height and width when is-featured */}
-                  <div
-                    className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] bg-white shadow-sm flex flex-col justify-between p-5 sm:p-7 ${
+                  {/* card__image container: Expands with bouncy spring when is-featured */}
+                  <motion.div
+                    layout
+                    transition={{
+                      layout: {
+                        type: "spring",
+                        stiffness: 280,
+                        damping: 16,
+                        bounce: 0.42,
+                      },
+                    }}
+                    className={`relative w-full border bg-white shadow-sm flex flex-col justify-between p-5 sm:p-7 ${
                       isFeatured
                         ? "h-[360px] sm:h-[420px] md:h-[460px] shadow-xl border-neutral-300/90 ring-1 ring-black/5"
                         : "h-[220px] sm:h-[260px] md:h-[280px] border-neutral-200/80 hover:border-neutral-300"
@@ -420,18 +499,35 @@ export default function RoadmapCarousel() {
                       borderColor: isFeatured ? card.strokeColor : undefined,
                     }}
                   >
+                    {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
+                    <CornerTicks
+                      activeColor={
+                        isFeatured
+                          ? "text-neutral-900"
+                          : "text-neutral-400 group-hover:text-amber-500"
+                      }
+                      size="w-4 h-4 sm:w-5 sm:h-5"
+                    />
+
                     {/* Top row inside card: Milestone number, icon, and status badge */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                        <motion.div
+                          whileHover={{ rotate: 12, scale: 1.15 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 450,
+                            damping: 12,
+                            bounce: 0.55,
+                          }}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors shadow-2xs"
                           style={{
                             backgroundColor: `${card.strokeColor}15`,
                             color: card.strokeColor,
                           }}
                         >
                           <Icon className="w-4 h-4" />
-                        </div>
+                        </motion.div>
                         <span className="font-mono text-xs font-semibold text-neutral-800">
                           {"// R."}{card.number}
                         </span>
@@ -457,69 +553,105 @@ export default function RoadmapCarousel() {
                       )}
                     </div>
 
-                    {/* Middle: Rich Content Preview / Diagram / Code Terminal */}
-                    {isFeatured ? (
-                      <div className="my-auto py-2 sm:py-3 space-y-3">
-                        <p className="text-neutral-700 text-xs sm:text-sm leading-relaxed max-w-xl">
-                          {card.summary}
-                        </p>
+                    {/* Middle: Rich Content Preview / Diagram / Code Terminal with Bouncy AnimatePresence */}
+                    <AnimatePresence mode="wait">
+                      {isFeatured ? (
+                        <motion.div
+                          key="featured-body"
+                          initial={{ opacity: 0, scale: 0.94, y: 14 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: -8 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 360,
+                            damping: 15,
+                            bounce: 0.42,
+                          }}
+                          className="my-auto py-2 sm:py-3 space-y-3"
+                        >
+                          <p className="text-neutral-600 text-sm sm:text-[15px] leading-relaxed max-w-xl">
+                            {card.summary}
+                          </p>
 
-                        {/* Interactive Code / Circuit Window inside Featured Card */}
-                        <div className="w-full rounded-xl bg-neutral-950 text-neutral-300 font-mono text-[11px] sm:text-xs p-3.5 sm:p-4 border border-neutral-800 overflow-x-auto shadow-inner">
-                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-neutral-800 text-[10px] text-neutral-500">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-red-500/80"></span>
-                              <span className="w-2 h-2 rounded-full bg-amber-500/80"></span>
-                              <span className="w-2 h-2 rounded-full bg-emerald-500/80"></span>
-                              <span className="ml-1 text-neutral-400">
-                                {card.codeOrDiagram.type.toUpperCase()}_SPEC.arcnano
-                              </span>
-                            </span>
-                            {card.metrics && (
-                              <span className="text-amber-400 font-semibold">
-                                {card.metrics.label}: {card.metrics.value}
-                              </span>
-                            )}
-                          </div>
-                          <pre className="space-y-1 text-neutral-300 leading-relaxed overflow-x-auto">
-                            {card.codeOrDiagram.lines.slice(0, 5).map((ln, lIdx) => (
-                              <div key={lIdx} className="hover:text-white transition-colors">
-                                <span className="text-neutral-600 select-none mr-3">
-                                  0{lIdx + 1}
+                          {/* Interactive Code / Circuit Window inside Featured Card */}
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.94, y: 12 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 340,
+                              damping: 14,
+                              bounce: 0.4,
+                            }}
+                            className="w-full rounded-xl bg-neutral-950 text-neutral-300 font-mono text-[11px] sm:text-xs p-3.5 sm:p-4 border border-neutral-800 overflow-x-auto shadow-inner"
+                          >
+                            <div className="flex items-center justify-between pb-2 mb-2 border-b border-neutral-800 text-[10px] text-neutral-500">
+                              <span className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-red-500/80"></span>
+                                <span className="w-2 h-2 rounded-full bg-amber-500/80"></span>
+                                <span className="w-2 h-2 rounded-full bg-emerald-500/80"></span>
+                                <span className="ml-1 text-neutral-400">
+                                  {card.codeOrDiagram.type.toUpperCase()}_SPEC.arcnano
                                 </span>
-                                {ln}
-                              </div>
-                            ))}
-                          </pre>
-                        </div>
-
-                        {/* Key Deliverables Check-List */}
-                        <div className="hidden sm:grid grid-cols-2 gap-2 pt-1 text-xs">
-                          {card.deliverables.slice(0, 2).map((del, dIdx) => (
-                            <div key={dIdx} className="flex items-center gap-2 text-neutral-700">
-                              {del.done ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              ) : (
-                                <span className="w-3.5 h-3.5 rounded-full border border-neutral-300 shrink-0 flex items-center justify-center text-[8px] text-neutral-400">
-                                  ○
+                              </span>
+                              {card.metrics && (
+                                <span className="text-amber-400 font-semibold">
+                                  {card.metrics.label}: {card.metrics.value}
                                 </span>
                               )}
-                              <span className="truncate">{del.title}</span>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      /* Compressed Inactive Card Middle State */
-                      <div className="my-auto py-2">
-                        <h4 className="text-base sm:text-lg font-normal text-neutral-900 tracking-tight leading-snug line-clamp-2">
-                          {card.name}
-                        </h4>
-                        <p className="text-neutral-500 text-xs mt-2 line-clamp-3 leading-relaxed">
-                          {card.summary}
-                        </p>
-                      </div>
-                    )}
+                            <pre className="space-y-1 text-neutral-300 leading-relaxed overflow-x-auto">
+                              {card.codeOrDiagram.lines.slice(0, 5).map((ln, lIdx) => (
+                                <div key={lIdx} className="hover:text-white transition-colors">
+                                  <span className="text-neutral-600 select-none mr-3">
+                                    0{lIdx + 1}
+                                  </span>
+                                  {ln}
+                                </div>
+                              ))}
+                            </pre>
+                          </motion.div>
+
+                          {/* Key Deliverables Check-List */}
+                          <div className="hidden sm:grid grid-cols-2 gap-2 pt-1 text-xs">
+                            {card.deliverables.slice(0, 2).map((del, dIdx) => (
+                              <div key={dIdx} className="flex items-center gap-2 text-neutral-700">
+                                {del.done ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                ) : (
+                                  <span className="w-3.5 h-3.5 rounded-full border border-neutral-300 shrink-0 flex items-center justify-center text-[8px] text-neutral-400">
+                                    ○
+                                  </span>
+                                )}
+                                <span className="truncate">{del.title}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      ) : (
+                        /* Compressed Inactive Card Middle State */
+                        <motion.div
+                          key="compressed-body"
+                          initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 380,
+                            damping: 18,
+                            bounce: 0.35,
+                          }}
+                          className="my-auto py-2"
+                        >
+                          <h4 className="text-base sm:text-lg font-normal text-neutral-900 tracking-tight leading-snug line-clamp-2">
+                            {card.name}
+                          </h4>
+                          <p className="text-neutral-600 text-xs sm:text-sm mt-2 line-clamp-3 leading-relaxed">
+                            {card.summary}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Bottom of card image container */}
                     <div className="flex items-center justify-between text-xs pt-3 border-t border-neutral-100">
@@ -527,13 +659,13 @@ export default function RoadmapCarousel() {
                         {isFeatured ? "Active Focus" : "Click to inspect"}
                       </span>
                       <span
-                        className="font-mono text-[11px] flex items-center gap-1 transition-transform group-hover:translate-x-1"
+                        className="font-mono text-[11px] flex items-center gap-1 transition-transform group-hover:translate-x-1.5 duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                         style={{ color: card.strokeColor }}
                       >
                         Explore &rarr;
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* card__meta: Title & Date (Under the image, exactly as in reference snippet) */}
                   <div className="flex items-baseline justify-between mt-3 px-1 text-neutral-900">
@@ -556,7 +688,7 @@ export default function RoadmapCarousel() {
                   >
                     Open {card.name}
                   </button>
-                </article>
+                </motion.article>
               );
             })}
 
