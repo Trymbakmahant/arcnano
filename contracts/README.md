@@ -56,16 +56,35 @@ The test suite in `test/ArcNanoPool.t.sol` covers:
 
 ## 📡 Deployment to Arc Testnet
 
-Set the following environment variables:
+### Network Parameters
+- **Network Name:** Arc Testnet (Circle Layer 1)
+- **Chain ID:** `5042002`
+- **RPC Endpoint:** `https://rpc.testnet.arc.network`
+- **Native Gas Currency:** `USDC`
+- **Official USDC Contract:** `0x3600000000000000000000000000000000000000`
+- **Block Explorer:** [https://testnet.arcscan.app](https://testnet.arcscan.app)
+- **Faucet:** [Circle Faucet](https://faucet.circle.com) (select "Arc Testnet")
+
+### 1. Setup Environment
+Copy the example environment file and add your deployer private key:
 ```bash
-export RPC_URL="<ARC_TESTNET_RPC_URL>"
-export PRIVATE_KEY="<YOUR_DEPLOYER_PRIVATE_KEY>"
-export USDC_ADDRESS="<ARC_TESTNET_USDC_ADDRESS>"
-export VERIFIER_ADDRESS="<GROTH16_VERIFIER_ADDRESS>"
-export DENOMINATION="10000" # 0.01 USDC (6 decimals)
+cp .env.example .env
+# Edit .env and supply PRIVATE_KEY
 ```
 
-Run the deployment script:
+### 2. Dry-Run Simulation
+Simulate deployment against the live Arc Testnet:
 ```bash
-forge script script/Deploy.s.sol:DeployArcNano --rpc-url $RPC_URL --broadcast --verify
+forge script script/Deploy.s.sol:DeployArcNano --rpc-url arc_testnet
 ```
+
+### 3. Broadcast Deployment On-Chain
+When your wallet is funded with testnet USDC from the faucet:
+```bash
+forge script script/Deploy.s.sol:DeployArcNano \
+  --rpc-url arc_testnet \
+  --broadcast \
+  --legacy
+```
+*(Note: `--legacy` is recommended for standard EVM gas estimation on Arc Testnet).*
+
