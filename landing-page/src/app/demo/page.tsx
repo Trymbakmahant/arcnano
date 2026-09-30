@@ -1,107 +1,32 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SchematicFlowGraph from "@/component/UI/SchematicFlowGraph";
 import LiveArcnetDemo from "@/component/UI/LiveArcnetDemo";
 import {
-  Video,
   Maximize2,
   Minimize2,
   ChevronLeft,
-  Sparkles,
   CircuitBoard,
-  Activity,
 } from "lucide-react";
 
 export default function DemoPage() {
   const [activeTab, setActiveTab] = useState<"live" | "schematic">("live");
-  const [cleanRecordMode, setCleanRecordMode] = useState<boolean>(false);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordedTime, setRecordedTime] = useState<number>(0);
+  const [cinemaMode, setCinemaMode] = useState<boolean>(false);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
-
-  // Keyboard shortcut for recording or presentation
+  // Keyboard shortcut for presentation / cinema view
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C" || e.key === "Escape") {
-        setCleanRecordMode((prev) => !prev);
+        setCinemaMode((prev) => !prev);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  // In-browser screen recording using Screen Capture API
-  const startScreenRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { displaySurface: "browser" },
-        audio: false,
-      });
-
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-          ? "video/webm;codecs=vp9"
-          : "video/webm",
-      });
-
-      mediaRecorderRef.current = mediaRecorder;
-      recordedChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        setIsRecording(false);
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `arcnano-schematic-circuit-${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordedTime(0);
-
-      // Handle user stopping stream from browser chrome bar
-      stream.getVideoTracks()[0].onended = () => {
-        if (mediaRecorder.state !== "inactive") {
-          mediaRecorder.stop();
-        }
-      };
-    } catch (err) {
-      console.error("Screen recording cancelled or failed:", err);
-    }
-  };
-
-  const stopScreenRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
-  // Recording timer increment
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setRecordedTime((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-neutral-900 font-sans antialiased selection:bg-amber-500 selection:text-white relative flex flex-col justify-between overflow-x-hidden">
@@ -114,8 +39,8 @@ export default function DemoPage() {
         }}
       />
 
-      {/* TOP HEADER / CONTROLS BAR (Hidden in Clean Recording Mode) */}
-      {!cleanRecordMode && (
+      {/* TOP HEADER / CONTROLS BAR (Hidden in Cinema Mode) */}
+      {!cinemaMode && (
         <header className="relative z-40 border-b border-neutral-200/90 bg-white/90 backdrop-blur-xl px-4 sm:px-6 py-3 transition-all">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             {/* Brand + Breadcrumb */}
@@ -176,33 +101,12 @@ export default function DemoPage() {
               </button>
             </div>
 
-            {/* Recording & Presentation Actions */}
+            {/* Presentation / Cinema Action */}
             <div className="flex items-center gap-2.5">
-              {/* Record Screen in Browser Button */}
-              {isRecording ? (
-                <button
-                  onClick={stopScreenRecording}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white text-xs font-mono font-medium animate-pulse shadow-sm"
-                >
-                  <span className="w-2 h-2 rounded-full bg-white"></span>
-                  <span>Stop ({recordedTime}s)</span>
-                </button>
-              ) : (
-                <button
-                  onClick={startScreenRecording}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white hover:bg-neutral-50 border border-neutral-200 text-neutral-800 text-xs font-mono font-medium transition-colors shadow-xs"
-                  title="Capture video directly from browser"
-                >
-                  <Video className="w-3.5 h-3.5 text-rose-500" />
-                  <span className="hidden sm:inline">Record Clip</span>
-                </button>
-              )}
-
-              {/* Clean Record Mode Toggle */}
               <button
-                onClick={() => setCleanRecordMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-mono font-medium transition-colors shadow-xs"
-                title="Hide all toolbars for a clean recording (Press C or Esc)"
+                onClick={() => setCinemaMode(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-mono font-medium transition-colors shadow-xs cursor-pointer"
+                title="Fullscreen presentation view (Press C or Esc)"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
                 <span>Cinema View (C)</span>
@@ -212,15 +116,15 @@ export default function DemoPage() {
         </header>
       )}
 
-      {/* FLOATING ESCAPE PILL (Only visible in Clean Record Mode) */}
-      {cleanRecordMode && (
+      {/* FLOATING ESCAPE PILL (Only visible in Cinema Mode) */}
+      {cinemaMode && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-neutral-300 text-[11px] font-mono text-neutral-700 shadow-xl">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Clean View Active</span>
+            <span>Cinema Presentation</span>
             <button
-              onClick={() => setCleanRecordMode(false)}
-              className="ml-2 px-2 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-900 flex items-center gap-1 font-semibold"
+              onClick={() => setCinemaMode(false)}
+              className="ml-2 px-2 py-0.5 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-900 flex items-center gap-1 font-semibold cursor-pointer"
             >
               <Minimize2 className="w-3 h-3" />
               <span>Exit (Esc)</span>
@@ -238,10 +142,10 @@ export default function DemoPage() {
         )}
       </main>
 
-      {/* FOOTER IN CLEAN RECORD MODE (MINIMAL) */}
-      {!cleanRecordMode && (
+      {/* FOOTER */}
+      {!cinemaMode && (
         <footer className="border-t border-neutral-200/90 bg-white/80 backdrop-blur-sm py-3 px-6 text-center text-[11px] font-mono text-neutral-500">
-          Tip: Hit <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">Cinema View</kbd> or press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">C</kbd> to record a clean video for LinkedIn. Toggle <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">Arcscan Compare</kbd> to show what the public block explorer sees.
+          Tip: Hit <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">Cinema View</kbd> or press <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">C</kbd> for fullscreen presentation mode. Toggle <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-neutral-800">Arcscan Compare</kbd> to inspect the public block explorer.
         </footer>
       )}
     </div>

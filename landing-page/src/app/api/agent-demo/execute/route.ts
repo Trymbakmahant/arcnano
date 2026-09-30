@@ -10,6 +10,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import crypto from "crypto";
+import { recordLiveTransactions } from "@/lib/demo-state";
 
 const ARC_RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
 const POOL_ADDRESS = (process.env.POOL_ADDRESS || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca") as `0x${string}`;
@@ -203,24 +204,38 @@ export async function POST(req: NextRequest) {
       args: [accountB.address],
     });
 
+    const depositRecord = {
+      hash: depositTxHash,
+      block: Number(depositReceipt.blockNumber),
+      gasUsed: depositReceipt.gasUsed.toString(),
+      method: "deposit(bytes32 commitment)",
+      commitment,
+      explorerUrl: `https://testnet.arcscan.app/tx/${depositTxHash}`,
+      timestamp: Date.now(),
+    };
+
+    const spendRecord = {
+      hash: spendTxHash,
+      block: Number(spendReceipt.blockNumber),
+      gasUsed: spendReceipt.gasUsed.toString(),
+      method: "spend(SpendProof proof, address recipient)",
+      nullifier: nullifierHash,
+      recipient: accountB.address,
+      amount: "0.01 USDC",
+      explorerUrl: `https://testnet.arcscan.app/tx/${spendTxHash}`,
+      timestamp: Date.now(),
+    };
+
+    recordLiveTransactions(depositRecord, spendRecord);
+
     return NextResponse.json({
       success: true,
       timestamp: Date.now(),
       commitment,
       nullifierHash,
       merkleRoot: currentRoot,
-      depositTx: {
-        hash: depositTxHash,
-        block: Number(depositReceipt.blockNumber),
-        gasUsed: depositReceipt.gasUsed.toString(),
-        explorerUrl: `https://testnet.arcscan.app/tx/${depositTxHash}`,
-      },
-      spendTx: {
-        hash: spendTxHash,
-        block: Number(spendReceipt.blockNumber),
-        gasUsed: spendReceipt.gasUsed.toString(),
-        explorerUrl: `https://testnet.arcscan.app/tx/${spendTxHash}`,
-      },
+      depositTx: depositRecord,
+      spendTx: spendRecord,
       balances: {
         agentA: (Number(newBalA) / 1e6).toFixed(4),
         agentB: (Number(newBalB) / 1e6).toFixed(4),

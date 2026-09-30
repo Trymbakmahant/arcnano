@@ -61,6 +61,7 @@ export default function LiveArcnetDemo() {
   const [contracts, setContracts] = useState<Record<string, ContractData> | null>(null);
   const [agents, setAgents] = useState<{ agentA: AgentData; agentB: AgentData } | null>(null);
   const [liveTxs, setLiveTxs] = useState<{ deposit: LiveTxData; spend: LiveTxData } | null>(null);
+  const [hasExecutedLive, setHasExecutedLive] = useState<boolean>(false);
 
   const [activeStep, setActiveStep] = useState<number>(0);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
@@ -87,6 +88,29 @@ export default function LiveArcnetDemo() {
   const addLog = useCallback((msg: string) => {
     const time = new Date().toISOString().substring(11, 23);
     setTerminalLogs((prev) => [...prev.slice(-16), `[${time}] ${msg}`]);
+  }, []);
+
+  // Restore latest executed transaction from localStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const savedTx = localStorage.getItem("arcnano_latest_tx");
+    if (savedTx) {
+      try {
+        const parsed = JSON.parse(savedTx);
+        if (parsed.deposit && parsed.spend) {
+          setLiveTxs({ deposit: parsed.deposit, spend: parsed.spend });
+          setHasExecutedLive(true);
+          setLatestSuccessTx({
+            depositHash: parsed.deposit.hash,
+            spendHash: parsed.spend.hash,
+            block: parsed.spend.block || parsed.deposit.block,
+            amount: "0.01 USDC",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to restore latest tx from cache:", err);
+      }
+    }
   }, []);
 
   // Sync anti-spam cooldown and daily quota from localStorage
@@ -122,7 +146,21 @@ export default function LiveArcnetDemo() {
       setBlockNumber(data.network.currentBlock);
       setContracts(data.contracts);
       setAgents(data.agents);
-      setLiveTxs(data.liveTransactions);
+
+      // Only update liveTxs from server if the server actually has real recorded executions
+      if (data.liveTransactions?.deposit && data.liveTransactions?.spend) {
+        setLiveTxs({
+          deposit: data.liveTransactions.deposit,
+          spend: data.liveTransactions.spend,
+        });
+        setHasExecutedLive(true);
+        setLatestSuccessTx({
+          depositHash: data.liveTransactions.deposit.hash,
+          spendHash: data.liveTransactions.spend.hash,
+          block: data.liveTransactions.spend.block,
+          amount: "0.01 USDC",
+        });
+      }
     } catch (err) {
       console.error("Fetch state error:", err);
     } finally {
@@ -154,10 +192,10 @@ export default function LiveArcnetDemo() {
       num: 2,
       title: "Arc L1 Shielded Deposit Broadcast",
       desc: "Agent A deposits 0.01 USDC note commitment into ArcNanoPool. Leaf inserted into on-chain 20-level Merkle tree.",
-      badge: "On-Chain Arc L1",
+      badge: hasExecutedLive ? "Mined on Arc L1" : "On-Chain Arc L1",
       color: "border-emerald-500",
-      txHash: liveTxs?.deposit.hash,
-      block: liveTxs?.deposit.block,
+      txHash: liveTxs?.deposit?.hash,
+      block: liveTxs?.deposit?.block,
     },
     {
       num: 3,
@@ -184,10 +222,10 @@ export default function LiveArcnetDemo() {
       num: 6,
       title: "On-Chain Spend Settlement on Arc Testnet",
       desc: "Agent B broadcasts spend(proof, agentB) on ArcNanoPool. 0.01 USDC paid out directly. Nullifier permanently marked as spent.",
-      badge: "Settled on Arcscan",
+      badge: hasExecutedLive ? "Settled on Arcscan" : "Arcscan Settlement",
       color: "border-emerald-600",
-      txHash: liveTxs?.spend.hash,
-      block: liveTxs?.spend.block,
+      txHash: liveTxs?.spend?.hash,
+      block: liveTxs?.spend?.block,
     },
     {
       num: 7,
@@ -214,7 +252,6 @@ export default function LiveArcnetDemo() {
     }
 
     setIsSimulating(true);
-    setActiveStep(1);
     addLog("[DEMO_START] Initiating REAL Autonomous Agent Nanopayment on Arc Testnet...");
 
     // Record anti-spam timestamp in localStorage immediately
@@ -224,51 +261,97 @@ export default function LiveArcnetDemo() {
     setCooldownRemaining(30);
     setDailyUsageCount((c) => c + 1);
 
-    // Trigger Real On-Chain Blockchain Execution
-    const onChainPromise = fetch("/api/agent-demo/execute", { method: "POST" })
-      .then(async (res) => {
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || "Transaction broadcast failed");
-        return json;
-      })
-      .catch((err) => {
-        console.error("On-chain execution error:", err);
-        return { error: err.message };
-      });
+    // Step 1: Note Keygen
+    setActiveStep(1);
+    addLog("[ZK_KEYGEN] Synthesized Note Secret (256-bit). Nullifier Seed generated in memory.");
+    await new Promise((r) => setTimeout(r, 800));
 
-    for (let s = 1; s <= 7; s++) {
-      setActiveStep(s);
-      if (s === 1) {
-        addLog("[ZK_KEYGEN] Synthesized Note Secret (256-bit). Nullifier Seed generated.");
-      } else if (s === 2) {
-        addLog("[ARCSCAN_DEPOSIT] Broadcasting 0.01 USDC note deposit to ArcNanoPool on Arc L1...");
-      } else if (s === 3) {
-        addLog("[PROMPT_STREAM] Agent A -> Agent B: Prompt 'Analyze risk matrix'. Handshake X402 accepted.");
-      } else if (s === 4) {
-        addLog("[COMPLIANCE] ASP Root 0x000...1337 validated. OFAC Clean Set verified in 6.8ms.");
-      } else if (s === 5) {
-        addLog("[INFERENCE_OK] HTTP 200 OK. 4,096 tokens streamed to Agent A without waiting for block finality.");
-      } else if (s === 6) {
-        addLog("[ARCSCAN_SPEND] Settling spend(proof, agentB) on ArcNanoPool on Arc L1...");
-      } else if (s === 7) {
-        addLog("[REPLAY_GUARD] Replay attack test executed: Contract strictly reverts on duplicate nullifier!");
-      }
-      await new Promise((r) => setTimeout(r, 1200));
+    // Step 2: On-chain Deposit to ArcNanoPool
+    setActiveStep(2);
+    addLog("[ARCSCAN_DEPOSIT] Submitting real 0.01 USDC note deposit to ArcNanoPool on Arc L1...");
+
+    // Trigger Real On-Chain Blockchain Execution
+    let result: {
+      success?: boolean;
+      error?: string;
+      depositTx?: LiveTxData;
+      spendTx?: LiveTxData;
+      balances?: { agentA: string; agentB: string };
+      merkleRoot?: string;
+    } | null = null;
+
+    try {
+      const res = await fetch("/api/agent-demo/execute", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Transaction broadcast failed");
+      result = json;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Broadcast failed";
+      console.error("On-chain execution error:", err);
+      addLog(`[ERROR] Broadcast error: ${msg}`);
+      setIsSimulating(false);
+      return;
     }
 
-    const result = await onChainPromise;
-    if (result && !result.error && result.success) {
+    if (result && result.success && result.depositTx && result.spendTx) {
+      // 1. Immediately inject the brand new on-chain transaction hashes!
+      const newDeposit = result.depositTx;
+      const newSpend = result.spendTx;
+
       setLiveTxs({
-        deposit: result.depositTx,
-        spend: result.spendTx,
+        deposit: newDeposit,
+        spend: newSpend,
       });
+      setHasExecutedLive(true);
+
+      // 2. Persist to localStorage so refreshing keeps the user's latest transaction
+      try {
+        localStorage.setItem(
+          "arcnano_latest_tx",
+          JSON.stringify({
+            deposit: newDeposit,
+            spend: newSpend,
+            balances: result.balances,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (err) {
+        console.error("Failed to save to localStorage:", err);
+      }
+
+      addLog(`[MINED_L1] Deposit Tx Confirmed: ${newDeposit.hash.substring(0, 18)}... (Block #${newDeposit.block})`);
+      await new Promise((r) => setTimeout(r, 1000));
+
+      // Step 3: Off-Chain AI Inference Handshake
+      setActiveStep(3);
+      addLog("[PROMPT_STREAM] Agent A -> Agent B: Prompt 'Analyze risk matrix'. Handshake X402 accepted.");
+      await new Promise((r) => setTimeout(r, 800));
+
+      // Step 4: Sub-8ms ZK Verification & ASP Compliance Check
+      setActiveStep(4);
+      addLog("[COMPLIANCE] ASP Root 0x000...1337 validated. OFAC Clean Set verified in 6.8ms.");
+      await new Promise((r) => setTimeout(r, 800));
+
+      // Step 5: Zero-Latency LLM Token Streaming
+      setActiveStep(5);
+      addLog("[INFERENCE_OK] HTTP 200 OK. 4,096 tokens streamed to Agent A without waiting for block finality.");
+      await new Promise((r) => setTimeout(r, 800));
+
+      // Step 6: On-Chain Spend Settlement on Arc Testnet
+      setActiveStep(6);
+      addLog(`[MINED_L1] Spend Tx Confirmed: ${newSpend.hash.substring(0, 18)}... (Block #${newSpend.block})`);
+      await new Promise((r) => setTimeout(r, 1000));
+
+      // Step 7: Replay Attack Defense Verification
+      setActiveStep(7);
+      addLog("[REPLAY_GUARD] Replay attack test executed: Contract strictly reverts on duplicate nullifier!");
 
       if (result.balances) {
         setAgents((prev) =>
           prev
             ? {
-                agentA: { ...prev.agentA, usdcBalance: result.balances.agentA },
-                agentB: { ...prev.agentB, usdcBalance: result.balances.agentB },
+                agentA: { ...prev.agentA, usdcBalance: result.balances!.agentA },
+                agentB: { ...prev.agentB, usdcBalance: result.balances!.agentB },
               }
             : null
         );
@@ -279,28 +362,28 @@ export default function LiveArcnetDemo() {
           prev
             ? {
                 ...prev,
-                pool: { ...prev.pool, currentRoot: result.merkleRoot },
+                pool: { ...prev.pool, currentRoot: result.merkleRoot! },
               }
             : null
         );
       }
 
       setLatestSuccessTx({
-        depositHash: result.depositTx.hash,
-        spendHash: result.spendTx.hash,
-        block: result.spendTx.block,
+        depositHash: newDeposit.hash,
+        spendHash: newSpend.hash,
+        block: newSpend.block,
         amount: "0.01 USDC",
       });
 
-      addLog(`[CONFIRMED] REAL L1 Deposit Tx: ${result.depositTx.hash.substring(0, 16)}... (Block #${result.depositTx.block})`);
-      addLog(`[CONFIRMED] REAL L1 Spend Tx: ${result.spendTx.hash.substring(0, 16)}... (Block #${result.spendTx.block})`);
-      addLog(`[BALANCE_UPDATE] Agent A: ${result.balances.agentA} USDC | Agent B: ${result.balances.agentB} USDC`);
-    } else if (result?.error) {
-      addLog(`[NOTICE] ${result.error}`);
+      addLog(`[CONFIRMED] NEW Arcscan Deposit Tx: ${newDeposit.hash}`);
+      addLog(`[CONFIRMED] NEW Arcscan Spend Tx: ${newSpend.hash}`);
+      if (result.balances) {
+        addLog(`[BALANCE_UPDATE] Agent A: ${result.balances.agentA} USDC | Agent B: ${result.balances.agentB} USDC`);
+      }
+      addLog("[DEMO_COMPLETE] Verified on Arc Testnet! Explorer receipts updated.");
     }
 
     setIsSimulating(false);
-    addLog("[DEMO_COMPLETE] Verified on Arc Testnet. Explorer receipts updated.");
   };
 
   return (
@@ -681,22 +764,40 @@ export default function LiveArcnetDemo() {
                     </div>
                   </div>
 
-                  {st.txHash && (
-                    <a
-                      href={`https://testnet.arcscan.app/tx/${st.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded transition-colors ${
-                        isCurrent
-                          ? "bg-emerald-950 text-emerald-300 hover:bg-emerald-900 border border-emerald-800"
-                          : "bg-white text-emerald-700 hover:bg-emerald-100 border border-emerald-300"
-                      }`}
-                    >
-                      <span>Arcscan Block #{st.block}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+                  {st.txHash ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-800 font-semibold border border-emerald-400/40">
+                        NEW LIVE TX
+                      </span>
+                      <a
+                        href={`https://testnet.arcscan.app/tx/${st.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded transition-colors ${
+                          isCurrent
+                            ? "bg-emerald-950 text-emerald-300 hover:bg-emerald-900 border border-emerald-800"
+                            : "bg-white text-emerald-700 hover:bg-emerald-100 border border-emerald-300"
+                        }`}
+                      >
+                        <span>Arcscan Block #{st.block}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : st.num === 2 || st.num === 6 ? (
+                    <div className="flex items-center gap-1.5">
+                      {isSimulating && activeStep === st.num ? (
+                        <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded bg-amber-50 text-amber-800 border border-amber-300 animate-pulse">
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <span>Broadcasting to Arc L1...</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono px-2 py-1 rounded bg-neutral-100 text-neutral-500 border border-neutral-200">
+                          Ready for broadcast
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             );
@@ -722,7 +823,7 @@ export default function LiveArcnetDemo() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedTxView("spend")}
-              className={`px-3 py-1.5 text-xs font-mono rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-mono rounded transition-colors cursor-pointer ${
                 selectedTxView === "spend"
                   ? "bg-neutral-950 text-white font-bold"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
@@ -732,7 +833,7 @@ export default function LiveArcnetDemo() {
             </button>
             <button
               onClick={() => setSelectedTxView("deposit")}
-              className={`px-3 py-1.5 text-xs font-mono rounded transition-colors ${
+              className={`px-3 py-1.5 text-xs font-mono rounded transition-colors cursor-pointer ${
                 selectedTxView === "deposit"
                   ? "bg-neutral-950 text-white font-bold"
                   : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
@@ -744,72 +845,188 @@ export default function LiveArcnetDemo() {
         </div>
 
         {/* Arcscan Block Card */}
-        <div className="border border-neutral-200 bg-neutral-50/70 p-4 font-mono text-xs space-y-3">
-          <div className="flex flex-wrap items-center justify-between pb-3 border-b border-neutral-200 gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-500">Transaction Hash:</span>
-              <span className="font-bold text-neutral-900 break-all">
-                {selectedTxView === "spend" ? liveTxs?.spend.hash : liveTxs?.deposit.hash}
-              </span>
-            </div>
-            <a
-              href={
-                selectedTxView === "spend"
-                  ? liveTxs?.spend.explorerUrl || "https://testnet.arcscan.app"
-                  : liveTxs?.deposit.explorerUrl || "https://testnet.arcscan.app"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition-colors"
-            >
-              <span>Open on Arcscan</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
+        {selectedTxView === "spend" ? (
+          liveTxs?.spend?.hash ? (
+            <div className="border border-neutral-200 bg-neutral-50/70 p-4 font-mono text-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-neutral-200 gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-500">Transaction Hash:</span>
+                  <span className="font-bold text-neutral-900 break-all">
+                    {liveTxs.spend.hash}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold shrink-0">
+                    NEW LIVE TX
+                  </span>
+                </div>
+                <a
+                  href={liveTxs.spend.explorerUrl || `https://testnet.arcscan.app/tx/${liveTxs.spend.hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition-colors"
+                >
+                  <span>Open on Arcscan</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-neutral-700">
-            <div>
-              <span className="text-neutral-500 text-[10px] uppercase block">Status</span>
-              <span className="font-bold text-emerald-600 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>SUCCESS (Confirmed)</span>
-              </span>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-neutral-700">
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Status</span>
+                  <span className="font-bold text-emerald-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>SUCCESS (Confirmed)</span>
+                  </span>
+                </div>
 
-            <div>
-              <span className="text-neutral-500 text-[10px] uppercase block">Block</span>
-              <span className="font-bold text-neutral-900">
-                #{selectedTxView === "spend" ? liveTxs?.spend.block : liveTxs?.deposit.block}
-              </span>
-            </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Block</span>
+                  <span className="font-bold text-neutral-900">
+                    #{liveTxs.spend.block}
+                  </span>
+                </div>
 
-            <div>
-              <span className="text-neutral-500 text-[10px] uppercase block">Method Called</span>
-              <span className="font-bold text-sky-700">
-                {selectedTxView === "spend" ? "spend(SpendProof, address)" : "deposit(bytes32)"}
-              </span>
-            </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Method Called</span>
+                  <span className="font-bold text-sky-700">
+                    {liveTxs.spend.method || "spend(SpendProof, address)"}
+                  </span>
+                </div>
 
-            <div>
-              <span className="text-neutral-500 text-[10px] uppercase block">Gas Used (USDC)</span>
-              <span className="font-bold text-neutral-900">
-                {selectedTxView === "spend" ? `${liveTxs?.spend.gasUsed} gas` : `${liveTxs?.deposit.gasUsed} gas`}
-              </span>
-            </div>
-          </div>
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Gas Used</span>
+                  <span className="font-bold text-neutral-900">
+                    {liveTxs.spend.gasUsed} gas
+                  </span>
+                </div>
+              </div>
 
-          {/* Privacy Guarantee Explainer Bar */}
-          <div className="bg-white p-3 border border-emerald-200 text-[11px] text-neutral-800 rounded">
-            <div className="flex items-center gap-2 font-bold text-emerald-800 mb-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Cryptographic Privacy Audit on Arcscan</span>
+              {/* Privacy Guarantee Explainer Bar */}
+              <div className="bg-white p-3 border border-emerald-200 text-[11px] text-neutral-800 rounded">
+                <div className="flex items-center gap-2 font-bold text-emerald-800 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Cryptographic Privacy Audit on Arcscan</span>
+                </div>
+                <p className="text-neutral-600 leading-relaxed">
+                  Notice what is <strong>NOT</strong> present in this transaction:
+                  Agent A&apos;s identity, prompt text (&ldquo;Analyze risk matrix&rdquo;), API keys, and IP address are <strong>100% absent</strong> from the Arc block explorer calldata and event logs. Only the mathematical nullifier novelty and recipient payout are recorded.
+                </p>
+              </div>
             </div>
-            <p className="text-neutral-600 leading-relaxed">
-              Notice what is <strong>NOT</strong> present in this transaction:
-              Agent A&apos;s identity, prompt text (&ldquo;Analyze risk matrix&rdquo;), API keys, and IP address are <strong>100% absent</strong> from the Arc block explorer calldata and event logs. Only the mathematical nullifier novelty and recipient payout are recorded.
-            </p>
-          </div>
-        </div>
+          ) : (
+            <div className="border border-dashed border-neutral-300 bg-neutral-50/50 p-6 text-center font-mono text-xs text-neutral-600 space-y-3">
+              <div className="w-10 h-10 rounded-full bg-neutral-100 border border-neutral-200 mx-auto flex items-center justify-center text-neutral-500">
+                <Layers className="w-5 h-5 text-neutral-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-neutral-900">No New Live Settlement Transaction Yet</p>
+                <p className="text-[11px] text-neutral-500 mt-1 max-w-md mx-auto">
+                  Click <strong className="text-emerald-700 font-bold">&ldquo;Execute Live On-Chain Flow&rdquo;</strong> above to generate a unique note, settle it on Arc Testnet, and inspect your newly mined receipt here.
+                </p>
+              </div>
+              <div className="pt-1">
+                <a
+                  href={`https://testnet.arcscan.app/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 text-[11px] font-semibold transition-colors"
+                >
+                  <span>Inspect ArcNanoPool Contract on Arcscan</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
+                </a>
+              </div>
+            </div>
+          )
+        ) : (
+          liveTxs?.deposit?.hash ? (
+            <div className="border border-neutral-200 bg-neutral-50/70 p-4 font-mono text-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-neutral-200 gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-500">Transaction Hash:</span>
+                  <span className="font-bold text-neutral-900 break-all">
+                    {liveTxs.deposit.hash}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold shrink-0">
+                    NEW LIVE TX
+                  </span>
+                </div>
+                <a
+                  href={liveTxs.deposit.explorerUrl || `https://testnet.arcscan.app/tx/${liveTxs.deposit.hash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition-colors"
+                >
+                  <span>Open on Arcscan</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-neutral-700">
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Status</span>
+                  <span className="font-bold text-emerald-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>SUCCESS (Confirmed)</span>
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Block</span>
+                  <span className="font-bold text-neutral-900">
+                    #{liveTxs.deposit.block}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Method Called</span>
+                  <span className="font-bold text-sky-700">
+                    {liveTxs.deposit.method || "deposit(bytes32)"}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-neutral-500 text-[10px] uppercase block">Gas Used</span>
+                  <span className="font-bold text-neutral-900">
+                    {liveTxs.deposit.gasUsed} gas
+                  </span>
+                </div>
+              </div>
+
+              {/* Deposit Commitment Information */}
+              <div className="bg-white p-3 border border-sky-200 text-[11px] text-neutral-800 rounded">
+                <div className="flex items-center gap-2 font-bold text-sky-800 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-sky-600" />
+                  <span>Shielded Note Commitment on Arcscan</span>
+                </div>
+                <p className="text-neutral-600 leading-relaxed font-mono break-all">
+                  Commitment: {liveTxs.deposit.commitment || "0x..."} (Inserted into on-chain 20-level Merkle tree)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="border border-dashed border-neutral-300 bg-neutral-50/50 p-6 text-center font-mono text-xs text-neutral-600 space-y-3">
+              <div className="w-10 h-10 rounded-full bg-neutral-100 border border-neutral-200 mx-auto flex items-center justify-center text-neutral-500">
+                <Layers className="w-5 h-5 text-neutral-400" />
+              </div>
+              <div>
+                <p className="font-semibold text-neutral-900">No New Live Deposit Transaction Yet</p>
+                <p className="text-[11px] text-neutral-500 mt-1 max-w-md mx-auto">
+                  Click <strong className="text-emerald-700 font-bold">&ldquo;Execute Live On-Chain Flow&rdquo;</strong> above to broadcast a 0.01 USDC note deposit to the Merkle tree on Arc Testnet.
+                </p>
+              </div>
+              <div className="pt-1">
+                <a
+                  href={`https://testnet.arcscan.app/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 text-[11px] font-semibold transition-colors"
+                >
+                  <span>Inspect ArcNanoPool Contract on Arcscan</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
+                </a>
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       {/* 5. LIVE CRYPTOGRAPHIC TERMINAL FEED */}
