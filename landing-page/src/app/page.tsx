@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
+import RoadmapCarousel from "@/component/UI/RoadmapCarousel";
+import CornerTicks from "@/component/UI/CornerTicks";
 import {
   Radar,
   Unlink,
@@ -56,7 +58,7 @@ export default function Home() {
     <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased overflow-x-hidden selection:bg-sky-500 selection:text-white"
+      className="relative min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased overflow-x-clip selection:bg-sky-500 selection:text-white"
     >
       {/* Spotlight Grid Cursor Overlay */}
       <div
@@ -98,6 +100,10 @@ export default function Home() {
             <a className="hover:text-neutral-950 transition-colors" href="#problem">The Problem</a>
             <a className="hover:text-neutral-950 transition-colors" href="#solution">How It Works</a>
             <a className="hover:text-neutral-950 transition-colors" href="#roadmap">Roadmap</a>
+            <a className="text-amber-600 hover:text-amber-700 font-semibold transition-colors flex items-center gap-1" href="/demo">
+              <span>Demo</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            </a>
           </div>
 
           <div className="pl-2 border-l border-neutral-200 flex items-center gap-2.5">
@@ -170,6 +176,14 @@ export default function Home() {
             </a>
 
             <a
+              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-500/30 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+              href="/demo"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Flowchart Demo</span>
+            </a>
+
+            <a
               className="bg-white/80 hover:bg-white text-neutral-800 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
               href="#roadmap"
             >
@@ -200,7 +214,9 @@ export default function Home() {
 
           {/* Arc L1 Institutional Spec Ribbon (Direct arc.io inspiration) */}
           <div className="w-full max-w-5xl mx-auto mt-12 mb-2">
-            <div className="bg-white/80 backdrop-blur-xl border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70">
+            <div className="relative bg-white/80 backdrop-blur-xl border border-neutral-200/90 p-4 sm:p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200/70 group">
+              {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
+              <CornerTicks activeColor="text-neutral-400 group-hover:text-amber-500" />
               <div className="pt-2 md:pt-0 md:px-3 text-left">
                 <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">{"// SETTLEMENT LAYER"}</div>
                 <div className="text-sm font-semibold text-neutral-900 mt-0.5">Arc Network (Circle)</div>
@@ -274,7 +290,8 @@ export default function Home() {
               {/* Center Conceptual Diagram */}
               <div className="relative z-10 my-8 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 1</div>
                     <div className="text-base font-medium text-white mt-1">Shielded Note Deposit</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -282,7 +299,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 2</div>
                     <div className="text-base font-medium text-white mt-1">X402 Challenge</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -290,7 +308,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 3</div>
                     <div className="text-base font-medium text-white mt-1">Off-Chain Groth16 Proof</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -298,7 +317,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all">
+                  <div className="relative bg-white/5 backdrop-blur-md border border-white/10 p-5 hover:border-white/20 transition-all group">
+                    <CornerTicks color="text-white/25" activeColor="group-hover:text-amber-400" />
                     <div className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">Phase 4</div>
                     <div className="text-base font-medium text-white mt-1">Receiver Arc Settlement</div>
                     <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
@@ -488,121 +508,8 @@ export default function Home() {
          
         </section>
 
-        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN - 100VH) */}
-        <section className="w-full relative z-10" id="roadmap">
-          <div className="min-h-screen flex flex-col justify-center py-16 md:py-24 px-6 sm:px-8 max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 mb-4 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>{"04 // Development Roadmap"}</span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight text-neutral-950">
-              Development roadmap
-            </h2>
-            <p className="text-neutral-600 text-base md:text-lg mt-3 max-w-2xl leading-relaxed">
-              Transparent, step-by-step progress from foundational circuit formulation to live testnet deployment on Arc.
-            </p>
-          </div>
-
-          {/* 4-Column Horizontal Minimalist Grid (Direct arc.io inspiration) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
-            {/* Column 1: R.01 */}
-            <div className="flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400 font-medium">{"// R.01"}</span>
-                  <span className="text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Completed
-                  </span>
-                </div>
-                {/* Thin divider line */}
-                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
-
-                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
-                  <span>Architecture &amp; protocol spec</span>
-                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
-                </h3>
-
-                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Formulated the two-stage X402 verification model, solved <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">msg.sender</code> leakage via receiver-batched settlement, and authored the foundational protocol specification.
-                </p>
-              </div>
-            </div>
-
-            {/* Column 2: R.02 */}
-            <div className="flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400 font-medium">{"// R.02"}</span>
-                  <span className="text-amber-800 font-medium flex items-center gap-1.5 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                    In Progress
-                  </span>
-                </div>
-                {/* Thin divider line */}
-                <div className="w-full h-[1px] bg-amber-300/80 mt-3 mb-6 group-hover:bg-amber-500 transition-colors" />
-
-                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-amber-600 transition-colors cursor-pointer">
-                  <span>Circom circuits &amp; testnet</span>
-                  <span className="text-neutral-400 group-hover:text-amber-600 transition-colors text-lg">&rarr;</span>
-                </h3>
-
-                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Finalizing the 20-level Poseidon Merkle tree inclusion circuit (<code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">spend.circom</code>), ASP non-membership constraints, and preparing <code className="font-mono text-xs text-neutral-800 bg-neutral-100 px-1 py-0.5 rounded">ArcShieldPool.sol</code> for Arc Testnet.
-                </p>
-              </div>
-            </div>
-
-            {/* Column 3: R.03 */}
-            <div className="flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400 font-medium">{"// R.03"}</span>
-                  <span className="text-neutral-500 font-normal text-[11px] bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
-                    Coming Soon
-                  </span>
-                </div>
-                {/* Thin divider line */}
-                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
-
-                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
-                  <span>Agent SDK &amp; gateway tooling</span>
-                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
-                </h3>
-
-                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify X402 middleware for API providers to verify ZK proofs in single-digit milliseconds.
-                </p>
-              </div>
-            </div>
-
-            {/* Column 4: R.04 */}
-            <div className="flex flex-col justify-between group">
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400 font-medium">{"// R.04"}</span>
-                  <span className="text-neutral-500 font-normal text-[11px] bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
-                    Coming Soon
-                  </span>
-                </div>
-                {/* Thin divider line */}
-                <div className="w-full h-[1px] bg-neutral-200/90 mt-3 mb-6 group-hover:bg-neutral-400 transition-colors" />
-
-                <h3 className="text-xl sm:text-[22px] font-normal text-neutral-950 tracking-tight leading-snug flex items-start justify-between gap-2 group-hover:text-sky-600 transition-colors cursor-pointer">
-                  <span>Circle Gas Station &amp; AI pilot</span>
-                  <span className="text-neutral-400 group-hover:text-sky-600 transition-colors text-lg">&rarr;</span>
-                </h3>
-
-                <p className="text-neutral-600 text-sm leading-relaxed mt-3.5">
-                  Production integration with Arc&apos;s Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN - HORIZONTAL SCROLL CAROUSEL) */}
+        <RoadmapCarousel />
       </main>
 
       {/* Minimized Clean Footer */}

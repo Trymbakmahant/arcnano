@@ -56,16 +56,51 @@ The test suite in `test/ArcNanoPool.t.sol` covers:
 
 ## 📡 Deployment to Arc Testnet
 
-Set the following environment variables:
+### Network Parameters
+- **Network Name:** Arc Testnet (Circle Layer 1)
+- **Chain ID:** `5042002`
+- **RPC Endpoint:** `https://rpc.testnet.arc.network`
+- **Native Gas Currency:** `USDC`
+- **Official USDC Contract:** `0x3600000000000000000000000000000000000000`
+- **Block Explorer:** [https://testnet.arcscan.app](https://testnet.arcscan.app)
+- **Faucet:** [Circle Faucet](https://faucet.circle.com) (select "Arc Testnet")
+
+### 1. Setup Environment
+Copy the example environment file and add your deployer private key:
 ```bash
-export RPC_URL="<ARC_TESTNET_RPC_URL>"
-export PRIVATE_KEY="<YOUR_DEPLOYER_PRIVATE_KEY>"
-export USDC_ADDRESS="<ARC_TESTNET_USDC_ADDRESS>"
-export VERIFIER_ADDRESS="<GROTH16_VERIFIER_ADDRESS>"
-export DENOMINATION="10000" # 0.01 USDC (6 decimals)
+cp .env.example .env
+# Edit .env and supply PRIVATE_KEY
 ```
 
-Run the deployment script:
+### 2. Dry-Run Simulation
+Simulate deployment against the live Arc Testnet:
 ```bash
-forge script script/Deploy.s.sol:DeployArcNano --rpc-url $RPC_URL --broadcast --verify
+forge script script/Deploy.s.sol:DeployArcNano --rpc-url arc_testnet
 ```
+
+### 3. Broadcast Deployment On-Chain
+When your wallet is funded with testnet USDC from the faucet:
+```bash
+forge script script/Deploy.s.sol:DeployArcNano \
+  --rpc-url arc_testnet \
+  --broadcast \
+  --legacy
+```
+*(Note: `--legacy` is recommended for standard EVM gas estimation on Arc Testnet).*
+
+---
+
+## 🌐 Deployed Contracts (Arc Testnet - Chain ID `5042002`)
+
+| Contract | Address | Explorer |
+| :--- | :--- | :--- |
+| **ArcNanoPool** | `0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca` | [View on Arcscan](https://testnet.arcscan.app/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
+| **KeccakHasher** | `0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70` | [View on Arcscan](https://testnet.arcscan.app/address/0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70) |
+| **MockVerifier** | `0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82` | [View on Arcscan](https://testnet.arcscan.app/address/0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82) |
+| **Native USDC Token** | `0x3600000000000000000000000000000000000000` | [View on Arcscan](https://testnet.arcscan.app/address/0x3600000000000000000000000000000000000000) |
+| **Deployer Wallet** | `0x063829800C7214C6AaD38f57C72561641cD80333` | [View on Arcscan](https://testnet.arcscan.app/address/0x063829800C7214C6AaD38f57C72561641cD80333) |
+
+- **Deployment Block:** `64733045`
+- **Fixed Denomination:** `10,000` raw units (0.01 USDC, 6 decimals)
+- **Deployment Status:** ✅ Live and verified on-chain
+

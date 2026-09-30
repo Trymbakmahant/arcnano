@@ -123,15 +123,15 @@ export default function Preloader() {
         </div>
 
         {/* Telemetry Status Line */}
-        <div className="mt-5 flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2 text-xs font-mono tracking-widest text-neutral-700 uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span className="min-w-[210px] text-center">{STATUS_MESSAGES[statusIdx]}</span>
-            <span className="text-neutral-900 font-bold ml-1">{progress}%</span>
+        <div className="mt-5 flex flex-col items-center gap-2 px-4 max-w-full">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-mono tracking-wider sm:tracking-widest text-neutral-700 uppercase max-w-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <span className="min-w-[170px] sm:min-w-[210px] text-center truncate">{STATUS_MESSAGES[statusIdx]}</span>
+            <span className="text-neutral-900 font-bold ml-0.5 sm:ml-1 shrink-0">{progress}%</span>
           </div>
 
           {/* High-Precision Progress Bar */}
-          <div className="w-48 sm:w-56 h-[3px] bg-neutral-200/90 rounded-full overflow-hidden relative mt-1">
+          <div className="w-44 sm:w-56 max-w-[80vw] h-[3px] bg-neutral-200/90 rounded-full overflow-hidden relative mt-1">
             <div
               className="h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 transition-all duration-150 ease-out rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"
               style={{ width: `${progress}%` }}
