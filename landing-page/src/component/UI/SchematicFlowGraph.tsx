@@ -32,7 +32,7 @@ interface WirePath {
 
 export default function SchematicFlowGraph() {
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [showArcscanInspector, setShowArcscanInspector] = useState<boolean>(true);
   const [logs, setLogs] = useState<string[]>([
@@ -385,22 +385,22 @@ export default function SchematicFlowGraph() {
             {/* Play/Pause */}
             <button
               onClick={handleTogglePlay}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer ${
                 isPlaying
                   ? "bg-neutral-950 text-white hover:bg-neutral-800"
-                  : "bg-amber-500 text-neutral-950 font-semibold shadow-xs hover:bg-amber-400"
+                  : "bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold shadow-xs ring-2 ring-amber-300/60"
               }`}
-              title="Toggle auto-play (Space)"
+              title="Toggle simulation (Space)"
             >
               {isPlaying ? (
                 <>
-                  <Pause className="w-3 h-3 fill-current" />
+                  <Pause className="w-3.5 h-3.5 fill-current" />
                   <span>Pause</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3 h-3 fill-current" />
-                  <span>Play Flow</span>
+                  <Play className="w-3.5 h-3.5 fill-current text-neutral-950" />
+                  <span>Start Simulation</span>
                 </>
               )}
             </button>

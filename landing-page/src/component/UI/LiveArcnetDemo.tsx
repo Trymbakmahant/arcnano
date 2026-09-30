@@ -576,7 +576,7 @@ export default function LiveArcnetDemo() {
             {/* Anti-Spam Indicator Pill */}
             <div className="flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 bg-neutral-100 border border-neutral-200 rounded text-neutral-600">
               <Lock className="w-3 h-3 text-neutral-500" />
-              <span>Anti-Spam Guard:</span>
+           
               <span className="font-semibold text-neutral-900">{dailyUsageCount}/5 Daily Runs</span>
             </div>
 
