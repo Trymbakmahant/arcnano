@@ -88,3 +88,19 @@ forge script script/Deploy.s.sol:DeployArcNano \
 ```
 *(Note: `--legacy` is recommended for standard EVM gas estimation on Arc Testnet).*
 
+---
+
+## 🌐 Deployed Contracts (Arc Testnet - Chain ID `5042002`)
+
+| Contract | Address | Explorer |
+| :--- | :--- | :--- |
+| **ArcNanoPool** | `0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca` | [View on Arcscan](https://testnet.arcscan.app/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
+| **KeccakHasher** | `0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70` | [View on Arcscan](https://testnet.arcscan.app/address/0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70) |
+| **MockVerifier** | `0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82` | [View on Arcscan](https://testnet.arcscan.app/address/0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82) |
+| **Native USDC Token** | `0x3600000000000000000000000000000000000000` | [View on Arcscan](https://testnet.arcscan.app/address/0x3600000000000000000000000000000000000000) |
+| **Deployer Wallet** | `0x063829800C7214C6AaD38f57C72561641cD80333` | [View on Arcscan](https://testnet.arcscan.app/address/0x063829800C7214C6AaD38f57C72561641cD80333) |
+
+- **Deployment Block:** `64733045`
+- **Fixed Denomination:** `10,000` raw units (0.01 USDC, 6 decimals)
+- **Deployment Status:** ✅ Live and verified on-chain
+
