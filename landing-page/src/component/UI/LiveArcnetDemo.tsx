@@ -64,6 +64,7 @@ export default function LiveArcnetDemo() {
   const [hasExecutedLive, setHasExecutedLive] = useState<boolean>(false);
 
   const [activeStep, setActiveStep] = useState<number>(0);
+  const [completedStep, setCompletedStep] = useState<number>(0);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedTxView, setSelectedTxView] = useState<"spend" | "deposit">("spend");
@@ -100,6 +101,7 @@ export default function LiveArcnetDemo() {
         if (parsed.deposit && parsed.spend) {
           setLiveTxs({ deposit: parsed.deposit, spend: parsed.spend });
           setHasExecutedLive(true);
+          setCompletedStep(7);
           setLatestSuccessTx({
             depositHash: parsed.deposit.hash,
             spendHash: parsed.spend.hash,
@@ -154,6 +156,7 @@ export default function LiveArcnetDemo() {
           spend: data.liveTransactions.spend,
         });
         setHasExecutedLive(true);
+        setCompletedStep(7);
         setLatestSuccessTx({
           depositHash: data.liveTransactions.deposit.hash,
           spendHash: data.liveTransactions.spend.hash,
@@ -252,6 +255,7 @@ export default function LiveArcnetDemo() {
     }
 
     setIsSimulating(true);
+    setCompletedStep(0);
     addLog("[DEMO_START] Initiating REAL Autonomous Agent Nanopayment on Arc Testnet...");
 
     // Record anti-spam timestamp in localStorage immediately
@@ -265,6 +269,7 @@ export default function LiveArcnetDemo() {
     setActiveStep(1);
     addLog("[ZK_KEYGEN] Synthesized Note Secret (256-bit). Nullifier Seed generated in memory.");
     await new Promise((r) => setTimeout(r, 800));
+    setCompletedStep(1);
 
     // Step 2: On-chain Deposit to ArcNanoPool
     setActiveStep(2);
@@ -290,6 +295,7 @@ export default function LiveArcnetDemo() {
       console.error("On-chain execution error:", err);
       addLog(`[ERROR] Broadcast error: ${msg}`);
       setIsSimulating(false);
+      setActiveStep(0);
       return;
     }
 
@@ -320,31 +326,38 @@ export default function LiveArcnetDemo() {
       }
 
       addLog(`[MINED_L1] Deposit Tx Confirmed: ${newDeposit.hash.substring(0, 18)}... (Block #${newDeposit.block})`);
+      setCompletedStep(2);
       await new Promise((r) => setTimeout(r, 1000));
 
       // Step 3: Off-Chain AI Inference Handshake
       setActiveStep(3);
       addLog("[PROMPT_STREAM] Agent A -> Agent B: Prompt 'Analyze risk matrix'. Handshake X402 accepted.");
       await new Promise((r) => setTimeout(r, 800));
+      setCompletedStep(3);
 
       // Step 4: Sub-8ms ZK Verification & ASP Compliance Check
       setActiveStep(4);
       addLog("[COMPLIANCE] ASP Root 0x000...1337 validated. OFAC Clean Set verified in 6.8ms.");
       await new Promise((r) => setTimeout(r, 800));
+      setCompletedStep(4);
 
       // Step 5: Zero-Latency LLM Token Streaming
       setActiveStep(5);
       addLog("[INFERENCE_OK] HTTP 200 OK. 4,096 tokens streamed to Agent A without waiting for block finality.");
       await new Promise((r) => setTimeout(r, 800));
+      setCompletedStep(5);
 
       // Step 6: On-Chain Spend Settlement on Arc Testnet
       setActiveStep(6);
       addLog(`[MINED_L1] Spend Tx Confirmed: ${newSpend.hash.substring(0, 18)}... (Block #${newSpend.block})`);
       await new Promise((r) => setTimeout(r, 1000));
+      setCompletedStep(6);
 
       // Step 7: Replay Attack Defense Verification
       setActiveStep(7);
       addLog("[REPLAY_GUARD] Replay attack test executed: Contract strictly reverts on duplicate nullifier!");
+      await new Promise((r) => setTimeout(r, 800));
+      setCompletedStep(7);
 
       if (result.balances) {
         setAgents((prev) =>
@@ -384,6 +397,7 @@ export default function LiveArcnetDemo() {
     }
 
     setIsSimulating(false);
+    setActiveStep(0);
   };
 
   return (
@@ -711,19 +725,18 @@ export default function LiveArcnetDemo() {
         {/* 7-Step Interactive Pipeline Progress */}
         <div className="space-y-3 pt-2">
           {steps.map((st) => {
-            const isCurrent = activeStep === st.num;
-            const isDone = activeStep > st.num;
+            const isCurrent = isSimulating && activeStep === st.num;
+            const isDone = completedStep >= st.num;
 
             return (
               <div
                 key={st.num}
-                onClick={() => setActiveStep(st.num)}
-                className={`p-3 border transition-all cursor-pointer ${
+                className={`p-3 border transition-all ${
                   isCurrent
                     ? "bg-neutral-950 text-white border-neutral-950 ring-2 ring-emerald-500 shadow-md"
                     : isDone
                     ? "bg-emerald-50/60 border-emerald-200 text-neutral-900"
-                    : "bg-neutral-50/50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                    : "bg-neutral-50/50 border-neutral-200 text-neutral-600"
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
