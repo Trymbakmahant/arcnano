@@ -4,14 +4,19 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SchematicFlowGraph from "@/component/UI/SchematicFlowGraph";
+import LiveArcnetDemo from "@/component/UI/LiveArcnetDemo";
 import {
   Video,
   Maximize2,
   Minimize2,
   ChevronLeft,
+  Sparkles,
+  CircuitBoard,
+  Activity,
 } from "lucide-react";
 
 export default function DemoPage() {
+  const [activeTab, setActiveTab] = useState<"live" | "schematic">("live");
   const [cleanRecordMode, setCleanRecordMode] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordedTime, setRecordedTime] = useState<number>(0);
@@ -136,12 +141,39 @@ export default function DemoPage() {
                   />
                 </div>
                 <span className="text-sm font-semibold tracking-tight text-neutral-950">
-                  ArcNano Schematic Studio
+                  ArcNano Protocol Studio
                 </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-800 border border-emerald-500/20 uppercase font-medium">
-                  Circuit Flow
+                  Arc Testnet (5042002)
                 </span>
               </div>
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center p-1 bg-neutral-100 border border-neutral-200 rounded-lg shadow-2xs">
+              <button
+                onClick={() => setActiveTab("live")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all ${
+                  activeTab === "live"
+                    ? "bg-white text-neutral-950 shadow-xs border border-neutral-200/80 font-bold"
+                    : "text-neutral-600 hover:text-neutral-950"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live Testnet Sandbox</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("schematic")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all ${
+                  activeTab === "schematic"
+                    ? "bg-white text-neutral-950 shadow-xs border border-neutral-200/80 font-bold"
+                    : "text-neutral-600 hover:text-neutral-950"
+                }`}
+              >
+                <CircuitBoard className="w-3.5 h-3.5 text-sky-600" />
+                <span>Circuit Schematic</span>
+              </button>
             </div>
 
             {/* Recording & Presentation Actions */}
@@ -199,8 +231,11 @@ export default function DemoPage() {
 
       {/* MAIN STAGE CANVAS */}
       <main className="flex-1 flex flex-col justify-start max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
-        {/* Schematic Circuit Graph Component */}
-        <SchematicFlowGraph />
+        {activeTab === "live" ? (
+          <LiveArcnetDemo />
+        ) : (
+          <SchematicFlowGraph />
+        )}
       </main>
 
       {/* FOOTER IN CLEAN RECORD MODE (MINIMAL) */}
