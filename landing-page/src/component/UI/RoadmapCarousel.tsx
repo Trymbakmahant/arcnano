@@ -76,11 +76,11 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     statusLabel: "In Progress",
     strokeColor: "#f59e0b", // amber
     summary:
-      "Finalizing the 20-level Poseidon Merkle tree inclusion circuit (spend.circom), ASP non-membership constraints, and preparing ArcShieldPool.sol for Arc Testnet.",
+      "Deployed ArcNanoPool on Arc Testnet (5042002), finalizing the 20-level Poseidon Merkle tree inclusion circuit (spend.circom), and integrating ASP non-membership constraints.",
     deliverables: [
       { title: "20-Level spend.circom note inclusion circuit", done: true },
+      { title: "ArcNanoPool.sol deployment on Arc Testnet", done: true },
       { title: "ASP non-membership proof (asp_check.circom)", done: false },
-      { title: "ArcShieldPool.sol deployment on Arc Testnet", done: false },
     ],
     codeOrDiagram: {
       type: "circuit",

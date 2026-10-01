@@ -188,8 +188,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. You can:
   - Implemented comprehensive LLM documentation (`/llms.txt`, `/llms-full.txt`) and SEO schema.
 - [ ] **Milestone 2: Production Circom Circuit & Arc Testnet Contracts (In Progress)**
   - Finalize `spend.circom` with 20-level Poseidon Merkle tree.
+  - [x] Deploy `ArcNanoPool.sol` on Arc Testnet (Chain ID `5042002`).
   - Implement ASP exclusion proof circuit (`asp_check.circom`).
-  - Deploy `ArcNanoPool.sol` on Arc Testnet.
 - [ ] **Milestone 3: Agent SDK & Gateway Middleware**
   - Publish `arczk-agent` Python package for LangChain / AutoGPT / CrewAI.
   - Publish `@arczk/x402-express` middleware for API providers.
