@@ -1,0 +1,17 @@
+{
+  "name": "@arcnano/circuits",
+  "version": "0.1.0",
+  "description": "Zero-Knowledge Circom circuits and Groth16 proving pipeline for ArcNano",
+  "private": true,
+  "scripts": {
+    "test": "node test/spend.test.js"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.5"
+  },
+  "devDependencies": {
+    "ethers": "^6.13.5"
+  }
+}

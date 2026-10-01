@@ -70,16 +70,16 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "02",
     tags: ["Circom 2.1", "Groth16", "Privacy Pools"],
     name: "Circom Circuits & Arc Testnet",
-    date: "In Progress",
-    status: "in-progress",
-    statusLabel: "In Progress",
-    strokeColor: "#f59e0b", // amber
+    date: "September 2026",
+    status: "completed",
+    statusLabel: "Completed",
+    strokeColor: "#10b981", // emerald
     summary:
-      "Deployed ArcNanoPool on Arc Testnet (5042002), finalizing the 20-level Poseidon Merkle tree inclusion circuit (spend.circom), and integrating ASP non-membership constraints.",
+      "Engineered the 20-level Poseidon Merkle tree inclusion circuit (spend.circom), ASP compliance verifier, and deployed ArcNanoPool on Arc Testnet (5042002).",
     deliverables: [
       { title: "20-Level spend.circom note inclusion circuit", done: true },
       { title: "ArcNanoPool.sol deployment on Arc Testnet", done: true },
-      { title: "ASP non-membership proof (asp_check.circom)", done: false },
+      { title: "ASP compliance proof (asp_check.circom)", done: true },
     ],
     codeOrDiagram: {
       type: "circuit",
