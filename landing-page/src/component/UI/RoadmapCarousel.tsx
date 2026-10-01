@@ -11,7 +11,6 @@ import {
   Cpu,
   Fuel,
 } from "lucide-react";
-import CornerTicks from "./CornerTicks";
 
 export interface RoadmapCard {
   id: string;
@@ -452,7 +451,7 @@ export default function RoadmapCarousel() {
 
                   {/* card container: Expands in height and elevates with bouncy cubic-bezier curve */}
                   <div
-                    className={`relative w-full border bg-white rounded-2xl sm:rounded-3xl shadow-sm flex flex-col justify-between p-5 sm:p-7 transition-[height,transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${
+                    className={`relative w-full border bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between p-5 sm:p-7 transition-[height,transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${
                       isFeatured
                         ? "h-[380px] sm:h-[430px] md:h-[460px] shadow-xl border-2 ring-1 ring-black/5 -translate-y-1 sm:-translate-y-1.5"
                         : "h-[220px] sm:h-[260px] md:h-[280px] border-neutral-200/80 hover:border-neutral-300 hover:shadow-lg hover:-translate-y-2"
@@ -461,16 +460,6 @@ export default function RoadmapCarousel() {
                       borderColor: isFeatured ? card.strokeColor : undefined,
                     }}
                   >
-                    {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
-                    <CornerTicks
-                      activeColor={
-                        isFeatured
-                          ? "text-neutral-900"
-                          : "text-neutral-400 group-hover:text-amber-500"
-                      }
-                      size="w-4 h-4 sm:w-5 sm:h-5"
-                    />
-
                     {/* Top row inside card: Milestone number, icon, and status badge */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
