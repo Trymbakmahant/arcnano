@@ -424,8 +424,7 @@ export default function RoadmapCarousel() {
               const Icon = card.icon;
 
               return (
-                <motion.article
-                  layout
+                <article
                   key={card.id}
                   onClick={() => scrollToSlide(index)}
                   style={
@@ -433,38 +432,10 @@ export default function RoadmapCarousel() {
                       "--stroke": card.strokeColor,
                     } as React.CSSProperties
                   }
-                  whileHover={{
-                    y: isFeatured ? -6 : -12,
-                    scale: isFeatured ? 1.012 : 1.038,
-                    transition: {
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 13,
-                      bounce: 0.46,
-                    },
-                  }}
-                  whileTap={{
-                    scale: 0.97,
-                    transition: {
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 14,
-                      bounce: 0.35,
-                    },
-                  }}
-                  transition={{
-                    layout: {
-                      type: "spring",
-                      stiffness: 280,
-                      damping: 16,
-                      bounce: 0.42,
-                    },
-                    opacity: { duration: 0.25 },
-                  }}
-                  className={`group relative shrink-0 cursor-pointer select-none ${
+                  className={`group relative shrink-0 cursor-pointer select-none transition-[width,opacity] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${
                     isFeatured
                       ? "w-[330px] sm:w-[520px] md:w-[640px] lg:w-[700px] opacity-100 z-20"
-                      : "w-[280px] sm:w-[340px] md:w-[350px] opacity-65 hover:opacity-90 z-10"
+                      : "w-[280px] sm:w-[340px] md:w-[350px] opacity-70 hover:opacity-100 z-10"
                   }`}
                 >
                   {/* card__tags (Uppercase tags with slash separators) */}
@@ -479,21 +450,12 @@ export default function RoadmapCarousel() {
                     ))}
                   </p>
 
-                  {/* card__image container: Expands with bouncy spring when is-featured */}
-                  <motion.div
-                    layout
-                    transition={{
-                      layout: {
-                        type: "spring",
-                        stiffness: 280,
-                        damping: 16,
-                        bounce: 0.42,
-                      },
-                    }}
-                    className={`relative w-full border bg-white shadow-sm flex flex-col justify-between p-5 sm:p-7 ${
+                  {/* card container: Expands in height and elevates with bouncy cubic-bezier curve */}
+                  <div
+                    className={`relative w-full border bg-white rounded-2xl sm:rounded-3xl shadow-sm flex flex-col justify-between p-5 sm:p-7 transition-[height,transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${
                       isFeatured
-                        ? "h-[360px] sm:h-[420px] md:h-[460px] shadow-xl border-neutral-300/90 ring-1 ring-black/5"
-                        : "h-[220px] sm:h-[260px] md:h-[280px] border-neutral-200/80 hover:border-neutral-300"
+                        ? "h-[380px] sm:h-[430px] md:h-[460px] shadow-xl border-2 ring-1 ring-black/5 -translate-y-1 sm:-translate-y-1.5"
+                        : "h-[220px] sm:h-[260px] md:h-[280px] border-neutral-200/80 hover:border-neutral-300 hover:shadow-lg hover:-translate-y-2"
                     }`}
                     style={{
                       borderColor: isFeatured ? card.strokeColor : undefined,
@@ -512,14 +474,7 @@ export default function RoadmapCarousel() {
                     {/* Top row inside card: Milestone number, icon, and status badge */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <motion.div
-                          whileHover={{ rotate: 12, scale: 1.15 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 450,
-                            damping: 12,
-                            bounce: 0.55,
-                          }}
+                        <div
                           className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors shadow-2xs"
                           style={{
                             backgroundColor: `${card.strokeColor}15`,
@@ -527,7 +482,7 @@ export default function RoadmapCarousel() {
                           }}
                         >
                           <Icon className="w-4 h-4" />
-                        </motion.div>
+                        </div>
                         <span className="font-mono text-xs font-semibold text-neutral-800">
                           {"// R."}{card.number}
                         </span>
@@ -553,19 +508,17 @@ export default function RoadmapCarousel() {
                       )}
                     </div>
 
-                    {/* Middle: Rich Content Preview / Diagram / Code Terminal with Bouncy AnimatePresence */}
+                    {/* Middle: Clean cross-fade between inactive summary and active full specs - NO text bounce or scale */}
                     <AnimatePresence mode="wait">
                       {isFeatured ? (
                         <motion.div
                           key="featured-body"
-                          initial={{ opacity: 0, scale: 0.94, y: 14 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.96, y: -8 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
                           transition={{
-                            type: "spring",
-                            stiffness: 360,
-                            damping: 15,
-                            bounce: 0.42,
+                            duration: 0.22,
+                            ease: "easeOut",
                           }}
                           className="my-auto py-2 sm:py-3 space-y-3"
                         >
@@ -574,17 +527,7 @@ export default function RoadmapCarousel() {
                           </p>
 
                           {/* Interactive Code / Circuit Window inside Featured Card */}
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.94, y: 12 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 340,
-                              damping: 14,
-                              bounce: 0.4,
-                            }}
-                            className="w-full rounded-xl bg-neutral-950 text-neutral-300 font-mono text-[11px] sm:text-xs p-3.5 sm:p-4 border border-neutral-800 overflow-x-auto shadow-inner"
-                          >
+                          <div className="w-full rounded-xl bg-neutral-950 text-neutral-300 font-mono text-[11px] sm:text-xs p-3.5 sm:p-4 border border-neutral-800 overflow-x-auto shadow-inner">
                             <div className="flex items-center justify-between pb-2 mb-2 border-b border-neutral-800 text-[10px] text-neutral-500">
                               <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-red-500/80"></span>
@@ -610,7 +553,7 @@ export default function RoadmapCarousel() {
                                 </div>
                               ))}
                             </pre>
-                          </motion.div>
+                          </div>
 
                           {/* Key Deliverables Check-List */}
                           <div className="hidden sm:grid grid-cols-2 gap-2 pt-1 text-xs">
@@ -632,14 +575,12 @@ export default function RoadmapCarousel() {
                         /* Compressed Inactive Card Middle State */
                         <motion.div
                           key="compressed-body"
-                          initial={{ opacity: 0, scale: 0.96, y: -6 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
                           transition={{
-                            type: "spring",
-                            stiffness: 380,
-                            damping: 18,
-                            bounce: 0.35,
+                            duration: 0.16,
+                            ease: "easeOut",
                           }}
                           className="my-auto py-2"
                         >
@@ -665,7 +606,7 @@ export default function RoadmapCarousel() {
                         Explore &rarr;
                       </span>
                     </div>
-                  </motion.div>
+                  </div>
 
                   {/* card__meta: Title & Date (Under the image, exactly as in reference snippet) */}
                   <div className="flex items-baseline justify-between mt-3 px-1 text-neutral-900">
@@ -688,7 +629,7 @@ export default function RoadmapCarousel() {
                   >
                     Open {card.name}
                   </button>
-                </motion.article>
+                </article>
               );
             })}
 
