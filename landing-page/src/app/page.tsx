@@ -104,6 +104,10 @@ export default function Home() {
               <span>Demo</span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
             </a>
+            <a className="text-sky-600 hover:text-sky-700 font-semibold transition-colors flex items-center gap-1" href="/playground">
+              <span>Playground</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+            </a>
           </div>
 
           <div className="pl-2 border-l border-neutral-200 flex items-center gap-2.5">

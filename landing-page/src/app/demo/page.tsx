@@ -138,6 +138,14 @@ export default function DemoPage() {
                 <CircuitBoard className="w-3.5 h-3.5 text-sky-600" />
                 <span>2. Circuit Schematic</span>
               </button>
+
+              <Link
+                href="/playground"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium text-sky-800 hover:bg-sky-50 transition-all border border-transparent hover:border-sky-200"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                <span>3. Shielded Playground</span>
+              </Link>
             </div>
 
             {/* Presentation / Cinema Action */}
