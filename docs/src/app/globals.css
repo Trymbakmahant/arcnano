@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+:root {
+  --gh-bg: #ffffff;
+  --gh-canvas-subtle: #f6f8fa;
+  --gh-border: #d0d7de;
+  --gh-border-muted: #d8dee4;
+  --gh-text: #1f2328;
+  --gh-text-muted: #656d76;
+  --gh-accent: #0969da;
+  --gh-accent-emphasis: #0860ca;
+  --gh-code-bg: #eff1f3;
+  --gh-sidebar-bg: #f6f8fa;
+  --gh-header-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --gh-bg: #0d1117;
+  --gh-canvas-subtle: #161b22;
+  --gh-border: #30363d;
+  --gh-border-muted: #21262d;
+  --gh-text: #e6edf3;
+  --gh-text-muted: #848d97;
+  --gh-accent: #2f81f7;
+  --gh-accent-emphasis: #388bfd;
+  --gh-code-bg: #161b22;
+  --gh-sidebar-bg: #0d1117;
+  --gh-header-bg: #161b22;
+}
+
+body {
+  background-color: var(--gh-bg);
+  color: var(--gh-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* GitHub Docs Code Styling */
+pre {
+  background-color: var(--gh-canvas-subtle);
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+code:not(pre code) {
+  background-color: var(--gh-code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  font-size: 85%;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* GitHub-Style Callout Alerts */
+.gh-alert {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-left-width: 4px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.gh-alert-note {
+  border-left-color: #0969da;
+  background-color: #ddf4ff;
+  color: #0550ae;
+}
+
+[data-theme="dark"] .gh-alert-note {
+  background-color: rgba(56, 139, 253, 0.15);
+  color: #79c0ff;
+  border-left-color: #388bfd;
+}
+
+.gh-alert-tip {
+  border-left-color: #1a7f37;
+  background-color: #dafbe1;
+  color: #116329;
+}
+
+[data-theme="dark"] .gh-alert-tip {
+  background-color: rgba(63, 185, 80, 0.15);
+  color: #56d364;
+  border-left-color: #2ea043;
+}
+
+.gh-alert-important {
+  border-left-color: #8250df;
+  background-color: #fbefff;
+  color: #6639ba;
+}
+
+[data-theme="dark"] .gh-alert-important {
+  background-color: rgba(163, 113, 247, 0.15);
+  color: #d2a8ff;
+  border-left-color: #a371f7;
+}
+
+.gh-alert-warning {
+  border-left-color: #9a6700;
+  background-color: #fff8c5;
+  color: #7d4e00;
+}
+
+[data-theme="dark"] .gh-alert-warning {
+  background-color: rgba(187, 128, 9, 0.15);
+  color: #e3b341;
+  border-left-color: #bb8009;
+}
+
+.gh-alert-caution {
+  border-left-color: #cf222e;
+  background-color: #ffebe9;
+  color: #a40e26;
+}
+
+[data-theme="dark"] .gh-alert-caution {
+  background-color: rgba(248, 81, 73, 0.15);
+  color: #ff7b72;
+  border-left-color: #f85149;
+}
