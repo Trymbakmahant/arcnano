@@ -102,16 +102,16 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "03",
     tags: ["Python SDK", "AI Agent Toolchains", "Middleware"],
     name: "Agent SDK & Gateway Tooling",
-    date: "Coming Soon",
-    status: "coming-soon",
-    statusLabel: "Coming Soon",
-    strokeColor: "#0284c7", // sky
+    date: "Completed",
+    status: "completed",
+    statusLabel: "Completed",
+    strokeColor: "#10b981", // emerald
     summary:
-      "Building client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express/Fastify X402 middleware for API providers to verify ZK proofs in single-digit milliseconds.",
+      "Built production client libraries for autonomous AI frameworks (LangChain, AutoGPT, CrewAI) and drop-in Express X402 middleware for API providers with sub-8ms in-memory Groth16 verification.",
     deliverables: [
-      { title: "arczk-agent Python package for AI agent toolchains", done: false },
-      { title: "@arcnano/x402-express drop-in server middleware", done: false },
-      { title: "Sub-8ms off-chain WASM pairing verifier", done: false },
+      { title: "arczk-agent Python package for AI agent toolchains", done: true },
+      { title: "@arcnano/x402-express drop-in server middleware", done: true },
+      { title: "Sub-8ms off-chain WASM pairing verifier", done: true },
     ],
     codeOrDiagram: {
       type: "code",

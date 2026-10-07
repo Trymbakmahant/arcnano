@@ -1,0 +1,36 @@
+{
+  "name": "@arcnano/x402-express",
+  "version": "0.1.0",
+  "description": "Drop-in HTTP X402 payment middleware with sub-8ms off-chain ZK Groth16 verification & Arc Testnet batch settlement for Express and Node.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsx test/verifier.test.ts && tsx test/middleware.test.ts",
+    "benchmark": "tsx test/benchmark.ts"
+  },
+  "keywords": [
+    "x402",
+    "arcnano",
+    "zk-proofs",
+    "micropayments",
+    "ai-agents",
+    "groth16",
+    "arc-network",
+    "express-middleware"
+  ],
+  "author": "Trymbak Mahant (@trymbakmahant)",
+  "license": "MIT",
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "ethers": "^6.13.5",
+    "snarkjs": "^0.7.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "express": "^4.21.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -35,3 +35,13 @@ ARCNANO_DEEP_DIVE_BOOK.md
 
 # Marketing & Social Media Plans (Local)
 marketing/
+
+# Python & SDK Build Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+sdk/python/build/
