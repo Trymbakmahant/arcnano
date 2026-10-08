@@ -6,7 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsx test/verifier.test.ts && tsx test/middleware.test.ts",
+    "test": "tsx test/verifier.test.ts && tsx test/middleware.test.ts && tsx test/paymaster.test.ts && tsx test/daemon.test.ts",
+    "test:paymaster": "tsx test/paymaster.test.ts",
+    "test:daemon": "tsx test/daemon.test.ts",
+    "relayer": "tsx bin/relayer.ts",
     "benchmark": "tsx test/benchmark.ts"
   },
   "keywords": [

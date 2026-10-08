@@ -289,9 +289,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser:
   - Built `@arcnano/x402-express` drop-in middleware for API providers (`sdk/x402-express/`).
   - Sub-8ms off-chain verification runtime (benchmarked 0.0024ms avg, 1,000 iterations).
   - Built end-to-end runnable integration simulation (`examples/run_e2e.py`).
-- [ ] **Milestone 4: Gas Station Relayer & Testnet Pilot**
-  - Integrate Circle Gas Station for automated batch settlements.
-  - Run pilot with an autonomous AI data-scraping / inference service on Arc.
+- [x] **Milestone 4: Gas Station Relayer & Testnet Pilot (Completed)**
+  - Built `CirclePaymasterClient` integrating Circle Gas Station ERC-4337 sponsorship on Arc Testnet (`5042002`).
+  - Built `ArcNanoRelayerDaemon` with HTTP proof ingestion (`/v1/submit-proof`), nullifier deduplication, and scheduled batch flushes.
+  - Executed Live M2M Autonomous AI Agent Pilot (`examples/live_pilot/run_live_pilot.py`) validating $0.00 native agent gas, 0% signer leakage, and on-chain batch settlement.
 
 ---
 
@@ -329,7 +330,15 @@ app.post("/api/v1/inference", (req, res) => {
 app.listen(3000);
 ```
 
-### 2. `arczk-agent` (Autonomous AI Agents)
+### 2. `ArcNanoRelayerDaemon` (Automated Gas-Station Batch Settlement)
+Run a standalone relayer daemon that aggregates payment proofs across providers and settles them via the Circle Gas Station Paymaster with $0 native gas:
+
+```bash
+# Start relayer daemon on port 4040
+pnpm --filter @arcnano/x402-express relayer
+```
+
+### 3. `arczk-agent` (Autonomous AI Agents)
 Autonomous client library for LangChain, AutoGPT, and CrewAI agents:
 
 ```python
@@ -349,12 +358,12 @@ response = client.post(
 print(response.json())
 ```
 
-### 3. Running the End-to-End M2M Demo
-To see the autonomous AI agent and Express gateway interact in real time:
+### 4. Running the Live M2M Autonomous Pilot (Stage 04)
+To run the full end-to-end multi-step intelligence pilot (Relayer Daemon + Protected LLM Service + Autonomous Agent):
 
 ```bash
-# Runs gateway server + autonomous agent + full proof verification lifecycle
-python3 examples/run_e2e.py
+# Runs relayer daemon + streaming inference API + 3-step autonomous agent pilot
+python3 examples/live_pilot/run_live_pilot.py
 ```
 
 ---

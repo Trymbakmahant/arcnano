@@ -135,16 +135,16 @@ const ROADMAP_CARDS: RoadmapCard[] = [
     number: "04",
     tags: ["Circle Paymaster", "ERC-4337", "Live Pilot"],
     name: "Circle Gas Station & AI Pilot",
-    date: "Coming Soon",
-    status: "coming-soon",
-    statusLabel: "Coming Soon",
-    strokeColor: "#8b5cf6", // violet
+    date: "Completed",
+    status: "completed",
+    statusLabel: "Completed",
+    strokeColor: "#10b981", // emerald
     summary:
-      "Production integration with Arc's Circle Gas Station Paymaster for zero-gas settlement, followed by a live testnet pilot connecting autonomous AI agents to live inference providers.",
+      "Production integration with Arc's Circle Gas Station Paymaster for zero-gas settlement, automated high-throughput batch relayer daemon, and live testnet pilot connecting autonomous AI agents to live inference providers.",
     deliverables: [
-      { title: "Circle Gas Station paymaster contract sponsorship", done: false },
-      { title: "Automated batch relayer daemon for note aggregation", done: false },
-      { title: "Live M2M AI agent inference & scraping pilot", done: false },
+      { title: "Circle Gas Station paymaster contract sponsorship", done: true },
+      { title: "Automated batch relayer daemon for note aggregation", done: true },
+      { title: "Live M2M AI agent inference & scraping pilot", done: true },
     ],
     codeOrDiagram: {
       type: "flow",

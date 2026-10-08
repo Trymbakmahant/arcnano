@@ -86,9 +86,9 @@ Inspired by Vitalik Buterin's *Privacy Pools* research:
 ## 5. Development Roadmap
 
 - **R.01 (Completed):** Architecture & Protocol Spec — Formulation of two-stage X402 verification, signer decoupling, and foundational whitepaper.
-- **R.02 (In Progress):** Circom Circuits & Arc Testnet — 20-level Poseidon Merkle tree inclusion circuit (`spend.circom`), ASP non-membership constraint, and `ArcShieldPool.sol` deployment.
-- **R.03 (Upcoming):** Agent SDK & Gateway Tooling — Python client library (`arczk-agent`) for LangChain/AutoGPT/CrewAI and Express/Fastify X402 middleware.
-- **R.04 (Upcoming):** Circle Gas Station & AI Pilot — Production integration with Circle Gas Station Paymaster on Arc and live pilot connecting autonomous AI agents to live inference nodes.
+- **R.02 (Completed):** Circom Circuits & Arc Testnet — 20-level Poseidon Merkle tree inclusion circuit (`spend.circom`), ASP non-membership constraint, and `ArcNanoPool.sol` deployment.
+- **R.03 (Completed):** Agent SDK & Gateway Tooling — Python client library (`arczk-agent`) for LangChain/AutoGPT/CrewAI and Express/Fastify X402 middleware with sub-8ms in-memory verification.
+- **R.04 (Completed):** Circle Gas Station & AI Pilot — Production integration with Circle Gas Station Paymaster on Arc, automated batch relayer daemon, and live pilot connecting autonomous AI agents to live inference nodes.
 
 ---
 
