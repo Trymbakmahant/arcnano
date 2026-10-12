@@ -27,6 +27,9 @@ export function SdkDiscoverySection({
   }
 
   const cleanEndpointPath = selectedNode.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "");
+  const targetUrl = cleanEndpointPath.startsWith("http://") || cleanEndpointPath.startsWith("https://")
+    ? cleanEndpointPath
+    : `https://${cleanEndpointPath}`;
   const method = selectedNode.endpoint.startsWith("GET") ? "GET" : "POST";
 
   const pythonSnippet = `# 1. Install autonomous agent SDK:
@@ -81,7 +84,7 @@ const agent = new ArcAgentClient({
 // Settle on ArcNanoPool (0xa40d...76Ca) without revealing buyer balance
 const result = await agent.executeMarketplaceCapability({
   agentId: "${selectedNode.id}",
-  endpoint: "https://api.x402.org${cleanEndpointPath}",
+  endpoint: "${targetUrl}",
   method: "${method}",
   body: { query: "Autonomous agent execution payload" },
   payment: {
@@ -99,14 +102,14 @@ $ curl -s https://marketplace.arcnano.xyz/api/v1/agents?category=${encodeURIComp
   )}
 
 # Step 2: Probe the agent endpoint (returns 402 Challenge)
-$ curl -i -X ${method} https://api.x402.org${cleanEndpointPath} \\
+$ curl -i -X ${method} ${targetUrl} \\
   -H "Content-Type: application/json"
 
 # < HTTP/1.1 402 Payment Required
 # < WWW-Authenticate: X402 recipient="${selectedNode.ownerArcId || "provider.arc"}" pool="0xa40d...76Ca" cost="${selectedNode.costNumeric}"
 
 # Step 3: Agent signs Groth16 zero-knowledge proof from note vault and pays:
-$ curl -i -X ${method} https://api.x402.org${cleanEndpointPath} \\
+$ curl -i -X ${method} ${targetUrl} \\
   -H "Authorization: X402 proof=0x89ab... nullifier=0x42f7..." \\
   -H "X-Arcnano-Recipient: ${selectedNode.ownerArcId || "provider.arc"}" \\
   -H "Content-Type: application/json" \\
