@@ -1,4 +1,4 @@
-# @arcnano/x402-express
+# arcnano-x402
 
 > **Drop-in HTTP X402 payment middleware with sub-8ms off-chain ZK Groth16 verification & Arc Testnet batch settlement for Express and Node.js.**
 
@@ -21,9 +21,9 @@
 ## 📦 Installation
 
 ```bash
-pnpm add @arcnano/x402-express
+pnpm add arcnano-x402
 # or
-npm install @arcnano/x402-express
+npm install arcnano-x402
 ```
 
 ---
@@ -32,7 +32,7 @@ npm install @arcnano/x402-express
 
 ```typescript
 import express from "express";
-import { x402PaymentMiddleware } from "@arcnano/x402-express";
+import { x402PaymentMiddleware } from "arcnano-x402";
 
 const app = express();
 app.use(express.json());

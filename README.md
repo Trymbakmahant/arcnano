@@ -213,7 +213,7 @@ arcnano/
 │   ├── python/             # arczk-agent Python SDK for LangChain, AutoGPT & CrewAI
 │   │   ├── arczk/          # Note vault, Groth16 prover & autonomous X402 client
 │   │   └── tests/          # Python test suite (100% passing)
-│   └── x402-express/       # @arcnano/x402-express drop-in payment middleware
+│   └── x402-express/       # arcnano-x402 drop-in payment middleware
 │       ├── src/            # Sub-8ms verifier, nullifier cache & batcher
 │       └── test/           # Unit tests, HTTP integration test & benchmark
 ├── examples/               # End-to-end runnable M2M agent & gateway simulation
@@ -286,7 +286,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser:
   - Merged Live Testnet Sandbox & Visual Circuit Schematic into single-page `/demo`.
 - [x] **Milestone 3: Agent SDK & Gateway Middleware (Completed)**
   - Built `arczk-agent` Python package for LangChain / AutoGPT / CrewAI (`sdk/python/`).
-  - Built `@arcnano/x402-express` drop-in middleware for API providers (`sdk/x402-express/`).
+  - Built `arcnano-x402` drop-in middleware for API providers (`sdk/x402-express/`).
   - Sub-8ms off-chain verification runtime (benchmarked 0.0024ms avg, 1,000 iterations).
   - Built end-to-end runnable integration simulation (`examples/run_e2e.py`).
 - [x] **Milestone 4: Gas Station Relayer & Testnet Pilot (Completed)**
@@ -298,12 +298,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser:
 
 ## 🤖 Developer Tooling & SDK Quickstart
 
-### 1. `@arcnano/x402-express` (API Providers & Gateways)
+### 1. `arcnano-x402` (API Providers & Gateways)
 Monetize AI endpoints with sub-8ms zero-knowledge verification and zero block latency:
 
 ```typescript
 import express from "express";
-import { x402PaymentMiddleware } from "@arcnano/x402-express";
+import { x402PaymentMiddleware } from "arcnano-x402";
 
 const app = express();
 app.use(express.json());
@@ -335,7 +335,7 @@ Run a standalone relayer daemon that aggregates payment proofs across providers 
 
 ```bash
 # Start relayer daemon on port 4040
-pnpm --filter @arcnano/x402-express relayer
+pnpm --filter arcnano-x402 relayer
 ```
 
 ### 3. `arczk-agent` (Autonomous AI Agents)

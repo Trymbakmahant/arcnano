@@ -5,7 +5,7 @@ import { BatchSettlementManager } from "../src/batcher.js";
 import { SpendProofPayload } from "../src/types.js";
 
 async function runTests() {
-  console.log("=== Running @arcnano/x402-express Unit Tests ===\n");
+  console.log("=== Running arcnano-x402 Unit Tests ===\n");
 
   const verifier = new FastGroth16Verifier();
   const cache = new NullifierCache();
@@ -109,7 +109,7 @@ async function runTests() {
   batcher.stop();
   console.log("✔ Batch settlement manager flushed 2 notes (20,000 units) successfully!\n");
 
-  console.log("🎉 All @arcnano/x402-express unit tests passed!");
+  console.log("🎉 All arcnano-x402 unit tests passed!");
 }
 
 runTests().catch((err) => {

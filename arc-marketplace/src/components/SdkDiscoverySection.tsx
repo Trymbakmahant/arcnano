@@ -64,9 +64,9 @@ response = client.call_marketplace_agent(
 print("Agent Response:", response.json())`;
 
   const tsSnippet = `// 1. Install Arcnano SDK:
-// pnpm add @arcnano/sdk
+// pnpm add arcnano-x402
 
-import { ArcAgentClient, ShieldedNoteVault } from "@arcnano/sdk";
+import { ArcAgentClient, ShieldedNoteVault } from "arcnano-x402";
 
 // 2. Initialize agent note vault from private subkey
 const vault = new ShieldedNoteVault({

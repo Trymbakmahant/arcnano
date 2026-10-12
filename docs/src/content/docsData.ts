@@ -55,7 +55,7 @@ export const DOC_CATEGORIES: DocCategory[] = [
     id: "sdks",
     name: "Developer SDKs & Gateway Tooling",
     items: [
-      { id: "sdk-express", title: "@arcnano/x402-express Middleware" },
+      { id: "sdk-express", title: "arcnano-x402 Middleware" },
       { id: "sdk-python", title: "arczk-agent Python SDK (LangChain/CrewAI)" },
       { id: "modes", title: "Fast Mode vs Strict Finality Mode" },
     ],
@@ -433,7 +433,7 @@ It sends Proof 1 to **Server B** and Proof 2 to **Server C** in the exact same m
 ## How API Gateways Protect Server C:
 
 ### 1. Shared Gateway Mempool / Redis Gossip (The VISA Model)
-Production gateways running \`@arcnano/x402-express\` connect to a low-latency shared Redis cache of pending nullifiers. When Server C receives the request 5ms later, its gateway sees the nullifier was already claimed by Server B and rejects it with **\`HTTP 409 Conflict\`**.
+Production gateways running \`arcnano-x402\` connect to a low-latency shared Redis cache of pending nullifiers. When Server C receives the request 5ms later, its gateway sees the nullifier was already claimed by Server B and rejects it with **\`HTTP 409 Conflict\`**.
 
 ### 2. Micro-Streaming (1 Token at a Time)
 APIs stream in tiny fractions (e.g. $0.0005 per 50 tokens). If an unconfirmed nullifier fails settlement, the stream terminates after two words. The maximum theoretical exposure is fractions of a cent.
@@ -579,27 +579,27 @@ ArcNano organizes deposits into an incremental 20-level binary Merkle tree:
 
   "sdk-express": {
     id: "sdk-express",
-    title: "@arcnano/x402-express Middleware",
+    title: "arcnano-x402 Middleware",
     category: "Developer SDKs & Gateway Tooling",
-    summary: "Guide to monetizing Express and Fastify endpoints using @arcnano/x402-express.",
+    summary: "Guide to monetizing Express and Fastify endpoints using arcnano-x402.",
     content: `
-# @arcnano/x402-express Middleware Guide
+# arcnano-x402 Middleware Guide
 
-The \`@arcnano/x402-express\` package allows API providers to monetize endpoints with sub-8ms off-chain ZK verification in 3 lines of code:
+The \`arcnano-x402\` package allows API providers to monetize endpoints with sub-8ms off-chain ZK verification in 3 lines of code:
 
 ## Installation
 
 \`\`\`bash
-npm install @arcnano/x402-express
+npm install arcnano-x402
 # or
-pnpm add @arcnano/x402-express
+pnpm add arcnano-x402
 \`\`\`
 
 ## Quickstart
 
 \`\`\`typescript
 import express from "express";
-import { x402PaymentMiddleware } from "@arcnano/x402-express";
+import { x402PaymentMiddleware } from "arcnano-x402";
 
 const app = express();
 app.use(express.json());
@@ -676,7 +676,7 @@ print(response.json())
     content: `
 # Fast Mode vs Strict Finality Mode
 
-API providers can configure their risk profile in \`@arcnano/x402-express\`:
+API providers can configure their risk profile in \`arcnano-x402\`:
 
 ### Fast Mode (Default)
 - **Latency:** **0.0024 ms** in local RAM.
