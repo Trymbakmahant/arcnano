@@ -18,13 +18,13 @@ const avatarsList = agentAvatarsData as unknown as AgentAvatarItem[];
 const cubeeAvatar = avatarsList.find((a) => a.name === "Cubee") || avatarsList[0];
 
 const DEFAULT_HERO_THOUGHTS = [
-  "Zero msg.sender on Arc! Your AI agent identity is 100% shielded 🛡️",
-  "Circle Gas Station sponsors batch settlement! Agents pay $0.00 gas! ⚡",
-  "Deterministic <500ms finality means streaming LLM never stalls! 🚀",
-  "Groth16 ZK-SNARKs + Privacy Pools ASP: clean OFAC compliance! 🔒",
-  "Poseidon Merkle Vault holds 1M+ shielded notes in a 64-root ring! 🌲",
-  "Autonomous AI agents need machine micropayments. X402 is instant! 🤖",
-  "Click me or type below to test my GLM-4 ArcNano knowledge! 💭",
+  "Zero msg.sender on Arc: agent identities remain completely shielded.",
+  "Circle Gas Station sponsors batch settlement. Agents pay $0.00 gas.",
+  "Deterministic sub-500ms finality ensures streaming LLM token delivery never stalls.",
+  "Groth16 ZK-SNARKs and Privacy Pools ASP guarantee mathematical compliance.",
+  "Poseidon Merkle Vault manages over 1M shielded notes across a 64-root ring buffer.",
+  "Autonomous AI agents require instant machine micropayments via X402 headers.",
+  "Ask questions below or explore off-chain cryptographic verification.",
 ];
 
 export interface HeroCubeeCloudProps {
@@ -373,11 +373,11 @@ export default function HeroCubeeCloud({
   // Poking Cubee triggers mood and cloud bounce with GSAP
   const handlePoke = () => {
     const pokeMoods = [
-      { text: "Hey! Tap received! 👋 I'm your off-chain companion!", anim: "celebrate" },
-      { text: "Proving Poseidon nullifier in RAM... sub-8ms verification verified! 🤖", anim: "working" },
-      { text: "Zero msg.sender leaked! Your autonomous agent identity is 100% shielded.", anim: "proud" },
-      { text: "100 micro-receipts batched with 99.1% calldata compression on Arc!", anim: "excited" },
-      { text: "Circle Gas Station sponsors our L1 settlement completely: $0.00 gas fees!", anim: "playful" },
+      { text: "Tap acknowledged. Standing by as your off-chain settlement daemon.", anim: "celebrate" },
+      { text: "Poseidon nullifier verified in RAM in under 8ms.", anim: "working" },
+      { text: "Zero msg.sender on-chain. Autonomous agent identity is completely shielded.", anim: "proud" },
+      { text: "Micro-receipts aggregated with 99.1% calldata compression on Arc.", anim: "excited" },
+      { text: "Circle Gas Station sponsors Layer 1 settlement with $0.00 gas fees.", anim: "playful" },
     ];
     const pick = pokeMoods[Math.floor(Math.random() * pokeMoods.length)];
     setUserAsked(true);

@@ -249,7 +249,7 @@ export default function CubeeCardBot({
 
       // Celebration reaction on success!
       setAnimation("celebrate");
-      setMascotStatus("Success! 🎉");
+      setMascotStatus("Success");
 
       setTimeout(() => {
         setAnimation("proud");
@@ -280,10 +280,10 @@ export default function CubeeCardBot({
   // Poke mascot interaction
   const handlePoke = () => {
     const pokeMoods = [
-      { text: "Hey! Tap received! 👋 I'm your off-chain companion!", anim: "celebrate", status: "Tickled! 🎉" },
-      { text: "Proving Poseidon nullifier in RAM... sub-8ms verification verified! 🤖", anim: "working", status: "Proving in RAM" },
-      { text: "Zero msg.sender leaked! Your autonomous agent identity is 100% shielded.", anim: "proud", status: "Shielded" },
-      { text: "100 micro-receipts batched with 99.1% calldata compression on Arc!", anim: "excited", status: "Excited!" },
+      { text: "Tap acknowledged. Standing by as your off-chain settlement daemon.", anim: "celebrate", status: "Active" },
+      { text: "Poseidon nullifier verified in RAM in under 8ms.", anim: "working", status: "Proving in RAM" },
+      { text: "Zero msg.sender leaked. Autonomous agent identity is completely shielded.", anim: "proud", status: "Shielded" },
+      { text: "Micro-receipts aggregated with 99.1% calldata compression on Arc.", anim: "excited", status: "Aggregating" },
     ];
     const pick = pokeMoods[Math.floor(Math.random() * pokeMoods.length)];
     setSpeech(pick.text);
@@ -530,7 +530,7 @@ export default function CubeeCardBot({
                       : "bg-white hover:bg-neutral-100 text-neutral-800 border-neutral-200/90 hover:border-neutral-300"
                   }`}
                 >
-                  💬 {prompt}
+                  {prompt}
                 </button>
               ))}
             </div>
@@ -659,7 +659,7 @@ export default function CubeeCardBot({
                           : "Using built-in ArcNano knowledge base engine."
                       );
                       setAnimation("celebrate");
-                      setMascotStatus("Key Saved! 🎉");
+                      setMascotStatus("Key Saved");
                     }}
                     className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors cursor-pointer shrink-0"
                   >

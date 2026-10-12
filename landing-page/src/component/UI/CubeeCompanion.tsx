@@ -42,7 +42,7 @@ const avatarsList = agentAvatarsData as unknown as AgentAvatarItem[];
 const cubeeAvatar = avatarsList.find((a) => a.name === "Cubee") || avatarsList[0];
 
 const DEFAULT_GREETING =
-  "Hey! I'm Cubee 🟥. Hover over any card on the page to inspect it, or ask me any question about ArcNano below!";
+  "Welcome to ArcNano. Hover over any card on the page to inspect it, or ask any question about the architecture below.";
 
 // Smart suggested questions based on keywords in title/hint
 function getSuggestedQuestions(pretext?: PretextContext | null): string[] {
@@ -392,12 +392,12 @@ export default function CubeeCompanion() {
   // Poke Cubee for fun
   const handlePokeCubee = () => {
     const pokeMoods = [
-      { text: "Hey! That tickles! 👋 I'm your off-chain companion!", anim: "celebrate" },
-      { text: "Proving Poseidon nullifier in memory... sub-8ms verification verified! 🤖", anim: "working" },
-      { text: "Zero msg.sender leaked! Your autonomous agent identity is mathematically decoupled.", anim: "proud" },
-      { text: "100 micro-receipts batched with 99.1% calldata compression on Arc!", anim: "excited" },
-      { text: "Circle Gas Station sponsors our L1 settlement completely: $0.00 gas fees!", anim: "playful" },
-      { text: "I'm powered by GLM-4 with all ArcNano book knowledge loaded. Ask me anything!", anim: "thinking" },
+      { text: "Tap acknowledged. Standing by as your off-chain settlement daemon.", anim: "celebrate" },
+      { text: "Poseidon nullifier verified in RAM in under 8ms.", anim: "working" },
+      { text: "Zero msg.sender leaked. Autonomous agent identity is mathematically decoupled.", anim: "proud" },
+      { text: "Micro-receipts aggregated with 99.1% calldata compression on Arc.", anim: "excited" },
+      { text: "Circle Gas Station sponsors Layer 1 settlement with $0.00 gas fees.", anim: "playful" },
+      { text: "ArcNano architecture index loaded. Ask any technical question below.", anim: "thinking" },
     ];
     const pick = pokeMoods[Math.floor(Math.random() * pokeMoods.length)];
     triggerHint(pick.text, pick.anim);
@@ -542,7 +542,7 @@ export default function CubeeCompanion() {
                     >
                       {msg.contextTitle && msg.role === "user" && (
                         <div className="text-[10px] text-amber-300 font-mono mb-1 truncate">
-                          📍 {msg.contextTitle}
+                          [{msg.contextTitle}]
                         </div>
                       )}
                       <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -586,7 +586,7 @@ export default function CubeeCompanion() {
                     disabled={isLoading}
                     className="text-left text-[11px] font-medium px-2 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200/90 text-neutral-800 border border-neutral-200/80 transition-all truncate max-w-full cursor-pointer hover:border-neutral-300"
                   >
-                    💬 {prompt}
+                    {prompt}
                   </button>
                 ))}
               </div>

@@ -8,18 +8,18 @@ import CornerTicks from "@/component/UI/CornerTicks";
 import HeroCubeeCloud from "@/component/UI/HeroCubeeCloud";
 
 const BLUEPRINT_THOUGHTS = [
-  "Phase 1: Fixed-tier USDC notes in a 20-level Merkle tree create uniform anonymity! 🌲",
-  "Phase 2: X402 HTTP challenge returns invoice & tree root for instant inference! ⚡",
-  "Phase 3: Off-chain Groth16 proof in ~74ms eliminates mempool doxing completely! 🔒",
-  "Phase 4: Provider batches settlements to Arc L1 with $0.00 agent gas fees! 🚀",
+  "Phase 1: Fixed-tier USDC notes in a 20-level Merkle tree create uniform anonymity.",
+  "Phase 2: X402 HTTP challenge returns invoice and tree root for instant inference.",
+  "Phase 3: Off-chain Groth16 proof in ~74ms eliminates mempool exposure completely.",
+  "Phase 4: Provider batches settlements to Arc Layer 1 with $0.00 agent gas fees.",
 ];
 
 const PROBLEM_THOUGHTS = [
-  "Trap 1: Public block explorers log every AI model call, prompt & supplier! 📡",
-  "Trap 2: Naive ZK still leaks the signer's wallet when submitting on-chain! 🔓",
-  "Trap 3: Mixers get blacklisted by enterprise APIs because dirty & clean funds pool! 🚫",
-  "Trap 4: 10–15s block times stall real-time LLM loops & gas fees kill nanopayments! ⏱️",
-  "ArcNano solves this: off-chain Groth16 proofs + ASP non-membership compliance! 🛡️",
+  "Trap 1: Public block explorers log every AI model call, prompt, and tool supplier.",
+  "Trap 2: Naive ZK still leaks the signer's wallet when broadcasting on-chain.",
+  "Trap 3: Mixers get blacklisted by enterprise APIs because dirty and clean funds pool together.",
+  "Trap 4: 10 to 15 second block times stall real-time LLM loops and gas fees kill nanopayments.",
+  "ArcNano resolves this through off-chain Groth16 proofs and ASP non-membership compliance.",
 ];
 import {
   Radar,

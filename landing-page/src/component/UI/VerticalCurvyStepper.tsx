@@ -28,42 +28,42 @@ const avatarsList = agentAvatarsData as unknown as AgentAvatarItem[];
 const cubeeAvatar = avatarsList.find((a) => a.name === "Cubee") || avatarsList[0];
 
 const SOLUTION_THOUGHTS = [
-  "Pillar 1: Receiver-batched settlement completely eliminates msg.sender from the chain! 🛡️",
-  "Pillar 2: Circle Gas Station sponsors 100% of gas—agents pay $0.00 in native tokens! ⚡",
-  "Pillar 3: Dual Merkle ASP circuits prove non-sanctioned clean funds mathematically! 🔒",
-  "Pillar 4: In-memory Groth16 pairings verify in <10ms for unblocked LLM streaming! 🚀",
-  "Watch me run down the stepper line as you scroll through all 4 architectural pillars! 🏃",
+  "Pillar 1: Receiver-batched settlement completely eliminates msg.sender from the chain.",
+  "Pillar 2: Circle Gas Station sponsors 100% of gas—agents pay $0.00 in native tokens.",
+  "Pillar 3: Dual Merkle ASP circuits prove non-sanctioned clean funds mathematically.",
+  "Pillar 4: In-memory Groth16 pairings verify in under 10ms for unblocked LLM streaming.",
+  "Scroll down to inspect all four architectural pillars along the stepper rail.",
 ];
 
 const STEP_2_THOUGHTS = [
-  "Pillar 2: Circle Gas Station sponsors 100% of native gas via ERC-4337! ⚡",
-  "Zero funding paper trails! Agents never fund burner wallets from exchange accounts. 🛡️",
-  "Autonomous agents pay exactly $0.00 native tokens for settlement transactions! 💳",
-  "Paymaster handles gas in batch calldata—eliminating funding forensics! 🔒",
-  "Ask me anything about gas sponsorship on Arc!",
+  "Pillar 2: Circle Gas Station sponsors 100% of native gas via ERC-4337 paymasters.",
+  "Zero funding paper trails: agents never fund burner wallets from exchange accounts.",
+  "Autonomous agents pay exactly $0.00 in native tokens for settlement transactions.",
+  "Paymasters sponsor gas in batch calldata, eliminating funding forensics.",
+  "Ask any question about gas sponsorship on Arc.",
 ];
 
 const STEP_3_THOUGHTS = [
-  "Pillar 3: Dual Merkle ASP circuits guarantee OFAC compliance without KYC! 🔒",
-  "Proof of Membership in deposits + Proof of Non-Membership in sanctions! 🛡️",
-  "Mixers get banned by Cloudflare & OpenAI because dirty funds pool together. We stay 100% clean! 🌐",
-  "Mathematical proof that agent funds never touch blacklisted illicit clusters! ✨",
-  "Ask me how Association Set Providers keep agents compliant!",
+  "Pillar 3: Dual Merkle ASP circuits guarantee OFAC compliance without KYC.",
+  "Proof of Membership in deposits plus Proof of Non-Membership in sanctions.",
+  "Enterprise gateways never block ArcNano because clean funds stay separate.",
+  "Mathematical verification that agent funds never touch blacklisted clusters.",
+  "Ask how Association Set Providers maintain agent compliance.",
 ];
 
 const STEP_4_THOUGHTS = [
-  "Pillar 4: Off-chain Groth16 pairings verify in <10ms directly in API gateway RAM! ⏱️",
-  "Zero block latency! LLM token streaming starts immediately on HTTP 200. 🚀",
-  "Sub-cent nanopayments verified locally before the server sends its first token chunk! ⚡",
-  "No 10–15 second wait times—pure real-time speed for autonomous agent swarms! 🤖",
-  "Ask me how sub-10ms in-memory verification works!",
+  "Pillar 4: Off-chain Groth16 pairings verify in under 10ms directly in API gateway RAM.",
+  "Zero block latency: LLM token streaming begins immediately upon HTTP 200.",
+  "Sub-cent nanopayments verified locally before the server sends its first token chunk.",
+  "Sub-second execution speeds built specifically for autonomous agent swarms.",
+  "Ask how sub-10ms in-memory verification operates.",
 ];
 
 const PILLAR_LABELS = [
-  "01 // Zero msg.sender 🛡️",
-  "02 // $0 Native Gas ⚡",
-  "03 // 100% ASP Clean 🔒",
-  "04 // <10ms Delivery 🚀",
+  "01 // Zero msg.sender",
+  "02 // $0 Native Gas",
+  "03 // 100% ASP Clean",
+  "04 // <10ms Delivery",
 ];
 
 function findDistForY(pathEl: SVGPathElement, targetY: number, totalLen: number): number {
