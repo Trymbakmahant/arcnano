@@ -108,65 +108,102 @@ export function RegisterAgentModal({
 
     setTimeout(() => {
       setVerificationStep(2);
-      setTimeout(() => {
+      setTimeout(async () => {
         setVerificationStep(3);
-        setTimeout(() => {
-          const catInfo = categoryMap[formData.category] || {
-            short: "Custom",
-            key: "MCP" as FilterKey,
-            badge: "AGENT API",
-          };
 
-          const priceNumeric = parseFloat(formData.priceUsdc) || 0.0001;
-          const latencyRandom = Math.floor(Math.random() * 8) + 6;
+        const catInfo = categoryMap[formData.category] || {
+          short: "Custom",
+          key: "MCP" as FilterKey,
+          badge: "AGENT API",
+        };
 
-          const newNode: MarketplaceNode = {
-            id: `agent-${Date.now().toString(36)}`,
-            category: formData.category,
-            categoryShort: catInfo.short,
-            filterKey: catInfo.key,
-            categoryBadge: catInfo.badge,
-            endpoint: formData.endpoint,
-            latency: `${latencyRandom}ms`,
-            name: formData.name,
-            description:
-              formData.description.trim() ||
-              "Autonomous agent capability verified with Arcnano shielded x402 micropayments on Arc L1.",
-            tags: formData.tags
-              .split(",")
-              .map((t) => t.trim().toUpperCase())
-              .filter(Boolean),
-            specs: [
-              { label: "Arcnano Pool", value: "Verified (Testnet)" },
-              { label: "Privacy Scheme", value: "Groth16 BN254" },
-            ],
-            price: `$${priceNumeric.toFixed(5)}`,
-            priceUnit: formData.priceUnit,
-            actionText: "Call Agent (x402)",
-            costNumeric: priceNumeric,
-            latencyNumeric: latencyRandom,
-            curlSnippet: `curl -i -X ${formData.endpoint.startsWith("GET") ? "GET" : "POST"} https://api.arcnano.xyz${formData.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "")} \\
+        const priceNumeric = parseFloat(formData.priceUsdc) || 0.0001;
+        const latencyRandom = Math.floor(Math.random() * 8) + 6;
+        const parsedTags = formData.tags
+          .split(",")
+          .map((t) => t.trim().toUpperCase())
+          .filter(Boolean);
+
+        const payload = {
+          name: formData.name,
+          category: formData.category,
+          categoryShort: catInfo.short,
+          filterKey: catInfo.key,
+          categoryBadge: catInfo.badge,
+          endpoint: formData.endpoint,
+          priceUsdc: formData.priceUsdc,
+          priceUnit: formData.priceUnit,
+          description: formData.description,
+          tags: parsedTags,
+          ownerArcId: currentUser.arcId,
+          poolAddress: formData.poolAddress || DEFAULT_ARCNANO_POOL,
+          enableAspCompliance: formData.enableAspCompliance,
+        };
+
+        try {
+          const res = await fetch("/api/v1/agents", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.agent) {
+              setIsVerifying(false);
+              setVerificationStep(0);
+              onRegisterSuccess(data.agent);
+              onClose();
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn("[RegisterAgentModal] Direct API failed, using fallback:", err);
+        }
+
+        const localNode: MarketplaceNode = {
+          id: `agent-${Date.now().toString(36)}`,
+          category: formData.category,
+          categoryShort: catInfo.short,
+          filterKey: catInfo.key,
+          categoryBadge: catInfo.badge,
+          endpoint: formData.endpoint,
+          latency: `${latencyRandom}ms`,
+          name: formData.name,
+          description:
+            formData.description.trim() ||
+            "Autonomous agent capability verified with Arcnano machine payments on Arc L1.",
+          tags: parsedTags,
+          specs: [
+            { label: "Arcnano Pool", value: "Verified (Testnet)" },
+            { label: "Privacy Scheme", value: "Groth16 BN254" },
+          ],
+          price: `$${priceNumeric.toFixed(5)}`,
+          priceUnit: formData.priceUnit,
+          actionText: "Connect Agent",
+          costNumeric: priceNumeric,
+          latencyNumeric: latencyRandom,
+          curlSnippet: `curl -i -X ${formData.endpoint.startsWith("GET") ? "GET" : "POST"} https://api.arcnano.xyz${formData.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "")} \\
   -H "Authorization: X402 proof=0x89ab... nullifier=0x42f7..." \\
   -H "X-Arcnano-Recipient: ${currentUser.arcId}"`,
-            ownerArcId: currentUser.arcId,
-            isUserRegistered: true,
-            arcnanoVerification: {
-              poolAddress: formData.poolAddress || DEFAULT_ARCNANO_POOL,
-              zkScheme: "Groth16 BN254",
-              aspCompliant: formData.enableAspCompliance,
-              nullifierCache: true,
-              settlementLatency: `${latencyRandom}ms`,
-              recipientShieldedId: currentUser.arcId,
-            },
-          };
+          ownerArcId: currentUser.arcId,
+          isUserRegistered: true,
+          arcnanoVerification: {
+            poolAddress: formData.poolAddress || DEFAULT_ARCNANO_POOL,
+            zkScheme: "Groth16 BN254",
+            aspCompliant: formData.enableAspCompliance,
+            nullifierCache: true,
+            settlementLatency: `${latencyRandom}ms`,
+            recipientShieldedId: currentUser.arcId,
+          },
+        };
 
-          setIsVerifying(false);
-          setVerificationStep(0);
-          onRegisterSuccess(newNode);
-          onClose();
-        }, 600);
-      }, 600);
-    }, 600);
+        setIsVerifying(false);
+        setVerificationStep(0);
+        onRegisterSuccess(localNode);
+        onClose();
+      }, 500);
+    }, 500);
   };
 
   return (

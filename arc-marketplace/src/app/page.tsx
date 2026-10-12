@@ -47,6 +47,24 @@ export default function ArcMarketplacePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Fetch agents from database registry on mount
+  useEffect(() => {
+    async function fetchAgents() {
+      try {
+        const res = await fetch("/api/v1/agents");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.agents) && data.agents.length > 0) {
+            setNodes(data.agents);
+          }
+        }
+      } catch (err) {
+        console.warn("[page] Could not fetch agents from Supabase API, keeping local seed:", err);
+      }
+    }
+    fetchAgents();
+  }, []);
+
   const filteredItems = useMemo(() => {
     return nodes.filter((item) => {
       // Category filter matching
@@ -120,7 +138,7 @@ export default function ArcMarketplacePage() {
   };
 
   const handleRegisterSuccess = (newNode: MarketplaceNode) => {
-    setNodes((prev) => [newNode, ...prev]);
+    setNodes((prev) => [newNode, ...prev.filter((n) => n.id !== newNode.id)]);
     setSelectedSnippet(newNode);
     setToastMessage(`✓ Agent "${newNode.name}" registered and published on Arc!`);
     setTimeout(() => setToastMessage(null), 5000);

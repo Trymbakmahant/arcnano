@@ -1,64 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MARKETPLACE_ITEMS, DEFAULT_ARCNANO_POOL } from "@/components/data";
+import { DEFAULT_ARCNANO_POOL } from "@/components/data";
 import { MarketplaceNode } from "@/components/types";
-
-// In-memory registry storage for registered agents during runtime
-let registeredAgents: MarketplaceNode[] = [...MARKETPLACE_ITEMS];
+import {
+  getMarketplaceAgents,
+  insertMarketplaceAgent,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const category = searchParams.get("category");
-  const query = searchParams.get("query")?.toLowerCase();
+  try {
+    const { searchParams } = new URL(req.url);
+    const category = searchParams.get("category") || undefined;
+    const query = searchParams.get("query") || undefined;
 
-  let results = [...registeredAgents];
+    const { nodes, source } = await getMarketplaceAgents({ category, query });
 
-  if (category && category !== "All") {
-    results = results.filter(
-      (item) =>
-        item.category.toLowerCase().includes(category.toLowerCase()) ||
-        item.categoryShort.toLowerCase() === category.toLowerCase() ||
-        item.filterKey.toLowerCase() === category.toLowerCase()
+    return NextResponse.json({
+      status: "ok",
+      registry_version: "arcnano-x402-v1.4",
+      network: "Arc L1 (Chain ID: 5042002)",
+      pool_contract: DEFAULT_ARCNANO_POOL,
+      privacy_protocol: "Arcnano Shielded Zero-Knowledge Groth16",
+      database_source: source,
+      supabase_connected: isSupabaseConfigured(),
+      total_nodes: nodes.length,
+      agents: nodes,
+    });
+  } catch (error) {
+    console.error("[GET /api/v1/agents] Error fetching agents:", error);
+    return NextResponse.json(
+      { error: "Internal server error fetching agents" },
+      { status: 500 }
     );
   }
-
-  if (query) {
-    results = results.filter(
-      (item) =>
-        item.name.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
-        item.endpoint.toLowerCase().includes(query) ||
-        item.tags.some((t) => t.toLowerCase().includes(query))
-    );
-  }
-
-  return NextResponse.json({
-    status: "ok",
-    registry_version: "arcnano-x402-v1.4",
-    network: "Arc L1 (Chain ID: 5042002)",
-    pool_contract: DEFAULT_ARCNANO_POOL,
-    privacy_protocol: "Arcnano Shielded Zero-Knowledge Groth16",
-    total_nodes: results.length,
-    agents: results.map((item) => ({
-      id: item.id,
-      name: item.name,
-      category: item.category,
-      endpoint: item.endpoint,
-      pricing: {
-        amount_usdc: item.costNumeric,
-        unit: item.priceUnit,
-        scheme: "X402-Shielded",
-      },
-      arcnano_verification: item.arcnanoVerification || {
-        pool_address: DEFAULT_ARCNANO_POOL,
-        zk_scheme: "Groth16 BN254",
-        asp_compliance: true,
-        nullifier_cache: true,
-      },
-      owner_arc_id: item.ownerArcId || "arcnano-core.arc",
-      latency_sla: item.latency,
-      tags: item.tags,
-    })),
-  });
 }
 
 export async function POST(req: NextRequest) {
@@ -73,30 +47,41 @@ export async function POST(req: NextRequest) {
     }
 
     const priceNumeric = parseFloat(body.priceUsdc) || 0.0002;
+    const latencyRandom = Math.floor(Math.random() * 8) + 6;
+    const cleanEndpoint = body.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "");
+    const method = body.endpoint.startsWith("GET") ? "GET" : "POST";
+
     const newNode: MarketplaceNode = {
-      id: `agent-${Date.now().toString(36)}`,
+      id: body.id || `agent-${Date.now().toString(36)}`,
       category: body.category || "MCP Servers & Connectors",
       categoryShort: body.categoryShort || "MCP Servers",
       filterKey: body.filterKey || "MCP",
-      categoryBadge: "CUSTOM AGENT",
+      categoryBadge: body.categoryBadge || "AGENT API",
       endpoint: body.endpoint,
-      latency: "8ms",
+      latency: `${latencyRandom}ms`,
+      latencyNumeric: latencyRandom,
       name: body.name,
-      description: body.description || "Arcnano verified agent capability on Arc L1.",
-      tags: Array.isArray(body.tags) ? body.tags : ["ARC-L1", "AGENT"],
-      specs: [
-        { label: "Arcnano Pool", value: "Verified (Testnet)" },
-        { label: "Privacy Scheme", value: "Groth16 BN254" },
-      ],
+      description:
+        body.description?.trim() ||
+        "Arcnano verified autonomous capability registered on Arc L1.",
+      tags: Array.isArray(body.tags)
+        ? body.tags
+        : typeof body.tags === "string"
+        ? body.tags.split(",").map((t: string) => t.trim().toUpperCase()).filter(Boolean)
+        : ["ARC-L1", "AGENT"],
+      specs: Array.isArray(body.specs)
+        ? body.specs
+        : [
+            { label: "Arcnano Pool", value: "Verified (Testnet)" },
+            { label: "Privacy Scheme", value: "Groth16 BN254" },
+          ],
       price: `$${priceNumeric.toFixed(5)}`,
-      priceUnit: body.priceUnit || "/ execution (x402)",
-      actionText: "Call Agent (x402)",
+      priceUnit: body.priceUnit || "/ execution",
+      actionText: body.actionText || "Connect Agent",
       costNumeric: priceNumeric,
-      latencyNumeric: 8,
-      curlSnippet: `curl -i -X POST https://api.arcnano.xyz${body.endpoint.replace(
-        /^(GET|POST|RPC|WSS)\s+/,
-        ""
-      )} -H "Authorization: X402 proof=0x... nullifier=0x..."`,
+      curlSnippet: `curl -i -X ${method} https://api.arcnano.xyz${cleanEndpoint} \\
+  -H "Authorization: X402 proof=0x89ab... nullifier=0x42f7..." \\
+  -H "X-Arcnano-Recipient: ${body.ownerArcId}"`,
       ownerArcId: body.ownerArcId,
       isUserRegistered: true,
       arcnanoVerification: {
@@ -104,22 +89,27 @@ export async function POST(req: NextRequest) {
         zkScheme: "Groth16 BN254",
         aspCompliant: body.enableAspCompliance ?? true,
         nullifierCache: true,
-        settlementLatency: "<8ms",
+        settlementLatency: `${latencyRandom}ms`,
         recipientShieldedId: body.ownerArcId,
       },
     };
 
-    registeredAgents.unshift(newNode);
+    const result = await insertMarketplaceAgent(newNode);
 
     return NextResponse.json(
       {
         status: "registered",
-        message: "Agent successfully registered with Arcnano shielded x402 payment verification.",
-        agent: newNode,
+        message: "Agent successfully registered and saved to database.",
+        database_source: result.source,
+        agent: result.data,
       },
       { status: 201 }
     );
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+  } catch (error) {
+    console.error("[POST /api/v1/agents] Error registering agent:", error);
+    return NextResponse.json(
+      { error: "Invalid JSON or server error processing registration" },
+      { status: 400 }
+    );
   }
 }
