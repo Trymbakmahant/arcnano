@@ -1,14 +1,19 @@
 import React from "react";
 import { Icon } from "./Icons";
 import { ASSET_CLASSES } from "./data";
-import { FilterKey } from "./types";
+import { FilterKey, MarketplaceNode } from "./types";
 
 interface AssetClassesSectionProps {
   activeFilter: FilterKey;
   onSelectFilter: (key: FilterKey) => void;
+  nodes?: MarketplaceNode[];
 }
 
-export function AssetClassesSection({ activeFilter, onSelectFilter }: AssetClassesSectionProps) {
+export function AssetClassesSection({
+  activeFilter,
+  onSelectFilter,
+  nodes = [],
+}: AssetClassesSectionProps) {
   const handleClick = (filterKey: FilterKey) => {
     onSelectFilter(activeFilter === filterKey ? "All" : filterKey);
     const el = document.getElementById("browse-catalog");
@@ -32,6 +37,7 @@ export function AssetClassesSection({ activeFilter, onSelectFilter }: AssetClass
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {ASSET_CLASSES.map((item) => {
           const isSelected = activeFilter === item.filterKey;
+          const liveCount = nodes.filter((n) => n.filterKey === item.filterKey).length;
 
           if (item.isDark) {
             return (
@@ -49,7 +55,7 @@ export function AssetClassesSection({ activeFilter, onSelectFilter }: AssetClass
                       <Icon name={item.icon} />
                     </div>
                     <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-[#00DC82] font-medium border border-slate-700">
-                      {item.count} Nodes
+                      {liveCount} {liveCount === 1 ? "Node" : "Nodes"}
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-white">{item.title}</h3>
@@ -79,7 +85,7 @@ export function AssetClassesSection({ activeFilter, onSelectFilter }: AssetClass
                     <Icon name={item.icon} />
                   </div>
                   <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
-                    {item.count} Nodes
+                    {liveCount} {liveCount === 1 ? "Node" : "Nodes"}
                   </span>
                 </div>
                 <h3 className="text-sm font-bold text-slate-900 group-hover:text-black">

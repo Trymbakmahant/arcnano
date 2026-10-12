@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { MarketplaceNode, FilterKey } from "@/components/types";
-import { MARKETPLACE_ITEMS, DEFAULT_ARCNANO_POOL } from "@/components/data";
+import { DEFAULT_ARCNANO_POOL } from "@/components/data";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -143,16 +143,16 @@ export function mapNodeToRow(node: MarketplaceNode): MarketplaceAgentRow {
   };
 }
 
-// In-memory fallback cache when Supabase is not configured yet
-let inMemoryAgents: MarketplaceNode[] = [...MARKETPLACE_ITEMS];
+// In-memory cache strictly for newly registered agents in this session (starts empty, no fake data)
+let inMemoryAgents: MarketplaceNode[] = [];
 
 /**
- * Fetch marketplace agents with optional category filtering
+ * Fetch marketplace agents strictly from Supabase DB
  */
 export async function getMarketplaceAgents(options?: {
   category?: string;
   query?: string;
-}): Promise<{ nodes: MarketplaceNode[]; source: "supabase" | "fallback" }> {
+}): Promise<{ nodes: MarketplaceNode[]; source: "supabase" | "empty" }> {
   const supabase = getSupabaseServer() || getSupabase();
 
   if (supabase) {
@@ -177,7 +177,7 @@ export async function getMarketplaceAgents(options?: {
 
       const { data, error } = await query;
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return {
           nodes: (data as MarketplaceAgentRow[]).map(mapRowToNode),
           source: "supabase",
@@ -185,14 +185,14 @@ export async function getMarketplaceAgents(options?: {
       }
 
       if (error) {
-        console.warn("[Supabase] Query returned error, falling back to in-memory:", error.message);
+        console.warn("[Supabase] Query error:", error.message);
       }
     } catch (err) {
-      console.warn("[Supabase] Connection error, falling back to in-memory:", err);
+      console.warn("[Supabase] Connection error:", err);
     }
   }
 
-  // In-memory fallback
+  // If Supabase not yet configured or errored, return only real registered agents from memory
   let results = [...inMemoryAgents];
 
   if (options?.category && options.category !== "All") {
@@ -215,16 +215,15 @@ export async function getMarketplaceAgents(options?: {
     );
   }
 
-  return { nodes: results, source: "fallback" };
+  return { nodes: results, source: isSupabaseConfigured() ? "supabase" : "empty" };
 }
 
 /**
- * Register a new agent into Supabase (or in-memory cache)
+ * Register a new agent into Supabase
  */
 export async function insertMarketplaceAgent(
   node: MarketplaceNode
 ): Promise<{ success: boolean; data: MarketplaceNode; source: "supabase" | "fallback"; error?: string }> {
-  // Always update in-memory as optimistic copy
   inMemoryAgents.unshift(node);
 
   const supabase = getSupabaseServer() || getSupabase();
