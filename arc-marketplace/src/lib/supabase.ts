@@ -178,8 +178,15 @@ export async function getMarketplaceAgents(options?: {
       const { data, error } = await query;
 
       if (!error && data) {
+        const validNodes = (data as MarketplaceAgentRow[])
+          .map(mapRowToNode)
+          .filter((node) => {
+            const clean = node.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "").trim();
+            return clean.startsWith("https://");
+          });
+
         return {
-          nodes: (data as MarketplaceAgentRow[]).map(mapRowToNode),
+          nodes: validNodes,
           source: "supabase",
         };
       }
@@ -193,7 +200,10 @@ export async function getMarketplaceAgents(options?: {
   }
 
   // If Supabase not yet configured or errored, return only real registered agents from memory
-  let results = [...inMemoryAgents];
+  let results = inMemoryAgents.filter((node) => {
+    const clean = node.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "").trim();
+    return clean.startsWith("https://");
+  });
 
   if (options?.category && options.category !== "All") {
     results = results.filter(

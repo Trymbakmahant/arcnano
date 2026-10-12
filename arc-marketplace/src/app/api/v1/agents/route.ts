@@ -48,7 +48,13 @@ export async function POST(req: NextRequest) {
 
     const priceNumeric = parseFloat(body.priceUsdc) || 0.0002;
     const latencyRandom = Math.floor(Math.random() * 8) + 6;
-    const cleanEndpoint = body.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "");
+    const cleanEndpoint = body.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "").trim();
+    if (!cleanEndpoint.startsWith("https://")) {
+      return NextResponse.json(
+        { error: "Agent endpoint must be a valid secure HTTPS URL starting with https://" },
+        { status: 400 }
+      );
+    }
     const method = body.endpoint.startsWith("GET") ? "GET" : "POST";
 
     const newNode: MarketplaceNode = {
