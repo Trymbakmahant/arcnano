@@ -355,7 +355,7 @@ export default function Home() {
                 thoughts={BLUEPRINT_THOUGHTS}
                 pretextTitle="ArcNano Cryptographic Blueprint"
                 pretextHint="4-phase shielded micropayment pipeline on Arc L1"
-                triggerSelector="#blueprint-card-bottom"
+                triggerSelector="#blueprint-card-middle"
               />
             </div>
 
@@ -367,11 +367,13 @@ export default function Home() {
                 thoughts={BLUEPRINT_THOUGHTS}
                 pretextTitle="ArcNano Cryptographic Blueprint"
                 pretextHint="4-phase shielded micropayment pipeline on Arc L1"
-                triggerSelector="#blueprint-card-bottom"
+                triggerSelector="#blueprint-card-middle"
               />
             </div>
 
             <div className="w-full rounded-[32px] md:rounded-[44px] p-2.5 md:p-3 bg-neutral-100 border border-neutral-200/90 shadow-2xl relative transition-colors group">
+              {/* Sentinel to trigger Cubee Cloud animation when middle of card is visible */}
+              <div id="blueprint-card-middle" className="absolute top-1/2 left-0 w-full h-1 pointer-events-none -translate-y-1/2" />
             <div className="w-full min-h-[460px] md:min-h-[540px] rounded-[24px] md:rounded-[36px] overflow-hidden relative flex flex-col justify-between p-6 sm:p-10 md:p-12 text-white bg-[#07090F] shadow-2xl">
               {/* Interactive Sine Ribbon Background Canvas */}
               <SineRibbonBackground
@@ -487,8 +489,6 @@ export default function Home() {
                   </a>
                 </div>
               </div>
-              {/* Sentinel to trigger Cubee Cloud animation when bottom of card is visible */}
-              <div id="blueprint-card-bottom" className="w-full h-1 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -534,12 +534,15 @@ export default function Home() {
                 thoughts={PROBLEM_THOUGHTS}
                 pretextTitle="ArcNano Threat Model & Fatal Traps"
                 pretextHint="4 reasons standard public blockchain payments fail for AI agents"
-                triggerSelector="#problem-card-bottom"
+                triggerSelector="#problem-card-middle"
               />
             </div>
 
             {/* Architectural Blueprint Grid (Inspired by arc.io spec layout) */}
             <div className="relative bg-white border border-neutral-200/90 shadow-sm max-w-6xl mx-auto">
+              {/* Sentinel to trigger Cubee Cloud animation when middle of card is visible */}
+              <div id="problem-card-middle" className="absolute top-1/2 left-0 w-full h-1 pointer-events-none -translate-y-1/2" />
+
               {/* Top-Right Cloud Cubee (Positioned at the star point on top-right of the card) */}
               <div className="hidden md:block absolute -right-3 sm:-right-6 md:-right-8 lg:-right-10 -top-[190px] z-30 pointer-events-auto">
                 <HeroCubeeCloud
@@ -548,7 +551,7 @@ export default function Home() {
                   thoughts={PROBLEM_THOUGHTS}
                   pretextTitle="ArcNano Threat Model & Fatal Traps"
                   pretextHint="4 reasons standard public blockchain payments fail for AI agents"
-                  triggerSelector="#problem-card-bottom"
+                  triggerSelector="#problem-card-middle"
                   cloudPosition="left"
                 />
               </div>
@@ -677,8 +680,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              {/* Sentinel to trigger Cubee Cloud animation when bottom of card is visible */}
-              <div id="problem-card-bottom" className="w-full h-1 pointer-events-none" />
             </div>
           </div>
         </section>

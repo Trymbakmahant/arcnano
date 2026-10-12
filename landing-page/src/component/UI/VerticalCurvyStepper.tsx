@@ -453,7 +453,7 @@ export default function VerticalCurvyStepper() {
           thoughts={SOLUTION_THOUGHTS}
           pretextTitle="ArcNano Architectural Resolution"
           pretextHint="4 architectural pillars solving machine nanopayment traps"
-          triggerSelector="#solution-stepper-start"
+          triggerSelector="#solution-step-middle-0"
           cloudPosition="right"
         />
       </div>
@@ -466,7 +466,7 @@ export default function VerticalCurvyStepper() {
           thoughts={SOLUTION_THOUGHTS}
           pretextTitle="ArcNano Architectural Resolution"
           pretextHint="4 architectural pillars solving machine nanopayment traps"
-          triggerSelector="#solution-stepper-start"
+          triggerSelector="#solution-step-middle-0"
         />
       </div>
 
@@ -687,6 +687,12 @@ export default function VerticalCurvyStepper() {
                 data-cubee-anim="proud"
                 className="group cursor-pointer p-6 sm:p-8 md:p-10 transition-colors duration-200 relative border border-neutral-200/90 bg-white hover:bg-neutral-50/50 shadow-sm"
               >
+                {/* Sentinel for middle of step card */}
+                <div
+                  id={`solution-step-middle-${idx}`}
+                  className="absolute top-1/2 left-0 w-full h-1 pointer-events-none -translate-y-1/2"
+                />
+
                 {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
                 <CornerTicks
                   color="text-neutral-400"
@@ -801,7 +807,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_2_THOUGHTS}
                       pretextTitle="Arc Circle Gas Station Sponsorship"
                       pretextHint="Zero funding paper trails and $0 native gas via Circle ERC-4337 paymasters"
-                      triggerSelector="#solution-step-card-1"
+                      triggerSelector="#solution-step-middle-1"
                       cloudPosition="right"
                     />
                   </div>
@@ -812,7 +818,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_2_THOUGHTS}
                       pretextTitle="Arc Circle Gas Station Sponsorship"
                       pretextHint="Zero funding paper trails and $0 native gas via Circle ERC-4337 paymasters"
-                      triggerSelector="#solution-step-card-1"
+                      triggerSelector="#solution-step-middle-1"
                       cloudPosition="right"
                     />
                   </div>
@@ -829,7 +835,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_3_THOUGHTS}
                       pretextTitle="Association Set Provider (ASP) Clean Routing"
                       pretextHint="Dual Merkle tree non-membership proof of clean funds without KYC"
-                      triggerSelector="#solution-step-card-2"
+                      triggerSelector="#solution-step-middle-2"
                       cloudPosition="left"
                     />
                   </div>
@@ -840,7 +846,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_3_THOUGHTS}
                       pretextTitle="Association Set Provider (ASP) Clean Routing"
                       pretextHint="Dual Merkle tree non-membership proof of clean funds without KYC"
-                      triggerSelector="#solution-step-card-2"
+                      triggerSelector="#solution-step-middle-2"
                       cloudPosition="left"
                     />
                   </div>
@@ -857,7 +863,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_4_THOUGHTS}
                       pretextTitle="In-Memory Sub-10ms Proof Verification"
                       pretextHint="Instant off-chain pairing checks unblocking LLM token streaming"
-                      triggerSelector="#solution-step-card-3"
+                      triggerSelector="#solution-step-middle-3"
                       cloudPosition="right"
                     />
                   </div>
@@ -868,7 +874,7 @@ export default function VerticalCurvyStepper() {
                       thoughts={STEP_4_THOUGHTS}
                       pretextTitle="In-Memory Sub-10ms Proof Verification"
                       pretextHint="Instant off-chain pairing checks unblocking LLM token streaming"
-                      triggerSelector="#solution-step-card-3"
+                      triggerSelector="#solution-step-middle-3"
                       cloudPosition="right"
                     />
                   </div>
