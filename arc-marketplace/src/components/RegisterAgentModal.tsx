@@ -44,7 +44,6 @@ export function RegisterAgentModal({
     latencyMs?: number;
     message: string;
   } | null>(null);
-  const [allowOfflineSandbox, setAllowOfflineSandbox] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Debounce the endpoint input by 500ms
@@ -218,15 +217,15 @@ export function RegisterAgentModal({
       return;
     }
 
-    if (!isHttps && !allowOfflineSandbox) {
-      setFormError("Agent endpoint must start with https:// for secure machine commerce. (Or enable Sandbox mode below).");
+    if (!isHttps) {
+      setFormError("Agent endpoint must start with https:// for secure machine commerce.");
       return;
     }
 
-    // Check if live probe already failed
-    if (probeResult && !probeResult.isReachable && !allowOfflineSandbox) {
+    // Check if live probe failed
+    if (probeResult && !probeResult.isReachable) {
       setFormError(
-        `Endpoint ping failed: ${probeResult.message}. Enable Sandbox mode if this is a local/mock agent.`
+        `Endpoint ping failed: ${probeResult.message}. Please provide a reachable HTTPS endpoint.`
       );
       return;
     }
@@ -494,7 +493,7 @@ export function RegisterAgentModal({
                   }}
                   placeholder="https://api.youragent.com/v1/run"
                   className={`w-full px-3 py-2 bg-slate-50 border rounded-lg text-xs text-slate-900 font-mono placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0a0f1d] ${
-                    rawEndpoint && !isHttps && !allowOfflineSandbox
+                    rawEndpoint && !isHttps
                       ? "border-rose-300 focus:ring-rose-500"
                       : probeResult?.isReachable
                       ? "border-emerald-300"
@@ -523,19 +522,6 @@ export function RegisterAgentModal({
                   )}
                 </div>
               )}
-
-              {/* Sandbox Bypass Checkbox */}
-              <div className="mt-2 flex items-center justify-between text-[11px] font-mono text-slate-500">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={allowOfflineSandbox}
-                    onChange={(e) => setAllowOfflineSandbox(e.target.checked)}
-                    className="rounded text-[#0a0f1d] focus:ring-[#00DC82]"
-                  />
-                  <span>Allow Sandbox / Mock URL (for offline local development)</span>
-                </label>
-              </div>
             </div>
 
             {/* Asset Category Row */}
