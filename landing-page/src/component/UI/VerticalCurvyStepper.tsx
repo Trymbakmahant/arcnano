@@ -706,7 +706,7 @@ export default function VerticalCurvyStepper() {
                     </div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 shadow-2xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span>{`Architecture Pillar ${step.stepNumber} // ${step.tag}`}</span>
+                      <span>{step.tag}</span>
                     </div>
                   </div>
 
