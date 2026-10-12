@@ -4,7 +4,6 @@ import { MarketplaceNode } from "@/components/types";
 import {
   getMarketplaceAgents,
   insertMarketplaceAgent,
-  isSupabaseConfigured,
 } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
@@ -13,17 +12,10 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category") || undefined;
     const query = searchParams.get("query") || undefined;
 
-    const { nodes, source } = await getMarketplaceAgents({ category, query });
+    const { nodes } = await getMarketplaceAgents({ category, query });
 
     return NextResponse.json({
-      status: "ok",
-      registry_version: "arcnano-x402-v1.4",
-      network: "Arc L1 (Chain ID: 5042002)",
-      pool_contract: DEFAULT_ARCNANO_POOL,
-      privacy_protocol: "Arcnano Shielded Zero-Knowledge Groth16",
-      database_source: source,
-      supabase_connected: isSupabaseConfigured(),
-      total_nodes: nodes.length,
+      total: nodes.length,
       agents: nodes,
     });
   } catch (error) {
@@ -105,8 +97,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         status: "registered",
-        message: "Agent successfully registered and saved to database.",
-        database_source: result.source,
+        message: "Agent successfully registered.",
         agent: result.data,
       },
       { status: 201 }
