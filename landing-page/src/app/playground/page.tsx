@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, CircuitBoard, Sparkles, ExternalLink } from "lucide-react";
+import { ChevronLeft, CircuitBoard, Sparkles, ExternalLink, BookOpen } from "lucide-react";
 import ShieldedPlayground from "@/component/UI/ShieldedPlayground";
 
 export default function PlaygroundPage() {
@@ -55,6 +55,16 @@ export default function PlaygroundPage() {
 
           {/* Quick Nav to other pages */}
           <div className="flex items-center gap-3 text-xs font-mono">
+            <a
+              href="https://docs.arcnano.xyz/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-neutral-600 hover:text-neutral-950 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-neutral-600" />
+              <span>Docs</span>
+              <ExternalLink className="w-3 h-3 text-neutral-400" />
+            </a>
             <Link
               href="/demo"
               className="text-neutral-600 hover:text-neutral-950 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50"

@@ -29,6 +29,7 @@ import {
   ArrowDown,
   ExternalLink,
   ChevronDown,
+  BookOpen,
 } from "lucide-react";
 
 export default function Home() {
@@ -97,10 +98,17 @@ export default function Home() {
             </span>
           </a>
 
-          <div className="hidden md:flex items-center gap-6 text-xs font-medium text-neutral-600">
-            <a className="hover:text-neutral-950 transition-colors" href="#blueprint">Blueprint</a>
-            <a className="hover:text-neutral-950 transition-colors" href="#problem">The Problem</a>
-            <a className="hover:text-neutral-950 transition-colors" href="#solution">How It Works</a>
+          <div className="flex items-center gap-3 sm:gap-5 text-xs font-medium text-neutral-600">
+            <a
+              href="https://docs.arcnano.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-700 hover:text-neutral-950 font-medium transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200/90 shadow-2xs"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-neutral-600" />
+              <span>Docs</span>
+              <ExternalLink className="w-2.5 h-2.5 text-neutral-400" />
+            </a>
             <a className="text-amber-600 hover:text-amber-700 font-semibold transition-colors flex items-center gap-1" href="/demo">
               <span>Demo</span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
@@ -688,6 +696,16 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6 text-xs font-mono text-neutral-600">
+            <a
+              className="hover:text-neutral-950 transition-colors flex items-center gap-1"
+              href="https://docs.arcnano.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Docs</span>
+              <ExternalLink className="w-3 h-3 text-neutral-400" />
+            </a>
+            <span className="text-neutral-300">•</span>
             <a
               className="hover:text-neutral-950 transition-colors"
               href="https://github.com/Trymbakmahant/arcnano"

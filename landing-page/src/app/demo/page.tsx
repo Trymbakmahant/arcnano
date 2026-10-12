@@ -9,6 +9,8 @@ import {
   Minimize2,
   ChevronLeft,
   CircuitBoard,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 
 export default function DemoPage() {
@@ -87,6 +89,17 @@ export default function DemoPage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
                   <span>Shielded Playground</span>
                 </Link>
+
+                <a
+                  href="https://docs.arcnano.xyz/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/60 transition-all border border-transparent hover:border-neutral-200"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-neutral-600" />
+                  <span>Docs</span>
+                  <ExternalLink className="w-3 h-3 text-neutral-400" />
+                </a>
               </div>
 
               {/* Presentation / Cinema Action */}
