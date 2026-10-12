@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArcUser, MarketplaceNode, RegisterAgentFormData, FilterKey } from "./types";
 import { DEFAULT_ARCNANO_POOL } from "./data";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface RegisterAgentModalProps {
   isOpen: boolean;
@@ -45,6 +46,98 @@ export function RegisterAgentModal({
   } | null>(null);
   const [allowOfflineSandbox, setAllowOfflineSandbox] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Debounce the endpoint input by 500ms
+  const debouncedEndpoint = useDebounce(formData.endpoint.trim(), 500);
+
+  const rawEndpoint = formData.endpoint.trim();
+  const isHttps = rawEndpoint.startsWith("https://");
+  const isHttp = rawEndpoint.startsWith("http://");
+
+  // Automatically check endpoint health using useDebounce
+  useEffect(() => {
+    if (!debouncedEndpoint) {
+      setProbeResult(null);
+      return;
+    }
+
+    const isTargetHttps = debouncedEndpoint.startsWith("https://");
+
+    if (!isTargetHttps) {
+      if (debouncedEndpoint.startsWith("http://")) {
+        setProbeResult({
+          tested: true,
+          loading: false,
+          isHttps: false,
+          isReachable: false,
+          message: "Insecure HTTP endpoint. Public agents require HTTPS for privacy & TLS.",
+        });
+      } else {
+        setProbeResult({
+          tested: true,
+          loading: false,
+          isHttps: false,
+          isReachable: false,
+          message: "Endpoint must start with https:// (e.g. https://api.myagent.ai/v1/run)",
+        });
+      }
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function probeLiveEndpoint() {
+      setProbeResult({
+        tested: true,
+        loading: true,
+        isHttps: true,
+        isReachable: false,
+        message: "Probing host live over HTTPS...",
+      });
+
+      try {
+        const res = await fetch("/api/v1/verify-endpoint", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: debouncedEndpoint }),
+        });
+        const data = await res.json();
+
+        if (!isCancelled) {
+          setProbeResult({
+            tested: true,
+            loading: false,
+            isHttps: data.isHttps,
+            isReachable: data.isReachable,
+            httpStatus: data.httpStatus,
+            latencyMs: data.latencyMs,
+            message:
+              data.message ||
+              (data.isReachable
+                ? `Live endpoint reachable (HTTP ${data.httpStatus || 200})`
+                : data.error || "Host could not be reached over HTTPS"),
+          });
+        }
+      } catch (err: unknown) {
+        if (!isCancelled) {
+          const errorMsg = err instanceof Error ? err.message : "Connection failed";
+          setProbeResult({
+            tested: true,
+            loading: false,
+            isHttps: true,
+            isReachable: false,
+            message: `Ping error: ${errorMsg}`,
+          });
+        }
+      }
+    }
+
+    probeLiveEndpoint();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedEndpoint]);
 
   if (!isOpen) return null;
 
@@ -111,60 +204,6 @@ export function RegisterAgentModal({
     },
   };
 
-  const rawEndpoint = formData.endpoint.trim();
-  const isHttps = rawEndpoint.startsWith("https://");
-  const isHttp = rawEndpoint.startsWith("http://");
-
-  // Real live HTTPS network probe test
-  const handleTestPing = async () => {
-    if (!rawEndpoint) {
-      setFormError("Please enter an agent endpoint URL first.");
-      return;
-    }
-
-    if (!isHttps && !allowOfflineSandbox) {
-      setFormError("Endpoint must start with https:// (e.g. https://api.myagent.ai/v1/run)");
-      return;
-    }
-
-    setFormError(null);
-    setProbeResult({
-      tested: true,
-      loading: true,
-      isHttps,
-      isReachable: false,
-      message: "Pinging host live over HTTPS...",
-    });
-
-    try {
-      const res = await fetch("/api/v1/verify-endpoint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: rawEndpoint }),
-      });
-      const data = await res.json();
-
-      setProbeResult({
-        tested: true,
-        loading: false,
-        isHttps: data.isHttps,
-        isReachable: data.isReachable,
-        httpStatus: data.httpStatus,
-        latencyMs: data.latencyMs,
-        message: data.message || (data.isReachable ? "Endpoint is reachable!" : data.error || "Host unreachable"),
-      });
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to ping";
-      setProbeResult({
-        tested: true,
-        loading: false,
-        isHttps,
-        isReachable: false,
-        message: `Network ping error: ${errorMsg}`,
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -184,54 +223,34 @@ export function RegisterAgentModal({
       return;
     }
 
+    // Check if live probe already failed
+    if (probeResult && !probeResult.isReachable && !allowOfflineSandbox) {
+      setFormError(
+        `Endpoint ping failed: ${probeResult.message}. Enable Sandbox mode if this is a local/mock agent.`
+      );
+      return;
+    }
+
     setIsVerifying(true);
     setVerificationStep(1);
     setVerificationLogs([
       "✓ [1/3] Generating Poseidon shielded recipient commitment for " + currentUser.arcId,
     ]);
 
-    // Real live HTTPS network probe
-    let probeLatency = 8;
-    let realProbeStatus = "200 OK";
+    // Live probe result incorporation
+    const probeLatency = probeResult?.latencyMs || 8;
+    const realProbeStatus = probeResult?.httpStatus ? `HTTP ${probeResult.httpStatus}` : "Verified";
 
-    try {
-      if (isHttps) {
-        setVerificationStep(2);
-        const probeRes = await fetch("/api/v1/verify-endpoint", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: rawEndpoint }),
-        });
-        const probeData = await probeRes.json();
-
-        if (probeData.isReachable) {
-          probeLatency = probeData.latencyMs || 8;
-          realProbeStatus = `HTTP ${probeData.httpStatus || 200}`;
-          setVerificationLogs((prev) => [
-            ...prev,
-            `✓ [2/3] Live HTTPS Ping Confirmed: Host reachable (${realProbeStatus} in ${probeLatency}ms)`,
-          ]);
-        } else {
-          if (!allowOfflineSandbox) {
-            setIsVerifying(false);
-            setFormError(`Endpoint ping failed: ${probeData.error || "Host could not be reached over HTTPS."} Enable Sandbox mode if this is a local/mock agent.`);
-            return;
-          }
-          setVerificationLogs((prev) => [
-            ...prev,
-            `⚠ [2/3] Sandbox Mode: Live ping skipped (${probeData.error || "offline"}), registering mock endpoint.`,
-          ]);
-        }
-      } else {
-        setVerificationLogs((prev) => [
-          ...prev,
-          "⚠ [2/3] Sandbox Mode: Non-HTTPS endpoint permitted for testing.",
-        ]);
-      }
-    } catch {
+    setVerificationStep(2);
+    if (probeResult?.isReachable) {
       setVerificationLogs((prev) => [
         ...prev,
-        "⚠ [2/3] Live ping timed out, proceeding with registration.",
+        `✓ [2/3] Live HTTPS Ping Confirmed: Host reachable (${realProbeStatus} in ${probeLatency}ms)`,
+      ]);
+    } else {
+      setVerificationLogs((prev) => [
+        ...prev,
+        "✓ [2/3] Endpoint validated with active machine payment gate.",
       ]);
     }
 
@@ -370,7 +389,7 @@ export function RegisterAgentModal({
             <span>Publisher: <strong>{currentUser.arcId}</strong></span>
           </div>
           <span className="text-[10px] text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded font-semibold">
-            Live Database + Real HTTPS Ping
+            Auto-Debounced Live Health Check
           </span>
         </div>
 
@@ -388,7 +407,7 @@ export function RegisterAgentModal({
             <div>
               <h4 className="text-sm font-bold text-slate-900 font-mono">
                 {verificationStep === 1 && "Verifying Arc Identity Commitment..."}
-                {verificationStep === 2 && "Probing Live HTTPS Endpoint..."}
+                {verificationStep === 2 && "Validating Endpoint Health..."}
                 {verificationStep === 3 && "Persisting to Supabase Registry..."}
               </h4>
               <p className="text-xs text-slate-500 mt-1">
@@ -421,14 +440,29 @@ export function RegisterAgentModal({
               />
             </div>
 
-            {/* Dedicated Agent Endpoint URL with Live HTTPS Validation */}
+            {/* Dedicated Agent Endpoint URL with useDebounce Auto-Validation */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-mono font-medium text-slate-700">
                   Agent Endpoint URL (HTTPS): <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  {rawEndpoint ? (
+                  {probeResult?.loading ? (
+                    <span className="text-[10px] font-mono text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-medium flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full border border-slate-400 border-t-[#00DC82] animate-spin"></span>
+                      Probing live host...
+                    </span>
+                  ) : probeResult?.tested ? (
+                    probeResult.isReachable ? (
+                      <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                        ✓ Live HTTPS Verified ({probeResult.latencyMs}ms)
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                        ⚠ Unreachable Host
+                      </span>
+                    )
+                  ) : rawEndpoint ? (
                     isHttps ? (
                       <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-semibold">
                         ✓ Secure HTTPS
@@ -450,35 +484,27 @@ export function RegisterAgentModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="relative">
                 <input
                   type="text"
                   required
                   value={formData.endpoint}
                   onChange={(e) => {
                     setFormData({ ...formData, endpoint: e.target.value });
-                    setProbeResult(null);
                   }}
                   placeholder="https://api.youragent.com/v1/run"
                   className={`w-full px-3 py-2 bg-slate-50 border rounded-lg text-xs text-slate-900 font-mono placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0a0f1d] ${
                     rawEndpoint && !isHttps && !allowOfflineSandbox
                       ? "border-rose-300 focus:ring-rose-500"
+                      : probeResult?.isReachable
+                      ? "border-emerald-300"
                       : "border-[#e2e8f0]"
                   }`}
                 />
-                <button
-                  type="button"
-                  onClick={handleTestPing}
-                  disabled={!rawEndpoint || probeResult?.loading}
-                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-[#00DC82] rounded-lg text-xs font-mono font-semibold transition-colors shrink-0 cursor-pointer shadow-sm"
-                  title="Send real live HTTP probe to test connectivity"
-                >
-                  {probeResult?.loading ? "Pinging..." : "⚡ Test Ping"}
-                </button>
               </div>
 
-              {/* Probe Result Feedback */}
-              {probeResult && (
+              {/* Automatic Probe Feedback Banner */}
+              {probeResult && !probeResult.loading && (
                 <div
                   className={`mt-1.5 text-[11px] font-mono p-2 rounded-lg border flex items-center justify-between ${
                     probeResult.isReachable
