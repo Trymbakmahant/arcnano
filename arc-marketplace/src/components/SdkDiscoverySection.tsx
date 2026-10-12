@@ -3,7 +3,7 @@ import { MarketplaceNode } from "./types";
 import { Icon } from "./Icons";
 
 interface SdkDiscoverySectionProps {
-  selectedNode: MarketplaceNode;
+  selectedNode: MarketplaceNode | null;
   allNodes: MarketplaceNode[];
   onSelectNode: (node: MarketplaceNode) => void;
 }
@@ -15,6 +15,16 @@ export function SdkDiscoverySection({
 }: SdkDiscoverySectionProps) {
   const [activeTab, setActiveTab] = useState<"python" | "typescript" | "curl">("python");
   const [copied, setCopied] = useState<boolean>(false);
+
+  if (!selectedNode) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12" id="sdk-discovery">
+        <div className="bg-white border border-[#e2e8f0] rounded-2xl p-8 text-center text-slate-500 font-mono text-xs">
+          No agent currently selected. Register or select an agent from the catalog to view autonomous SDK discovery snippets.
+        </div>
+      </section>
+    );
+  }
 
   const cleanEndpointPath = selectedNode.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "");
   const method = selectedNode.endpoint.startsWith("GET") ? "GET" : "POST";

@@ -3,7 +3,7 @@ import { MarketplaceNode } from "./types";
 import { Icon } from "./Icons";
 
 interface ReplTerminalProps {
-  selectedNode: MarketplaceNode;
+  selectedNode: MarketplaceNode | null;
   terminalState: "initial" | "running" | "done";
   onRunProtocol: () => void;
 }
@@ -13,6 +13,8 @@ export function ReplTerminal({
   terminalState,
   onRunProtocol,
 }: ReplTerminalProps) {
+  if (!selectedNode) return null;
+
   return (
     <section id="repl-terminal-section" className="max-w-7xl mx-auto px-4 sm:px-8 py-16">
       <div className="flex flex-col gap-5">

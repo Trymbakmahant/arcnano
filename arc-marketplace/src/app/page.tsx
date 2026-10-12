@@ -12,7 +12,6 @@ import { ReplTerminal } from "@/components/ReplTerminal";
 import { Footer } from "@/components/Footer";
 import { ArcIdLoginModal } from "@/components/ArcIdLoginModal";
 import { RegisterAgentModal } from "@/components/RegisterAgentModal";
-import { MARKETPLACE_ITEMS } from "@/components/data";
 import { FilterKey, MarketplaceNode, ArcUser } from "@/components/types";
 
 const INITIAL_USER: ArcUser = {
@@ -27,13 +26,14 @@ export default function ArcMarketplacePage() {
   const [currentUser, setCurrentUser] = useState<ArcUser | null>(INITIAL_USER);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState<boolean>(false);
-  const [nodes, setNodes] = useState<MarketplaceNode[]>(MARKETPLACE_ITEMS);
+  // Real data only: starts empty and strictly populates from Supabase DB
+  const [nodes, setNodes] = useState<MarketplaceNode[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [activeFilter, setActiveFilter] = useState<FilterKey>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [viewMode, setViewMode] = useState<"catalog" | "raw">("catalog");
-  const [selectedSnippet, setSelectedSnippet] = useState<MarketplaceNode>(MARKETPLACE_ITEMS[0]);
+  const [selectedSnippet, setSelectedSnippet] = useState<MarketplaceNode | null>(null);
   const [terminalState, setTerminalState] = useState<"initial" | "running" | "done">("initial");
 
   // Keyboard shortcut: ESC to clear search
@@ -47,19 +47,22 @@ export default function ArcMarketplacePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Fetch agents from database registry on mount
+  // Fetch agents strictly from Supabase database registry on mount
   useEffect(() => {
     async function fetchAgents() {
       try {
         const res = await fetch("/api/v1/agents");
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data.agents) && data.agents.length > 0) {
+          if (Array.isArray(data.agents)) {
             setNodes(data.agents);
+            if (data.agents.length > 0) {
+              setSelectedSnippet(data.agents[0]);
+            }
           }
         }
       } catch (err) {
-        console.warn("[page] Could not fetch agents from Supabase API, keeping local seed:", err);
+        console.warn("[page] Could not fetch agents from Supabase API:", err);
       }
     }
     fetchAgents();
@@ -140,7 +143,7 @@ export default function ArcMarketplacePage() {
   const handleRegisterSuccess = (newNode: MarketplaceNode) => {
     setNodes((prev) => [newNode, ...prev.filter((n) => n.id !== newNode.id)]);
     setSelectedSnippet(newNode);
-    setToastMessage(`✓ Agent "${newNode.name}" registered and published on Arc!`);
+    setToastMessage(`✓ Agent "${newNode.name}" registered in Supabase database!`);
     setTimeout(() => setToastMessage(null), 5000);
 
     const el = document.getElementById("browse-catalog");
@@ -185,8 +188,12 @@ export default function ArcMarketplacePage() {
           isSpecActive={viewMode === "raw"}
         />
 
-        {/* 5 Core Digital Asset Classes Section */}
-        <AssetClassesSection activeFilter={activeFilter} onSelectFilter={setActiveFilter} />
+        {/* 5 Core Digital Asset Classes Section with Live Counts */}
+        <AssetClassesSection
+          activeFilter={activeFilter}
+          onSelectFilter={setActiveFilter}
+          nodes={nodes}
+        />
 
         {/* Search & Filter Section */}
         <SearchFilterSection
