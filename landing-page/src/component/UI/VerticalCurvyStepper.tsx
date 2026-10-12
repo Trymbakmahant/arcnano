@@ -12,6 +12,8 @@ import {
   Terminal,
 } from "lucide-react";
 import CornerTicks from "./CornerTicks";
+import CubeeCardBot from "./CubeeCardBot";
+
 
 export interface SolutionStep {
   id: string;
@@ -475,6 +477,10 @@ export default function VerticalCurvyStepper() {
                   delay: idx * 0.08,
                 }}
                 onClick={() => setActiveStep(idx)}
+                data-card="true"
+                data-cubee-title={step.title}
+                data-cubee-hint={step.summary}
+                data-cubee-anim="proud"
                 className="group cursor-pointer p-6 sm:p-8 md:p-10 transition-colors duration-200 relative border border-neutral-200/90 bg-white hover:bg-neutral-50/50 shadow-sm"
               >
                 {/* Architectural Blueprint Corner Ticks ┌ ┐ └ ┘ */}
@@ -582,6 +588,26 @@ export default function VerticalCurvyStepper() {
             </div>
           );
         })}
+      </div>
+
+      {/* In-Card Interactive Cubee Architectural Solver Bot */}
+      <div className="mt-14 relative z-20">
+        <CubeeCardBot
+          theme="light"
+          badge="Cubee // Architecture Solver"
+          items={SOLUTIONS_DATA.map((step) => ({
+            id: step.id,
+            tabLabel: `Pillar ${step.stepNumber}`,
+            title: `${step.stepNumber}: ${step.title}`,
+            hint: `${step.summary} Countering: ${step.problemCountered}.`,
+            suggestedQuestions: [
+              `How does Pillar ${step.stepNumber} work?`,
+              `Why is ${step.title} needed?`,
+              `What makes this unique on Arc?`,
+            ],
+            anim: "proud",
+          }))}
+        />
       </div>
     </div>
   );

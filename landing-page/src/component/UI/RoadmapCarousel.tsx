@@ -12,6 +12,7 @@ import {
   Fuel,
 } from "lucide-react";
 
+
 export interface RoadmapCard {
   id: string;
   number: string;
@@ -426,6 +427,10 @@ export default function RoadmapCarousel() {
                 <article
                   key={card.id}
                   onClick={() => scrollToSlide(index)}
+                  data-card="true"
+                  data-cubee-title={`Roadmap 0${index + 1}: ${card.name}`}
+                  data-cubee-hint={card.summary}
+                  data-cubee-anim="working"
                   style={
                     {
                       "--stroke": card.strokeColor,
@@ -647,6 +652,7 @@ export default function RoadmapCarousel() {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
