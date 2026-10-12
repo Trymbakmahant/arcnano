@@ -12,6 +12,14 @@
     "relayer": "tsx bin/relayer.ts",
     "benchmark": "tsx test/benchmark.ts"
   },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "x402",
     "arcnano",
