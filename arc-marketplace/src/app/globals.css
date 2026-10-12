@@ -1,72 +1,107 @@
 @import "tailwindcss";
 
-:root {
-  --bg-app: #FAFAFA;
-  --surface: #FFFFFF;
-  --surface-2: #F4F4F6;
-  --primary: #0284C7;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --card-bg: #FFFFFF;
-  --card-border: rgba(0, 0, 0, 0.08);
-  --accent-amber: #F59E0B;
-  --accent-emerald: #10B981;
-  --accent-purple: #7C3AED;
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-strong: rgba(0, 0, 0, 0.14);
-  color-scheme: light;
+@theme {
+  --color-brand-emerald: #00DC82;
+  --color-brand-dark: #0a0f1d;
+  --color-brand-charcoal: #111827;
+  --color-brand-surface: #ffffff;
+  --color-brand-border: #e2e8f0;
+  --color-brand-muted: #64748b;
+  --color-brand-canvas: #f8fafb;
+
+  --color-surface-container-low: #f8fafc;
+  --color-inverse-primary: #bec6e0;
+  --color-tertiary-fixed: #8ff8b4;
+  --color-on-primary: #ffffff;
+  --color-on-error-container: #93000a;
+  --color-inverse-surface: #0f172a;
+  --color-error-container: #fee2e2;
+  --color-outline-variant: #e2e8f0;
+  --color-surface-variant: #f1f5f9;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-inverse-on-surface: #f8fafc;
+  --color-on-secondary-container: #15803d;
+  --color-secondary-fixed-dim: #4edea3;
+  --color-on-tertiary-container: #166534;
+  --color-tertiary: #0f172a;
+  --color-tertiary-fixed-dim: #73db9a;
+  --color-tertiary-container: #dcfce7;
+  --color-error: #dc2626;
+  --color-on-primary-fixed: #0f172a;
+  --color-on-surface: #0f172a;
+  --color-outline: #cbd5e1;
+  --color-on-error: #ffffff;
+  --color-secondary-container: #dcfce7;
+  --color-surface-container-high: #e2e8f0;
+  --color-on-background: #0f172a;
+  --color-on-tertiary-fixed: #0f172a;
+  --color-on-surface-variant: #64748b;
+  --color-secondary: #16a34a;
+  --color-on-secondary-fixed: #052e16;
+  --color-primary: #0f172a;
+  --color-surface-container-highest: #cbd5e1;
+  --color-on-primary-container: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-surface-dim: #e2e8f0;
+  --color-on-primary-fixed-variant: #334155;
+  --color-primary-container: #0f172a;
+  --color-surface-bright: #ffffff;
+  --color-surface-tint: #0f172a;
+  --color-surface: #ffffff;
+  --color-background: #f8fafb;
+  --color-on-secondary-fixed-variant: #166534;
+  --color-on-tertiary-fixed-variant: #14532d;
+  --color-on-secondary: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-primary-fixed: #0f172a;
+  --color-surface-container: #f1f5f9;
+  --color-secondary-fixed: #bbf7d0;
+
+  --font-headline-xl: var(--font-headline), 'Plus Jakarta Sans', sans-serif;
+  --font-headline-lg: var(--font-headline), 'Plus Jakarta Sans', sans-serif;
+  --font-headline-md: var(--font-headline), 'Plus Jakarta Sans', sans-serif;
+  --font-headline-sm: var(--font-headline), 'Plus Jakarta Sans', sans-serif;
+  --font-body-lg: var(--font-body), 'Inter', sans-serif;
+  --font-body-md: var(--font-body), 'Inter', sans-serif;
+  --font-body-sm: var(--font-body), 'Inter', sans-serif;
+  --font-label-meta: var(--font-mono), 'JetBrains Mono', monospace;
+  --font-label-code: var(--font-mono), 'JetBrains Mono', monospace;
+  --font-label-numeric: var(--font-mono), 'JetBrains Mono', monospace;
 }
 
-.dark {
-  --bg-app: #090A0F;
-  --surface: #111218;
-  --surface-2: #191B24;
-  --primary: #38BDF8;
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --card-bg: #111218;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --accent-amber: #FBBF24;
-  --accent-emerald: #34D399;
-  --accent-purple: #A78BFA;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  color-scheme: dark;
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+    background-color: #f8fafb;
+    color: #0a0f1d;
+    font-family: var(--font-body), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
 }
 
-body {
-  background-color: var(--bg-app);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+::-webkit-scrollbar {
+  display: none;
 }
 
-/* CAD Technical Grid Overlay */
-.cad-grid {
-  background-image: 
-    linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
+.font-mono-code {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  letter-spacing: -0.015em;
 }
 
-.dark .cad-grid {
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
+.card-hover-fx {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover-fx:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.05);
 }
 
-/* Corner ticks indicator */
-.corner-tick {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  pointer-events: none;
+/* Custom Spacing Classes */
+.px-margin { padding-left: 2rem; padding-right: 2rem; }
+@media (max-width: 640px) {
+  .px-margin { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
-.corner-tick-tl { top: -1px; left: -1px; border-top: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
-.corner-tick-tr { top: -1px; right: -1px; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
-.corner-tick-bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
-.corner-tick-br { bottom: -1px; right: -1px; border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
