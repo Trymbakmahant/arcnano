@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
@@ -35,48 +35,6 @@ export default function Home() {
   // Spotlight grid mouse tracking
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: -1000, y: -1000 });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Active Section Tracker for Teleporting Cubee Companion
-  const [activeSection, setActiveSection] = useState<string>("hero");
-
-  useEffect(() => {
-    const sectionIds = ["hero", "blueprint", "problem", "solution"];
-
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const viewportMid = scrollY + window.innerHeight * 0.45;
-
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sectionIds[i]);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const top = rect.top + scrollY;
-          if (viewportMid >= top) {
-            setActiveSection(sectionIds[i]);
-            return;
-          }
-        }
-      }
-      setActiveSection("hero");
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Track cursor position globally for spotlight overlay
-  useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: e.clientX,
-        y: e.clientY,
-      });
-    };
-
-    window.addEventListener("mousemove", handleGlobalMouseMove);
-    return () => window.removeEventListener("mousemove", handleGlobalMouseMove);
-  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     setMousePos({

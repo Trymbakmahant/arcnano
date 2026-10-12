@@ -209,7 +209,6 @@ export default function VerticalCurvyStepper() {
   // Dynamic Layout Measurements
   const [containerWidth, setContainerWidth] = useState<number>(1000);
   const [svgHeight, setSvgHeight] = useState<number>(1200);
-  const [, setIsMobileView] = useState<boolean>(false);
   const [nodePositions, setNodePositions] = useState<
     { x: number; y: number; isLeft: boolean }[]
   >([
@@ -302,7 +301,6 @@ export default function VerticalCurvyStepper() {
       const height = containerRect.height;
       const isMobile = window.innerWidth < 768;
 
-      setIsMobileView(isMobile);
       setContainerWidth(width);
       setSvgHeight(height);
 
