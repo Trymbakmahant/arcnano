@@ -3,11 +3,10 @@ import { MarketplaceNode } from "./types";
 
 interface NodeCardProps {
   node: MarketplaceNode;
-  onSelectRepl: (node: MarketplaceNode) => void;
-  onSelectSdk?: (node: MarketplaceNode) => void;
+  onSelectNode: (node: MarketplaceNode) => void;
 }
 
-export function NodeCard({ node, onSelectRepl, onSelectSdk }: NodeCardProps) {
+export function NodeCard({ node, onSelectNode }: NodeCardProps) {
   return (
     <div className="bg-white border border-[#e2e8f0] rounded-2xl p-6 card-hover-fx flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs relative">
       {node.isUserRegistered && (
@@ -88,20 +87,12 @@ export function NodeCard({ node, onSelectRepl, onSelectSdk }: NodeCardProps) {
           <div className="font-mono text-[10px] text-slate-500">{node.priceUnit}</div>
         </div>
         <div className="flex items-center gap-2">
-          {onSelectSdk && (
-            <button
-              onClick={() => onSelectSdk(node)}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-mono text-xs transition-colors cursor-pointer"
-              title="View SDK discovery snippet"
-            >
-              SDK
-            </button>
-          )}
           <button
-            onClick={() => onSelectRepl(node)}
-            className="px-3 py-1.5 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 text-white font-mono text-xs font-semibold transition-all shadow-sm cursor-pointer"
+            onClick={() => onSelectNode(node)}
+            className="px-3.5 py-1.5 rounded-lg bg-[#0a0f1d] hover:bg-slate-800 text-white font-mono text-xs font-semibold transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
           >
-            {node.actionText}
+            <span>{node.actionText || "Integrate"}</span>
+            <span className="text-[#00DC82]">→</span>
           </button>
         </div>
       </div>

@@ -8,7 +8,6 @@ import { SearchFilterSection } from "@/components/SearchFilterSection";
 import { CatalogGrid } from "@/components/CatalogGrid";
 import { SdkDiscoverySection } from "@/components/SdkDiscoverySection";
 import { ProtocolFlow } from "@/components/ProtocolFlow";
-import { ReplTerminal } from "@/components/ReplTerminal";
 import { Footer } from "@/components/Footer";
 import { ArcIdLoginModal } from "@/components/ArcIdLoginModal";
 import { RegisterAgentModal } from "@/components/RegisterAgentModal";
@@ -34,7 +33,6 @@ export default function ArcMarketplacePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [viewMode, setViewMode] = useState<"catalog" | "raw">("catalog");
   const [selectedSnippet, setSelectedSnippet] = useState<MarketplaceNode | null>(null);
-  const [terminalState, setTerminalState] = useState<"initial" | "running" | "done">("initial");
 
   // Keyboard shortcut: ESC to clear search
   useEffect(() => {
@@ -90,27 +88,12 @@ export default function ArcMarketplacePage() {
     });
   }, [nodes, activeFilter, searchQuery]);
 
-  const handleSelectRepl = (node: MarketplaceNode) => {
-    setSelectedSnippet(node);
-    const element = document.getElementById("repl-terminal-section");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const handleSelectSdk = (node: MarketplaceNode) => {
+  const handleSelectAgent = (node: MarketplaceNode) => {
     setSelectedSnippet(node);
     const element = document.getElementById("sdk-discovery");
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
-  };
-
-  const handleRunProtocol = () => {
-    setTerminalState("running");
-    setTimeout(() => {
-      setTerminalState("done");
-    }, 450);
   };
 
   const handleExploreClick = () => {
@@ -131,7 +114,7 @@ export default function ArcMarketplacePage() {
   const handleExecuteFirst = () => {
     const first = filteredItems[0];
     if (first) {
-      handleSelectRepl(first);
+      handleSelectAgent(first);
     }
   };
 
@@ -209,8 +192,7 @@ export default function ArcMarketplacePage() {
           nodes={filteredItems}
           activeFilter={activeFilter}
           viewMode={viewMode}
-          onSelectRepl={handleSelectRepl}
-          onSelectSdk={handleSelectSdk}
+          onSelectNode={handleSelectAgent}
           onResetFilters={handleResetFilters}
         />
 
@@ -223,13 +205,6 @@ export default function ArcMarketplacePage() {
 
         {/* Protocol Flow Architecture Explainer */}
         <ProtocolFlow />
-
-        {/* Live Arcnano x402 REPL Terminal */}
-        <ReplTerminal
-          selectedNode={selectedSnippet}
-          terminalState={terminalState}
-          onRunProtocol={handleRunProtocol}
-        />
       </main>
 
       {/* 4. Minimalist Footer */}

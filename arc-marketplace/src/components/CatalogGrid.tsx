@@ -6,8 +6,7 @@ interface CatalogGridProps {
   nodes: MarketplaceNode[];
   activeFilter: FilterKey;
   viewMode: "catalog" | "raw";
-  onSelectRepl: (node: MarketplaceNode) => void;
-  onSelectSdk?: (node: MarketplaceNode) => void;
+  onSelectNode: (node: MarketplaceNode) => void;
   onResetFilters: () => void;
 }
 
@@ -15,8 +14,7 @@ export function CatalogGrid({
   nodes,
   activeFilter,
   viewMode,
-  onSelectRepl,
-  onSelectSdk,
+  onSelectNode,
   onResetFilters,
 }: CatalogGridProps) {
   return (
@@ -70,8 +68,7 @@ export function CatalogGrid({
             <NodeCard
               key={node.id}
               node={node}
-              onSelectRepl={onSelectRepl}
-              onSelectSdk={onSelectSdk}
+              onSelectNode={onSelectNode}
             />
           ))}
         </div>
