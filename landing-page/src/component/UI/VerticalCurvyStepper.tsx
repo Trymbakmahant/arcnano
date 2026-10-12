@@ -12,7 +12,74 @@ import {
   Terminal,
 } from "lucide-react";
 import CornerTicks from "./CornerTicks";
-import CubeeCardBot from "./CubeeCardBot";
+import HeroCubeeCloud from "./HeroCubeeCloud";
+import { Avatar } from "@bible-strong/avatar-react";
+import "@bible-strong/avatar-react/styles.css";
+import type { AvatarDefinition } from "@bible-strong/avatar-core";
+import agentAvatarsData from "@/data/agentAvatars.json";
+
+interface AgentAvatarItem {
+  id: string;
+  name: string;
+  definition: AvatarDefinition;
+}
+
+const avatarsList = agentAvatarsData as unknown as AgentAvatarItem[];
+const cubeeAvatar = avatarsList.find((a) => a.name === "Cubee") || avatarsList[0];
+
+const SOLUTION_THOUGHTS = [
+  "Pillar 1: Receiver-batched settlement completely eliminates msg.sender from the chain! 🛡️",
+  "Pillar 2: Circle Gas Station sponsors 100% of gas—agents pay $0.00 in native tokens! ⚡",
+  "Pillar 3: Dual Merkle ASP circuits prove non-sanctioned clean funds mathematically! 🔒",
+  "Pillar 4: In-memory Groth16 pairings verify in <10ms for unblocked LLM streaming! 🚀",
+  "Watch me run down the stepper line as you scroll through all 4 architectural pillars! 🏃",
+];
+
+const STEP_2_THOUGHTS = [
+  "Pillar 2: Circle Gas Station sponsors 100% of native gas via ERC-4337! ⚡",
+  "Zero funding paper trails! Agents never fund burner wallets from exchange accounts. 🛡️",
+  "Autonomous agents pay exactly $0.00 native tokens for settlement transactions! 💳",
+  "Paymaster handles gas in batch calldata—eliminating funding forensics! 🔒",
+  "Ask me anything about gas sponsorship on Arc!",
+];
+
+const STEP_3_THOUGHTS = [
+  "Pillar 3: Dual Merkle ASP circuits guarantee OFAC compliance without KYC! 🔒",
+  "Proof of Membership in deposits + Proof of Non-Membership in sanctions! 🛡️",
+  "Mixers get banned by Cloudflare & OpenAI because dirty funds pool together. We stay 100% clean! 🌐",
+  "Mathematical proof that agent funds never touch blacklisted illicit clusters! ✨",
+  "Ask me how Association Set Providers keep agents compliant!",
+];
+
+const STEP_4_THOUGHTS = [
+  "Pillar 4: Off-chain Groth16 pairings verify in <10ms directly in API gateway RAM! ⏱️",
+  "Zero block latency! LLM token streaming starts immediately on HTTP 200. 🚀",
+  "Sub-cent nanopayments verified locally before the server sends its first token chunk! ⚡",
+  "No 10–15 second wait times—pure real-time speed for autonomous agent swarms! 🤖",
+  "Ask me how sub-10ms in-memory verification works!",
+];
+
+const PILLAR_LABELS = [
+  "01 // Zero msg.sender 🛡️",
+  "02 // $0 Native Gas ⚡",
+  "03 // 100% ASP Clean 🔒",
+  "04 // <10ms Delivery 🚀",
+];
+
+function findDistForY(pathEl: SVGPathElement, targetY: number, totalLen: number): number {
+  let low = 0;
+  let high = totalLen;
+  for (let i = 0; i < 24; i++) {
+    const mid = (low + high) / 2;
+    const pt = pathEl.getPointAtLength(mid);
+    if (pt.y < targetY) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return (low + high) / 2;
+}
 
 
 export interface SolutionStep {
@@ -166,6 +233,66 @@ export default function VerticalCurvyStepper() {
     restDelta: 0.001,
   });
 
+  const pathMeasureRef = useRef<SVGPathElement>(null);
+  const [runnerPos, setRunnerPos] = useState<{ x: number; y: number; visible: boolean }>({
+    x: 456,
+    y: 60,
+    visible: false,
+  });
+  const [runnerAnim, setRunnerAnim] = useState<string>("proud");
+  const [activePillarIdx, setActivePillarIdx] = useState<number>(0);
+
+  // Track scroll and glide Cubee from Step 01 to Step 04 along the curvy line
+  useEffect(() => {
+    if (!pathMeasureRef.current || !curvyPath || nodePositions.length < 4) return;
+    const pathEl = pathMeasureRef.current;
+    const totalLen = pathEl.getTotalLength();
+    if (totalLen <= 0) return;
+
+    const nodeDists = nodePositions.map((pos) => findDistForY(pathEl, pos.y, totalLen));
+    const dStart = nodeDists[0];
+    const dEnd = nodeDists[nodeDists.length - 1];
+
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
+    const updatePosition = (p: number) => {
+      const clampedP = Math.max(0, Math.min(1, p));
+      const currentDist = dStart + clampedP * (dEnd - dStart);
+      const pt = pathEl.getPointAtLength(currentDist);
+
+      setRunnerPos({ x: pt.x, y: pt.y, visible: true });
+
+      // Determine which pillar node is closest
+      let closestIdx = 0;
+      let minDiff = Infinity;
+      nodeDists.forEach((d, idx) => {
+        const diff = Math.abs(d - currentDist);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+      setActivePillarIdx(closestIdx);
+
+      // Dynamic animation while scrolling vs resting
+      const isFinish = closestIdx === 3 && clampedP > 0.88;
+      setRunnerAnim(isFinish ? "celebrate" : "excited");
+
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        setRunnerAnim(isFinish ? "celebrate" : "proud");
+      }, 250);
+    };
+
+    updatePosition(smoothProgress.get());
+    const unsubscribe = smoothProgress.on("change", updatePosition);
+
+    return () => {
+      unsubscribe();
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [curvyPath, nodePositions, smoothProgress]);
+
   // Calculate Node Positions and S-Curve Bezier Path
   useEffect(() => {
     const updateMeasurements = () => {
@@ -315,6 +442,34 @@ export default function VerticalCurvyStepper() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-6xl mx-auto">
+      {/* Sentinel for Section 03 entrance */}
+      <div id="solution-stepper-start" className="w-full h-1 pointer-events-none" />
+
+      {/* Top-Left Companion Cubee Cloud for Section 03 */}
+      <div className="hidden md:block absolute -left-4 sm:-left-8 md:-left-12 lg:-left-16 -top-[190px] z-30 pointer-events-auto">
+        <HeroCubeeCloud
+          sectionId="solution"
+          sectionLabel="Architectural Resolution"
+          thoughts={SOLUTION_THOUGHTS}
+          pretextTitle="ArcNano Architectural Resolution"
+          pretextHint="4 architectural pillars solving machine nanopayment traps"
+          triggerSelector="#solution-stepper-start"
+          cloudPosition="right"
+        />
+      </div>
+
+      {/* Mobile Mascot (< md) */}
+      <div className="md:hidden flex justify-center mb-6">
+        <HeroCubeeCloud
+          sectionId="solution"
+          sectionLabel="Architectural Resolution"
+          thoughts={SOLUTION_THOUGHTS}
+          pretextTitle="ArcNano Architectural Resolution"
+          pretextHint="4 architectural pillars solving machine nanopayment traps"
+          triggerSelector="#solution-stepper-start"
+        />
+      </div>
+
       {/* Dynamic Curvy Stepper SVG Track */}
       <div className="absolute inset-0 pointer-events-none z-10 w-full h-full">
         <svg
@@ -323,6 +478,17 @@ export default function VerticalCurvyStepper() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
+          {/* Measurement path for exact math */}
+          {curvyPath && (
+            <path
+              ref={pathMeasureRef}
+              d={curvyPath}
+              fill="none"
+              stroke="transparent"
+              className="pointer-events-none"
+            />
+          )}
+
           <defs>
             {/* Architectural Slate and Amber Gradient */}
             <linearGradient id="stepperPathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -450,6 +616,42 @@ export default function VerticalCurvyStepper() {
             </div>
           );
         })}
+
+        {/* Runner Cubee Traveling from Step 01 to Step 04 along the Curvy Line */}
+        {runnerPos.visible && (
+          <div
+            className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-30 transition-transform duration-75 will-change-transform group"
+            style={{
+              left: `${runnerPos.x}px`,
+              top: `${runnerPos.y - 14}px`,
+            }}
+            onClick={() => {
+              const moods = ["celebrate", "excited", "working", "proud"];
+              setRunnerAnim(moods[Math.floor(Math.random() * moods.length)]);
+            }}
+            title="Cubee verifying the 4 Architecture Pillars! (Click me)"
+          >
+            {/* Soft energy aura trailing behind Cubee */}
+            <div className="absolute -inset-2.5 rounded-full bg-gradient-to-r from-amber-400/30 to-sky-400/30 blur-sm animate-pulse pointer-events-none" />
+
+            {/* Traveling Speech Badge */}
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-0.5 rounded-full bg-neutral-900/90 text-white text-[9px] font-mono shadow-md border border-white/10 flex items-center gap-1.5 pointer-events-none transition-all group-hover:scale-105">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span>{PILLAR_LABELS[activePillarIdx]}</span>
+            </div>
+
+            {/* 3D Cubee Avatar */}
+            <div className="relative flex flex-col items-center justify-center">
+              <Avatar
+                definition={cubeeAvatar.definition}
+                animation={runnerAnim}
+                size={48}
+                ariaLabel="Cubee traveling along architecture stepper"
+              />
+              <div className="w-8 h-1.5 rounded-full bg-black/25 blur-xs mt-0.5" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Alternating Steps Content: Left (1) -> Right (2) -> Left (3) -> Right (4) */}
@@ -458,19 +660,21 @@ export default function VerticalCurvyStepper() {
           const isLeft = idx % 2 === 0;
 
           return (
-            <div
-              key={step.id}
-              ref={(el) => {
-                stepRefs.current[idx] = el;
-              }}
-              className={`w-full md:w-[calc(50%-60px)] ${
-                isLeft ? "md:mr-auto" : "md:ml-auto"
-              } pl-12 sm:pl-14 md:pl-0`}
-            >
-              <motion.div
-                initial={{ opacity: 0, x: isLeft ? -20 : 20, y: 15 }}
-                whileInView={{ opacity: 1, x: 0, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
+            <div key={step.id} className="relative w-full">
+              {/* Step Card */}
+              <div
+                ref={(el) => {
+                  stepRefs.current[idx] = el;
+                }}
+                className={`w-full md:w-[calc(50%-60px)] ${
+                  isLeft ? "md:mr-auto" : "md:ml-auto"
+                } pl-12 sm:pl-14 md:pl-0`}
+              >
+                <motion.div
+                  id={`solution-step-card-${idx}`}
+                  initial={{ opacity: 0, x: isLeft ? -20 : 20, y: 15 }}
+                  whileInView={{ opacity: 1, x: 0, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
                 transition={{
                   duration: 0.5,
                   ease: [0.16, 1, 0.3, 1],
@@ -585,30 +789,97 @@ export default function VerticalCurvyStepper() {
                   </div>
                 </div>
               </motion.div>
+              </div>
+
+              {/* Step 2 Companion Cubee Cloud (Left Column on Desktop, Mobile below) */}
+              {idx === 1 && (
+                <>
+                  <div className="hidden md:flex absolute top-6 left-0 w-[calc(50%-60px)] justify-end pr-6 pointer-events-auto z-20">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-2"
+                      sectionLabel="Pillar 02 // Gas Sponsorship"
+                      thoughts={STEP_2_THOUGHTS}
+                      pretextTitle="Arc Circle Gas Station Sponsorship"
+                      pretextHint="Zero funding paper trails and $0 native gas via Circle ERC-4337 paymasters"
+                      triggerSelector="#solution-step-card-1"
+                      cloudPosition="right"
+                    />
+                  </div>
+                  <div className="md:hidden flex justify-center mt-6">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-2-m"
+                      sectionLabel="Pillar 02 // Gas Sponsorship"
+                      thoughts={STEP_2_THOUGHTS}
+                      pretextTitle="Arc Circle Gas Station Sponsorship"
+                      pretextHint="Zero funding paper trails and $0 native gas via Circle ERC-4337 paymasters"
+                      triggerSelector="#solution-step-card-1"
+                      cloudPosition="right"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Step 3 Companion Cubee Cloud (Right Column on Desktop, Mobile below) */}
+              {idx === 2 && (
+                <>
+                  <div className="hidden md:flex absolute top-6 right-0 w-[calc(50%-60px)] justify-start pl-6 pointer-events-auto z-20">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-3"
+                      sectionLabel="Pillar 03 // ASP Clean Routing"
+                      thoughts={STEP_3_THOUGHTS}
+                      pretextTitle="Association Set Provider (ASP) Clean Routing"
+                      pretextHint="Dual Merkle tree non-membership proof of clean funds without KYC"
+                      triggerSelector="#solution-step-card-2"
+                      cloudPosition="left"
+                    />
+                  </div>
+                  <div className="md:hidden flex justify-center mt-6">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-3-m"
+                      sectionLabel="Pillar 03 // ASP Clean Routing"
+                      thoughts={STEP_3_THOUGHTS}
+                      pretextTitle="Association Set Provider (ASP) Clean Routing"
+                      pretextHint="Dual Merkle tree non-membership proof of clean funds without KYC"
+                      triggerSelector="#solution-step-card-2"
+                      cloudPosition="left"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Step 4 Companion Cubee Cloud (Left Column on Desktop, Mobile below) */}
+              {idx === 3 && (
+                <>
+                  <div className="hidden md:flex absolute top-6 left-0 w-[calc(50%-60px)] justify-end pr-6 pointer-events-auto z-20">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-4"
+                      sectionLabel="Pillar 04 // <10ms Verification"
+                      thoughts={STEP_4_THOUGHTS}
+                      pretextTitle="In-Memory Sub-10ms Proof Verification"
+                      pretextHint="Instant off-chain pairing checks unblocking LLM token streaming"
+                      triggerSelector="#solution-step-card-3"
+                      cloudPosition="right"
+                    />
+                  </div>
+                  <div className="md:hidden flex justify-center mt-6">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-4-m"
+                      sectionLabel="Pillar 04 // <10ms Verification"
+                      thoughts={STEP_4_THOUGHTS}
+                      pretextTitle="In-Memory Sub-10ms Proof Verification"
+                      pretextHint="Instant off-chain pairing checks unblocking LLM token streaming"
+                      triggerSelector="#solution-step-card-3"
+                      cloudPosition="right"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* In-Card Interactive Cubee Architectural Solver Bot */}
-      <div className="mt-14 relative z-20">
-        <CubeeCardBot
-          theme="light"
-          badge="Cubee // Architecture Solver"
-          items={SOLUTIONS_DATA.map((step) => ({
-            id: step.id,
-            tabLabel: `Pillar ${step.stepNumber}`,
-            title: `${step.stepNumber}: ${step.title}`,
-            hint: `${step.summary} Countering: ${step.problemCountered}.`,
-            suggestedQuestions: [
-              `How does Pillar ${step.stepNumber} work?`,
-              `Why is ${step.title} needed?`,
-              `What makes this unique on Arc?`,
-            ],
-            anim: "proud",
-          }))}
-        />
-      </div>
+    
     </div>
   );
 }

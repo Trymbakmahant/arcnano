@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Avatar } from "@bible-strong/avatar-react";
 import "@bible-strong/avatar-react/styles.css";
 import type { AvatarDefinition } from "@bible-strong/avatar-core";
 import agentAvatarsData from "@/data/agentAvatars.json";
 import { Send, Loader2 } from "lucide-react";
+import gsap from "gsap";
 
 interface AgentAvatarItem {
   id: string;
@@ -39,104 +39,6 @@ export interface HeroCubeeCloudProps {
   cloudPosition?: "left" | "right";
 }
 
-// Framer Motion Animation Variants for the Idea Cloud sequence
-const dot1Variants: Variants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 450,
-      damping: 15,
-      delay: 0.12,
-    },
-  },
-};
-
-const dot2Variants: Variants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 450,
-      damping: 15,
-      delay: 0.25,
-    },
-  },
-};
-
-const dot3Variants: Variants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 450,
-      damping: 15,
-      delay: 0.38,
-    },
-  },
-};
-
-const cloudVariants: Variants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 18,
-      mass: 0.8,
-      delay: 0.52,
-    },
-  },
-};
-
-const textVariants: Variants = {
-  hidden: { opacity: 0, y: 5 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.3,
-      delay: 0.78,
-      ease: "easeOut",
-    },
-  },
-};
-
-const inputVariants: Variants = {
-  hidden: { opacity: 0, y: 6 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.3,
-      delay: 0.88,
-      ease: "easeOut",
-    },
-  },
-};
-
-const avatarVariants: Variants = {
-  hidden: { scale: 0.8, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 350,
-      damping: 20,
-      delay: 0.05,
-    },
-  },
-};
-
 export default function HeroCubeeCloud({
   sectionId = "hero",
   sectionLabel = "Hero",
@@ -160,12 +62,21 @@ export default function HeroCubeeCloud({
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [userAsked, setUserAsked] = useState<boolean>(false);
-
-  // In-view detection: auto-starts when visible in viewport
   const [isInView, setIsInView] = useState<boolean>(false);
-  const [pokeCount, setPokeCount] = useState<number>(0);
 
+  // DOM Refs for high-performance GSAP hardware-accelerated animations
   const containerRef = useRef<HTMLDivElement>(null);
+  const portalRing1Ref = useRef<HTMLDivElement>(null);
+  const portalRing2Ref = useRef<HTMLDivElement>(null);
+  const cloudWrapperRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const dot1Ref = useRef<HTMLDivElement>(null);
+  const dot2Ref = useRef<HTMLDivElement>(null);
+  const dot3Ref = useRef<HTMLDivElement>(null);
+  const avatarWrapperRef = useRef<HTMLDivElement>(null);
+  const avatarFloatRef = useRef<HTMLDivElement>(null);
+  const shadowRef = useRef<HTMLDivElement>(null);
 
   // Sync initial thought when thoughts array changes
   useEffect(() => {
@@ -182,7 +93,7 @@ export default function HeroCubeeCloud({
     let observer: IntersectionObserver | null = null;
 
     const setupObserver = () => {
-      // If triggerSelector is provided (e.g. bottom of Blueprint card), observe that element
+      // If triggerSelector is provided (e.g. bottom of Blueprint or Problem card), observe that element
       const targetEl = triggerSelector
         ? (document.querySelector(triggerSelector) as HTMLElement | null)
         : containerRef.current;
@@ -218,7 +129,6 @@ export default function HeroCubeeCloud({
     };
 
     if (!setupObserver() && triggerSelector) {
-      // Retry once after a brief delay if DOM node wasn't ready
       const t = setTimeout(setupObserver, 60);
       return () => {
         clearTimeout(t);
@@ -230,6 +140,176 @@ export default function HeroCubeeCloud({
       if (observer) observer.disconnect();
     };
   }, [isActive, triggerSelector]);
+
+  // Buttery-smooth GSAP Hardware-Accelerated Emergence Sequence
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      if (isInView) {
+        const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+        // 1. Teleportation Portal Warps
+        if (portalRing1Ref.current && portalRing2Ref.current) {
+          tl.fromTo(
+            portalRing1Ref.current,
+            { scale: 0, opacity: 0.95 },
+            { scale: 2.2, opacity: 0, duration: 0.65, ease: "power2.out", force3D: true },
+            0
+          );
+          tl.fromTo(
+            portalRing2Ref.current,
+            { scale: 0, opacity: 0.8 },
+            { scale: 1.8, opacity: 0, duration: 0.55, ease: "power2.out", force3D: true },
+            0.08
+          );
+        }
+
+        // 2. Avatar pop-in with organic back ease
+        if (avatarWrapperRef.current) {
+          tl.fromTo(
+            avatarWrapperRef.current,
+            { scale: 0.6, opacity: 0, y: 15 },
+            { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: "back.out(2)", force3D: true },
+            0.05
+          );
+        }
+        if (shadowRef.current) {
+          tl.fromTo(
+            shadowRef.current,
+            { scale: 0.2, opacity: 0 },
+            { scale: 1, opacity: 0.15, duration: 0.4, ease: "power2.out", force3D: true },
+            0.05
+          );
+        }
+
+        // 3. The 3 Trailing Thought Dots (staggered elastic pops)
+        if (dot1Ref.current) {
+          tl.fromTo(
+            dot1Ref.current,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.26, ease: "back.out(3)", force3D: true },
+            0.18
+          );
+        }
+        if (dot2Ref.current) {
+          tl.fromTo(
+            dot2Ref.current,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.26, ease: "back.out(3)", force3D: true },
+            0.28
+          );
+        }
+        if (dot3Ref.current) {
+          tl.fromTo(
+            dot3Ref.current,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.26, ease: "back.out(3)", force3D: true },
+            0.38
+          );
+        }
+
+        // 4. Scalloped Thought Cloud emerges with organic spring
+        if (cloudWrapperRef.current) {
+          tl.fromTo(
+            cloudWrapperRef.current,
+            { scale: 0, opacity: 0 },
+            {
+              scale: 1,
+              opacity: 1,
+              duration: 0.52,
+              ease: "back.out(1.6)",
+              force3D: true,
+              transformOrigin: cloudPosition === "left" ? "bottom right" : "bottom left",
+            },
+            0.46
+          );
+        }
+
+        // 5. Speech text fades & glides in
+        if (textRef.current) {
+          tl.fromTo(
+            textRef.current,
+            { opacity: 0, y: 5 },
+            { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", force3D: true },
+            0.68
+          );
+        }
+
+        // 6. Interactive form glides in
+        if (formRef.current) {
+          tl.fromTo(
+            formRef.current,
+            { opacity: 0, y: 6 },
+            { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", force3D: true },
+            0.78
+          );
+        }
+      } else {
+        // Smoothly fade out when out of view
+        const elementsToHide = [
+          cloudWrapperRef.current,
+          dot1Ref.current,
+          dot2Ref.current,
+          dot3Ref.current,
+          avatarWrapperRef.current,
+          shadowRef.current,
+        ].filter(Boolean);
+
+        if (elementsToHide.length > 0) {
+          gsap.to(elementsToHide, {
+            opacity: 0,
+            scale: 0.65,
+            duration: 0.25,
+            ease: "power2.in",
+            overwrite: "auto",
+            force3D: true,
+          });
+        }
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [isInView, cloudPosition]);
+
+  // Buttery-smooth GSAP 60fps GPU idle float for the avatar
+  useEffect(() => {
+    if (!avatarFloatRef.current || !shadowRef.current || !isInView) return;
+
+    const floatTween = gsap.to(avatarFloatRef.current, {
+      y: -6,
+      duration: 1.8,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+      force3D: true,
+    });
+
+    const shadowTween = gsap.to(shadowRef.current, {
+      scale: 0.88,
+      opacity: 0.1,
+      duration: 1.8,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+      force3D: true,
+    });
+
+    return () => {
+      floatTween.kill();
+      shadowTween.kill();
+    };
+  }, [isInView]);
+
+  // Smooth speech text transitions
+  useEffect(() => {
+    if (!textRef.current) return;
+    gsap.fromTo(
+      textRef.current,
+      { opacity: 0, y: 4 },
+      { opacity: 1, y: 0, duration: 0.28, ease: "power2.out", force3D: true }
+    );
+  }, [speechText]);
 
   // Auto rotate thoughts every 8.5 seconds when visible and user is not typing
   useEffect(() => {
@@ -290,7 +370,7 @@ export default function HeroCubeeCloud({
     }
   };
 
-  // Poking Cubee triggers mood and cloud bounce
+  // Poking Cubee triggers mood and cloud bounce with GSAP
   const handlePoke = () => {
     const pokeMoods = [
       { text: "Hey! Tap received! 👋 I'm your off-chain companion!", anim: "celebrate" },
@@ -303,48 +383,54 @@ export default function HeroCubeeCloud({
     setUserAsked(true);
     setSpeechText(pick.text);
     setAnimation(pick.anim);
-    setPokeCount((prev) => prev + 1);
+
+    // GSAP elastic bounce on cloud
+    if (cloudWrapperRef.current) {
+      gsap.timeline()
+        .to(cloudWrapperRef.current, { scale: 1.08, duration: 0.12, ease: "power2.out", force3D: true })
+        .to(cloudWrapperRef.current, { scale: 1, duration: 0.3, ease: "elastic.out(1.2, 0.4)", force3D: true });
+    }
+
+    // Portal warp pulse on poke
+    if (portalRing1Ref.current && portalRing2Ref.current) {
+      gsap.fromTo(
+        portalRing1Ref.current,
+        { scale: 0.5, opacity: 0.8 },
+        { scale: 2.1, opacity: 0, duration: 0.55, ease: "power2.out", force3D: true }
+      );
+      gsap.fromTo(
+        portalRing2Ref.current,
+        { scale: 0.5, opacity: 0.6 },
+        { scale: 1.7, opacity: 0, duration: 0.5, ease: "power2.out", force3D: true }
+      );
+    }
   };
 
   // If explicitly disabled via prop, hide
   if (!isActive) return null;
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
       className={`relative flex flex-col select-none min-h-[190px] ${
         cloudPosition === "left" ? "items-end" : "items-start"
       } ${className}`}
     >
       {/* TELEPORTATION PORTAL GLOW & WARP AURA */}
-      <AnimatePresence>
-        {isInView && (
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0">
-            <motion.div
-              key={`warp-${pokeCount}`}
-              initial={{ scale: 0, opacity: 0.9 }}
-              animate={{ scale: 2.1, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.65, ease: "easeOut" }}
-              className={`absolute -bottom-4 ${
-                cloudPosition === "left" ? "right-4" : "left-4"
-              } w-24 h-24 rounded-full border-2 border-cyan-400 bg-cyan-400/20 blur-sm`}
-            />
-            <motion.div
-              key={`amber-warp-${pokeCount}`}
-              initial={{ scale: 0, opacity: 0.7 }}
-              animate={{ scale: 1.7, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
-              className={`absolute -bottom-2 ${
-                cloudPosition === "left" ? "right-6" : "left-6"
-              } w-20 h-20 rounded-full border border-amber-400 bg-amber-400/15 blur-xs`}
-            />
-          </div>
-        )}
-      </AnimatePresence>
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0 overflow-visible">
+        <div
+          ref={portalRing1Ref}
+          className={`absolute -bottom-4 ${
+            cloudPosition === "left" ? "right-4" : "left-4"
+          } w-24 h-24 rounded-full border-2 border-cyan-400 bg-cyan-400/20 blur-sm opacity-0 will-change-transform`}
+        />
+        <div
+          ref={portalRing2Ref}
+          className={`absolute -bottom-2 ${
+            cloudPosition === "left" ? "right-6" : "left-6"
+          } w-20 h-20 rounded-full border border-amber-400 bg-amber-400/15 blur-xs opacity-0 will-change-transform`}
+        />
+      </div>
 
       {/* TOP: IDEA CLOUD + OUTSIDE INPUT BOX */}
       <div
@@ -353,20 +439,14 @@ export default function HeroCubeeCloud({
         } flex flex-col items-center`}
       >
         {/* 1. SCALLOPED THOUGHT CLOUD */}
-        <motion.div
-          variants={cloudVariants}
+        <div
+          ref={cloudWrapperRef}
           style={{
             transformOrigin: cloudPosition === "left" ? "bottom right" : "bottom left",
           }}
-          className="relative w-[225px] sm:w-[235px] h-[122px] drop-shadow-md"
+          className="relative w-[225px] sm:w-[235px] h-[122px] drop-shadow-md opacity-0 will-change-transform"
         >
-          {/* Subtle poke bounce reaction wrapper */}
-          <motion.div
-            key={`cloud-bounce-${pokeCount}`}
-            animate={pokeCount > 0 ? { scale: [1, 1.06, 0.98, 1] } : undefined}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="w-full h-full relative"
-          >
+          <div className="w-full h-full relative">
             {/* Scalloped Cartoon Cloud SVG Outline */}
             <svg
               viewBox="0 0 250 135"
@@ -386,22 +466,13 @@ export default function HeroCubeeCloud({
             </svg>
 
             {/* ALL TEXT IS 100% INSIDE THE CLOUD (Centered with ample padding) */}
-            <motion.div
-              variants={textVariants}
-              className="relative z-10 w-full h-full flex items-center justify-center px-6 py-4 text-center"
+            <div
+              ref={textRef}
+              className="relative z-10 w-full h-full flex items-center justify-center px-6 py-4 text-center opacity-0 will-change-transform"
             >
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={speechText}
-                  initial={{ opacity: 0, y: 3 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -3 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-[10.5px] sm:text-[11px] font-medium text-neutral-900 leading-snug font-sans select-text line-clamp-3"
-                >
-                  {speechText}
-                </motion.p>
-              </AnimatePresence>
+              <p className="text-[10.5px] sm:text-[11px] font-medium text-neutral-900 leading-snug font-sans select-text line-clamp-3">
+                {speechText}
+              </p>
 
               {isLoading && (
                 <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[9px] text-amber-600 font-mono">
@@ -409,18 +480,18 @@ export default function HeroCubeeCloud({
                   <span>Proving with GLM-4...</span>
                 </div>
               )}
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </div>
+          </div>
+        </div>
 
         {/* 2. INPUT BOX IN BOTTOM OF CLOUD OUTSIDE OF IT */}
-        <motion.form
-          variants={inputVariants}
+        <form
+          ref={formRef}
           onSubmit={(e) => {
             e.preventDefault();
             handleAsk();
           }}
-          className="mt-1.5 w-[205px] sm:w-[218px] flex items-center gap-1 bg-white border border-neutral-300 hover:border-neutral-900 focus-within:border-neutral-950 focus-within:ring-1 focus-within:ring-neutral-900/15 px-2.5 py-1 rounded-full shadow-sm transition-all"
+          className="mt-1.5 w-[205px] sm:w-[218px] flex items-center gap-1 bg-white border border-neutral-300 hover:border-neutral-900 focus-within:border-neutral-950 focus-within:ring-1 focus-within:ring-neutral-900/15 px-2.5 py-1 rounded-full shadow-sm transition-all opacity-0 will-change-transform"
         >
           <input
             type="text"
@@ -449,58 +520,55 @@ export default function HeroCubeeCloud({
               <Send className="w-2.5 h-2.5" />
             )}
           </button>
-        </motion.form>
+        </form>
       </div>
 
       {/* 3. THE 3 TRAILING THOUGHT DOTS */}
       <div className="relative w-full h-7 -mt-1 pointer-events-none z-20">
         {/* Dot 3 (Large) near cloud */}
-        <motion.div
-          variants={dot3Variants}
+        <div
+          ref={dot3Ref}
           className={`absolute ${
             cloudPosition === "left"
               ? "right-[26px] sm:right-[30px]"
               : "left-[26px] sm:left-[30px]"
-          } top-0 w-3 h-3 rounded-full bg-white border-[2px] border-neutral-900 shadow-xs`}
+          } top-0 w-3 h-3 rounded-full bg-white border-[2px] border-neutral-900 shadow-xs opacity-0 will-change-transform`}
         />
 
         {/* Dot 2 (Medium) midway */}
-        <motion.div
-          variants={dot2Variants}
+        <div
+          ref={dot2Ref}
           className={`absolute ${
             cloudPosition === "left"
               ? "right-[18px] sm:right-[21px]"
               : "left-[18px] sm:left-[21px]"
-          } top-2.5 w-2.5 h-2.5 rounded-full bg-white border-[1.5px] border-neutral-900 shadow-xs`}
+          } top-2.5 w-2.5 h-2.5 rounded-full bg-white border-[1.5px] border-neutral-900 shadow-xs opacity-0 will-change-transform`}
         />
 
         {/* Dot 1 (Small) near Cubee */}
-        <motion.div
-          variants={dot1Variants}
+        <div
+          ref={dot1Ref}
           className={`absolute ${
             cloudPosition === "left"
               ? "right-[12px] sm:right-[14px]"
               : "left-[12px] sm:left-[14px]"
-          } top-4.5 w-2 h-2 rounded-full bg-white border-[1.5px] border-neutral-900 shadow-xs`}
+          } top-4.5 w-2 h-2 rounded-full bg-white border-[1.5px] border-neutral-900 shadow-xs opacity-0 will-change-transform`}
         />
       </div>
 
       {/* 4. CUBEE AVATAR */}
-      <motion.div
-        variants={avatarVariants}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
+      <div
+        ref={avatarWrapperRef}
         onClick={handlePoke}
         title="Click to poke Cubee!"
-        className={`relative z-20 cursor-pointer group flex flex-col ${
+        className={`relative z-20 cursor-pointer group flex flex-col opacity-0 will-change-transform transition-transform hover:scale-105 active:scale-95 ${
           cloudPosition === "left" ? "items-end pr-1 sm:pr-2" : "items-start pl-1 sm:pl-2"
         }`}
       >
         {/* Floating motion wrapper */}
-        <motion.div
-          animate={{ y: [0, -5, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="relative flex items-center justify-center min-h-[76px]"
+        <div
+          ref={avatarFloatRef}
+          className="relative flex items-center justify-center min-h-[76px] will-change-transform"
         >
           {isClient ? (
             <Avatar
@@ -512,13 +580,16 @@ export default function HeroCubeeCloud({
           ) : (
             <div className="w-[76px] h-[76px]" />
           )}
-        </motion.div>
+        </div>
 
         {/* Floating shadow on the floor */}
-        <div className={`w-14 h-2 rounded-full bg-black/15 blur-xs mt-1 ${
-          cloudPosition === "left" ? "mr-2" : "ml-2"
-        } transition-transform duration-300 group-hover:scale-90`} />
-      </motion.div>
-    </motion.div>
+        <div
+          ref={shadowRef}
+          className={`w-14 h-2 rounded-full bg-black/15 blur-xs mt-1 opacity-0 will-change-transform ${
+            cloudPosition === "left" ? "mr-2" : "ml-2"
+          }`}
+        />
+      </div>
+    </div>
   );
 }

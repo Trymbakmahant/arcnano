@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import SineRibbonBackground from "@/component/UI/SineRibbonBackground";
 import VerticalCurvyStepper from "@/component/UI/VerticalCurvyStepper";
-import RoadmapCarousel from "@/component/UI/RoadmapCarousel";
 import CornerTicks from "@/component/UI/CornerTicks";
 import HeroCubeeCloud from "@/component/UI/HeroCubeeCloud";
 
@@ -13,6 +12,14 @@ const BLUEPRINT_THOUGHTS = [
   "Phase 2: X402 HTTP challenge returns invoice & tree root for instant inference! ⚡",
   "Phase 3: Off-chain Groth16 proof in ~74ms eliminates mempool doxing completely! 🔒",
   "Phase 4: Provider batches settlements to Arc L1 with $0.00 agent gas fees! 🚀",
+];
+
+const PROBLEM_THOUGHTS = [
+  "Trap 1: Public block explorers log every AI model call, prompt & supplier! 📡",
+  "Trap 2: Naive ZK still leaks the signer's wallet when submitting on-chain! 🔓",
+  "Trap 3: Mixers get blacklisted by enterprise APIs because dirty & clean funds pool! 🚫",
+  "Trap 4: 10–15s block times stall real-time LLM loops & gas fees kill nanopayments! ⏱️",
+  "ArcNano solves this: off-chain Groth16 proofs + ASP non-membership compliance! 🛡️",
 ];
 import {
   Radar,
@@ -33,7 +40,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<string>("hero");
 
   useEffect(() => {
-    const sectionIds = ["hero", "blueprint", "problem", "solution", "roadmap"];
+    const sectionIds = ["hero", "blueprint", "problem", "solution"];
 
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -136,7 +143,6 @@ export default function Home() {
             <a className="hover:text-neutral-950 transition-colors" href="#blueprint">Blueprint</a>
             <a className="hover:text-neutral-950 transition-colors" href="#problem">The Problem</a>
             <a className="hover:text-neutral-950 transition-colors" href="#solution">How It Works</a>
-            <a className="hover:text-neutral-950 transition-colors" href="#roadmap">Roadmap</a>
             <a className="text-amber-600 hover:text-amber-700 font-semibold transition-colors flex items-center gap-1" href="/demo">
               <span>Demo</span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
@@ -148,13 +154,15 @@ export default function Home() {
           </div>
 
           <div className="pl-2 border-l border-neutral-200 flex items-center gap-2.5">
-            {/* Coming Soon Status Pill */}
+            {/* Status Pill */}
             <a
-              href="#roadmap"
-              className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/25 text-amber-800 text-xs font-medium px-3.5 py-1.5 rounded-full hover:bg-amber-500/20 transition-all shadow-sm"
+              href="https://github.com/Trymbakmahant/arcnano"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 text-xs font-medium px-3.5 py-1.5 rounded-full hover:bg-emerald-500/20 transition-all shadow-sm"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>Coming Soon</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Production Ready</span>
             </a>
           </div>
         </nav>
@@ -244,16 +252,6 @@ export default function Home() {
               >
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                 <span>Flowchart Demo</span>
-              </a>
-
-              <a
-                className="bg-white/80 hover:bg-white text-neutral-800 border border-neutral-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-5 py-2.5 sm:py-3 rounded-full transition-all shadow-sm flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
-                href="#roadmap"
-                data-cubee-hint="Check out our roadmap: 20-level Merkle tree circuits, Python SDK for LangChain/CrewAI, and Arc testnet deployment!"
-                data-cubee-anim="working"
-              >
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>Roadmap (Coming Soon)</span>
               </a>
 
               <a
@@ -510,7 +508,7 @@ export default function Home() {
 
 
         {/* SECTION 3: THE PROBLEM WE ARE SOLVING (PUNCHY, 2-LINE SCAN) */}
-        <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors overflow-hidden" id="problem">
+        <section className="py-24 bg-[var(--section-alt-bg)] border-y border-[var(--card-border)] px-4 relative z-10 transition-colors overflow-visible" id="problem">
           {/* Subtle atmospheric ambient glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] md:w-[900px] h-[450px] bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -528,8 +526,33 @@ export default function Home() {
               </p>
             </div>
 
+            {/* Mobile Mascot (< md) */}
+            <div className="md:hidden flex justify-center mb-6">
+              <HeroCubeeCloud
+                sectionId="problem"
+                sectionLabel="Threat Model"
+                thoughts={PROBLEM_THOUGHTS}
+                pretextTitle="ArcNano Threat Model & Fatal Traps"
+                pretextHint="4 reasons standard public blockchain payments fail for AI agents"
+                triggerSelector="#problem-card-bottom"
+              />
+            </div>
+
             {/* Architectural Blueprint Grid (Inspired by arc.io spec layout) */}
             <div className="relative bg-white border border-neutral-200/90 shadow-sm max-w-6xl mx-auto">
+              {/* Top-Right Cloud Cubee (Positioned at the star point on top-right of the card) */}
+              <div className="hidden md:block absolute -right-3 sm:-right-6 md:-right-8 lg:-right-10 -top-[190px] z-30 pointer-events-auto">
+                <HeroCubeeCloud
+                  sectionId="problem"
+                  sectionLabel="Threat Model"
+                  thoughts={PROBLEM_THOUGHTS}
+                  pretextTitle="ArcNano Threat Model & Fatal Traps"
+                  pretextHint="4 reasons standard public blockchain payments fail for AI agents"
+                  triggerSelector="#problem-card-bottom"
+                  cloudPosition="left"
+                />
+              </div>
+
               {/* Corner and Intersection Architectural Ticks */}
               {/* Top-Left Corner ┌ */}
               <svg className="absolute -top-[1px] -left-[1px] w-5 h-5 pointer-events-none text-neutral-400 z-10" viewBox="0 0 20 20" fill="none">
@@ -654,12 +677,14 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              {/* Sentinel to trigger Cubee Cloud animation when bottom of card is visible */}
+              <div id="problem-card-bottom" className="w-full h-1 pointer-events-none" />
             </div>
           </div>
         </section>
 
         {/* SECTION 3: HOW ARCNANO SOLVES IT */}
-        <section className="py-24 max-w-7xl mx-auto px-4 relative z-10" id="solution">
+        <section className="py-24 max-w-7xl mx-auto px-4 relative z-10 overflow-visible" id="solution">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-mono text-amber-800 mb-4 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -676,11 +701,6 @@ export default function Home() {
           {/* Animated Vertical Curvy Stepper */}
           <VerticalCurvyStepper />
         </section>
-
-        {/* SECTION 4: DEVELOPMENT ROADMAP (ARC.IO DEVELOPER RESOURCES DESIGN - HORIZONTAL SCROLL CAROUSEL) */}
-        <div id="roadmap" className="relative">
-          <RoadmapCarousel />
-        </div>
       </main>
 
       {/* Minimized Clean Footer */}
@@ -725,10 +745,6 @@ export default function Home() {
               rel="noopener noreferrer"
             >
               X (@0xarcnano)
-            </a>
-            <span className="text-neutral-300">•</span>
-            <a className="hover:text-neutral-950 transition-colors" href="#roadmap">
-              Roadmap
             </a>
           </div>
         </div>
