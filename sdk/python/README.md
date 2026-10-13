@@ -10,21 +10,21 @@
 
 ---
 
-## ⚡ Overview
+## Overview
 
 `arczk-agent` empowers autonomous AI agents (**LangChain**, **CrewAI**, **AutoGPT**, **LlamaIndex**) to execute instant, privacy-preserving micro-payments over standard **HTTP 402 Payment Required** protocols with complete identity unlinkability on the **Arc Network**.
 
 ### Why use `arczk-agent`?
 
-- 🛡️ **Zero Signer Exposure**: The calling AI agent never broadcasts on-chain transactions or exposes private keys. API providers cannot link prompt requests to any on-chain wallet balance.
-- ⚡ **Autonomous X402 Negotiation**: Automatically intercepts `402 Payment Required` responses, extracts cryptographic invoice parameters, generates Groth16 spend proofs in RAM, and retries in single-digit milliseconds.
-- 🔐 **Shielded Note Vault**: Client-side note generation (`secret`, `nullifier_seed`, Poseidon commitments) with local encrypted JSON persistence.
-- 🤖 **Agent Framework Ready**: Drop-in tool adapters for **LangChain** and **CrewAI** multi-agent pipelines.
-- ⛽ **Zero Gas Overhead**: Note settlement is batched and sponsored by API providers via Circle Gas Station (ERC-4337) on Arc L1.
+- **Zero Signer Exposure**: The calling AI agent never broadcasts on-chain transactions or exposes private keys. API providers cannot link prompt requests to any on-chain wallet balance.
+- **Autonomous X402 Negotiation**: Automatically intercepts `402 Payment Required` responses, extracts cryptographic invoice parameters, generates Groth16 spend proofs in RAM, and retries in single-digit milliseconds.
+- **Shielded Note Vault**: Client-side note generation (`secret`, `nullifier_seed`, Poseidon commitments) with local encrypted JSON persistence.
+- **Agent Framework Ready**: Drop-in tool adapters for **LangChain** and **CrewAI** multi-agent pipelines.
+- **Zero Gas Overhead**: Note settlement is batched and sponsored by API providers via Circle Gas Station (ERC-4337) on Arc L1.
 
 ---
 
-## 🔄 How Autonomous X402 Negotiation Works
+## How Autonomous X402 Negotiation Works
 
 ```
  Autonomous Agent (Python)                 Protected API Gateway (X402)               Arc L1
@@ -53,7 +53,7 @@
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Standard installation
@@ -71,7 +71,7 @@ pip install "arczk-agent[crewai]"
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### 1. Direct Python Client with Transparent X402 Handling
 
@@ -165,7 +165,7 @@ print(result)
 
 ---
 
-## 📚 Core Modules Reference
+## Core Modules Reference
 
 ### `ArcAgentClient`
 Autonomous HTTP client with session pooling and automated payment retry:
@@ -189,7 +189,7 @@ RAM-based Groth16 spend proof generator:
 
 ---
 
-## 🌐 Network & Contract Reference
+## Network & Contract Reference
 
 | Parameter | Value |
 | :--- | :--- |
@@ -203,7 +203,7 @@ RAM-based Groth16 spend proof generator:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run test suite
@@ -212,6 +212,6 @@ pytest tests/ -v
 
 ---
 
-## 📄 License
+## License
 
 MIT © [Trymbak Mahant](https://github.com/Trymbakmahant)
