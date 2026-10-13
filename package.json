@@ -1,0 +1,11 @@
+{
+  "name": "arcnano-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter arcnano-x402 build",
+    "start": "pnpm --filter arcnano-x402 relayer",
+    "relayer": "pnpm --filter arcnano-x402 relayer"
+  }
+}
