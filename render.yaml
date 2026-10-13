@@ -1,0 +1,37 @@
+services:
+  # ArcNano Automated Batch Relayer Daemon (Circle Paymaster + ArcNanoPool)
+  - type: web
+    name: arcnano-relayer-daemon
+    runtime: node
+    rootDir: sdk/x402-express
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run relayer
+    healthCheckPath: /v1/status
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ARC_POOL_ADDRESS
+        value: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+      - key: ARC_RPC_URL
+        value: "https://rpc.testnet.arc.network"
+      - key: ARC_PAYMASTER_URL
+        value: "https://gas-station.testnet.arc.network/v1"
+      - key: BATCH_THRESHOLD
+        value: "5"
+      - key: FLUSH_INTERVAL_MS
+        value: "15000"
+      - key: ARC_RELAYER_KEY
+        sync: false # Set in Render dashboard (optional, Paymaster sponsors 100% of gas)
+
+  # ArcNano X402 Protected AI Inference Gateway Server
+  - type: web
+    name: arcnano-gateway-service
+    runtime: node
+    rootDir: .
+    buildCommand: pnpm install --filter arcnano-x402
+    startCommand: npx tsx examples/gateway_server.ts
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 4020
