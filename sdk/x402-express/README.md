@@ -10,21 +10,21 @@
 
 ---
 
-## ⚡ Overview
+## Overview
 
 **arcnano-x402** allows AI agent developers, API providers, and SaaS platforms to monetize APIs using standard **HTTP 402 Payment Required** flows backed by **Zero-Knowledge proofs** on the [Arc Network](https://arc.network).
 
 ### Why arcnano-x402?
 
-- ⚡ **Sub-8ms Verification**: Verifies BN254 Groth16 zero-knowledge proofs entirely in memory before serving requests, introducing zero perceptible latency to streaming LLM tokens.
-- 🛡️ **Privacy Preserving & Zero Identity Linkage**: API consumers spend private shielded notes. The API provider never learns the caller's on-chain wallet address or balances.
-- 🛑 **Instant Double-Spend Defense**: An in-memory nullifier cache prevents note replays in under 0.1ms without waiting for on-chain block mining.
-- ⛽ **Zero Gas for Agents & Circle Paymaster**: API callers never broadcast blockchain transactions. API gateways aggregate verified notes and batch-settle on-chain using **Circle Gas Station (ERC-4337)** sponsorship.
-- 🔌 **1-Line Express Integration**: Wrap any route with `x402PaymentMiddleware()` and access verified cryptographic payment context on `req.payment`.
+- **Sub-8ms Verification**: Verifies BN254 Groth16 zero-knowledge proofs entirely in memory before serving requests, introducing zero perceptible latency to streaming LLM tokens.
+- **Privacy Preserving & Zero Identity Linkage**: API consumers spend private shielded notes. The API provider never learns the caller's on-chain wallet address or balances.
+- **Instant Double-Spend Defense**: An in-memory nullifier cache prevents note replays in under 0.1ms without waiting for on-chain block mining.
+- **Zero Gas for Agents & Circle Paymaster**: API callers never broadcast blockchain transactions. API gateways aggregate verified notes and batch-settle on-chain using **Circle Gas Station (ERC-4337)** sponsorship.
+- **1-Line Express Integration**: Wrap any route with `x402PaymentMiddleware()` and access verified cryptographic payment context on `req.payment`.
 
 ---
 
-## 🔄 How the HTTP 402 Flow Works
+## How the HTTP 402 Flow Works
 
 ```
  Client Agent                          API Provider (Express Gateway)             Arc L1 (Pool)
@@ -52,7 +52,7 @@
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 # npm
@@ -67,7 +67,7 @@ yarn add arcnano-x402
 
 ---
 
-## 🚀 Quickstart (Server / API Gateway)
+## Quickstart (Server / API Gateway)
 
 Protect any Express endpoint with a single middleware declaration:
 
@@ -129,7 +129,7 @@ app.listen(3000, () => {
 
 ---
 
-## 🤖 Client Usage
+## Client Usage
 
 When an AI agent calls the protected route without credentials:
 
@@ -168,7 +168,7 @@ Alternatively, pass a Base64-encoded payload or set the `X-Payment` header with 
 
 ---
 
-## 📚 Core SDK Components
+## Core SDK Components
 
 The package exports modular building blocks for custom architectures:
 
@@ -253,7 +253,7 @@ await daemon.start();
 
 ---
 
-## 🛠️ CLI Standalone Relayer
+## CLI Standalone Relayer
 
 You can run the bundled relayer directly using `npx`:
 
@@ -266,7 +266,7 @@ npx arcnano-x402 relayer
 
 ---
 
-## 🌐 Network & Contract Reference
+## Network & Contract Reference
 
 | Parameter | Value |
 | :--- | :--- |
@@ -280,7 +280,7 @@ npx arcnano-x402 relayer
 
 ---
 
-## 🧪 Testing & Benchmarks
+## Testing & Benchmarks
 
 ```bash
 # Run full unit and integration test suite
@@ -292,6 +292,6 @@ pnpm benchmark
 
 ---
 
-## 📄 License
+## License
 
 MIT © [Trymbak Mahant](https://github.com/Trymbakmahant)
