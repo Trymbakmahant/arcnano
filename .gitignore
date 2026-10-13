@@ -30,8 +30,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Project Learning Book (Local Reference)
+# Project Learning Book & Video Scripts (Local Reference)
 ARCNANO_DEEP_DIVE_BOOK.md
+RELAYER_RESEARCH_AND_VIDEO_IDEAS.md
 
 # Marketing & Social Media Plans (Local)
 marketing/
