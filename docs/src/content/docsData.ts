@@ -581,11 +581,16 @@ ArcNano organizes deposits into an incremental 20-level binary Merkle tree:
     id: "sdk-express",
     title: "arcnano-x402 Middleware",
     category: "Developer SDKs & Gateway Tooling",
-    summary: "Guide to monetizing Express and Fastify endpoints using arcnano-x402.",
+    summary: "Guide to monetizing Express and Fastify endpoints using arcnano-x402 on npm.",
     content: `
 # arcnano-x402 Middleware Guide
 
-The \`arcnano-x402\` package allows API providers to monetize endpoints with sub-8ms off-chain ZK verification in 3 lines of code:
+[![npm version](https://img.shields.io/npm/v/arcnano-x402.svg?color=emerald)](https://www.npmjs.com/package/arcnano-x402)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://testnet.arcscan.io)
+
+The **\`arcnano-x402\`** package is officially published on npm: **[npmjs.com/package/arcnano-x402](https://www.npmjs.com/package/arcnano-x402)**.
+It allows API providers to monetize Express and Node.js endpoints with sub-8ms off-chain ZK verification and automated Arc Testnet batch settlement in 3 lines of code:
 
 ## Installation
 
@@ -593,6 +598,8 @@ The \`arcnano-x402\` package allows API providers to monetize endpoints with sub
 npm install arcnano-x402
 # or
 pnpm add arcnano-x402
+# or
+yarn add arcnano-x402
 \`\`\`
 
 ## Quickstart
@@ -609,21 +616,30 @@ app.use(
   "/api/v1/inference",
   x402PaymentMiddleware({
     recipient: "0x063829800C7214C6AaD38f57C72561641cD80333", // Payout wallet
+    poolAddress: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca", // ArcNanoPool on Arc
     denomination: "10000", // 0.01 USDC
     batchSize: 10, // Settle every 10 notes on Arc L1
   })
 );
 
 app.post("/api/v1/inference", (req, res) => {
-  // Access verified context
+  // Access verified cryptographic payment context
   console.log("Verified nullifier:", req.payment.nullifierHash);
-  console.log("Verification time:", req.payment.verificationLatencyMs, "ms");
+  console.log("Verification latency:", req.payment.verificationLatencyMs, "ms");
+  console.log("Denomination:", req.payment.denominationFormatted);
 
-  res.json({ tokens: ["Streamed", "LLM", "tokens"] });
+  res.json({ tokens: ["Streamed", "LLM", "tokens", "delivered"] });
 });
 
-app.listen(3000);
+app.listen(3000, () => {
+  console.log("X402 gateway running on http://localhost:3000");
+});
 \`\`\`
+
+## Package Details
+- **npm Registry**: [https://www.npmjs.com/package/arcnano-x402](https://www.npmjs.com/package/arcnano-x402)
+- **Settlement Network**: Arc Testnet (Circle L1, Chain ID 5042002)
+- **Pool Contract**: \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`
 `,
   },
 
@@ -631,18 +647,25 @@ app.listen(3000);
     id: "sdk-python",
     title: "arczk-agent Python SDK",
     category: "Developer SDKs & Gateway Tooling",
-    summary: "Guide to building autonomous AI agents with arczk-agent for LangChain, AutoGPT, and CrewAI.",
+    summary: "Guide to building autonomous AI agents with arczk-agent on PyPI for LangChain, AutoGPT, and CrewAI.",
     content: `
 # arczk-agent Python SDK Guide
 
-\`arczk-agent\` is the Python client library for autonomous AI agents transacting on Arc.
+[![PyPI version](https://img.shields.io/pypi/v/arczk-agent.svg?color=emerald)](https://pypi.org/project/arczk-agent/)
+[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://pypi.org/project/arczk-agent/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+The **\`arczk-agent\`** package is officially published on PyPI: **[pypi.org/project/arczk-agent/](https://pypi.org/project/arczk-agent/)**.
+It empowers autonomous AI agents (LangChain, CrewAI, AutoGPT) to execute instant, privacy-preserving micropayments over HTTP 402 with zero on-chain signer surveillance.
 
 ## Installation
 
 \`\`\`bash
 pip install arczk-agent
-# or
+# or using uv:
 uv pip install arczk-agent
+# with LangChain support:
+pip install "arczk-agent[langchain]"
 \`\`\`
 
 ## Quickstart
@@ -650,7 +673,7 @@ uv pip install arczk-agent
 \`\`\`python
 from arczk import ArcAgentClient, NoteVault
 
-# 1. Initialize local note vault
+# 1. Initialize local shielded note vault
 vault = NoteVault("~/.arcnano/vault.json")
 vault.create_note(denomination=10000) # 0.01 USDC note
 
@@ -660,11 +683,16 @@ client = ArcAgentClient(vault=vault)
 # 3. Request paid endpoint: Automatically catches HTTP 402, constructs ZK proof, and retries!
 response = client.post(
     "https://api.inference.ai/v1/inference",
-    json={"prompt": "Analyze autonomous financial markets"}
+    json={"prompt": "Analyze autonomous financial markets on Arc"}
 )
 
 print(response.json())
 \`\`\`
+
+## Package Details
+- **PyPI Registry**: [https://pypi.org/project/arczk-agent/](https://pypi.org/project/arczk-agent/)
+- **Framework Support**: Native tools for LangChain (\`ArcNanoLangChainTool\`) and CrewAI (\`ArcNanoPaymentTool\`)
+- **Privacy Guarantee**: Zero public signer leakage, RAM-based Groth16 spend proof generation
 `,
   },
 

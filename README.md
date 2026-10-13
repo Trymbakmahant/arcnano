@@ -299,6 +299,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser:
 ## 🤖 Developer Tooling & SDK Quickstart
 
 ### 1. `arcnano-x402` (API Providers & Gateways)
+
+[![npm version](https://img.shields.io/npm/v/arcnano-x402.svg?color=emerald)](https://www.npmjs.com/package/arcnano-x402)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Published on npm: **[npmjs.com/package/arcnano-x402](https://www.npmjs.com/package/arcnano-x402)** (`npm install arcnano-x402` / `pnpm add arcnano-x402`).  
 Monetize AI endpoints with sub-8ms zero-knowledge verification and zero block latency:
 
 ```typescript
@@ -339,6 +344,11 @@ pnpm --filter arcnano-x402 relayer
 ```
 
 ### 3. `arczk-agent` (Autonomous AI Agents)
+
+[![PyPI version](https://img.shields.io/pypi/v/arczk-agent.svg?color=emerald)](https://pypi.org/project/arczk-agent/)
+[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://pypi.org/project/arczk-agent/)
+
+Published on PyPI: **[pypi.org/project/arczk-agent/](https://pypi.org/project/arczk-agent/)** (`pip install arczk-agent` / `uv pip install arczk-agent`).  
 Autonomous client library for LangChain, AutoGPT, and CrewAI agents:
 
 ```python

@@ -84,6 +84,30 @@ export default function Header({ onOpenSearch }: HeaderProps) {
             <span>Playground</span>
           </a>
 
+          {/* npm Package Link */}
+          <a
+            href="https://www.npmjs.com/package/arcnano-x402"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 hover:border-red-400 transition-colors"
+            title="arcnano-x402 on npm"
+          >
+            <span className="font-extrabold text-[10px] tracking-tight">npm</span>
+            <span className="text-[10px] opacity-80">v0.1.2</span>
+          </a>
+
+          {/* PyPI Package Link */}
+          <a
+            href="https://pypi.org/project/arczk-agent/"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900 hover:border-blue-400 transition-colors"
+            title="arczk-agent on PyPI"
+          >
+            <span className="font-extrabold text-[10px] tracking-tight">PyPI</span>
+            <span className="text-[10px] opacity-80">v0.1.1</span>
+          </a>
+
           <a
             href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
             target="_blank"

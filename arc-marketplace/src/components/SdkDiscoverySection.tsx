@@ -132,9 +132,29 @@ $ curl -i -X ${method} ${targetUrl} \\
         {/* Header block */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00DC82]"></span>
-              Arcnano Autonomous Agent SDK
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold uppercase tracking-wider text-emerald-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00DC82]"></span>
+                Arcnano Autonomous Agent SDK
+              </div>
+              <a
+                href="https://www.npmjs.com/package/arcnano-x402"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-mono font-bold text-red-700 hover:bg-red-100 transition-colors"
+                title="View arcnano-x402 on npm"
+              >
+                <span>npm: arcnano-x402 ↗</span>
+              </a>
+              <a
+                href="https://pypi.org/project/arczk-agent/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[11px] font-mono font-bold text-blue-700 hover:bg-blue-100 transition-colors"
+                title="View arczk-agent on PyPI"
+              >
+                <span>PyPI: arczk-agent ↗</span>
+              </a>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Autonomous Discovery &amp; Privacy Payment Flow
@@ -231,7 +251,7 @@ $ curl -i -X ${method} ${targetUrl} \\
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                TypeScript (@arcnano/sdk)
+                TypeScript (arcnano-x402)
               </button>
               <button
                 onClick={() => setActiveTab("curl")}

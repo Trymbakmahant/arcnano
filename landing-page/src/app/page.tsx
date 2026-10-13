@@ -243,6 +243,32 @@ export default function Home() {
                 <span>X (@0xarcnano)</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
+
+              <a
+                className="bg-red-50 hover:bg-red-100/80 text-red-700 border border-red-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-4 py-2 sm:py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer font-mono"
+                href="https://www.npmjs.com/package/arcnano-x402"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cubee-hint="Install arcnano-x402 on npm for Express and Node.js gateway monetization!"
+                data-cubee-anim="proud"
+              >
+                <span className="font-bold text-[11px] bg-red-600 text-white px-1.5 py-0.5 rounded">npm</span>
+                <span>arcnano-x402</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </a>
+
+              <a
+                className="bg-blue-50 hover:bg-blue-100/80 text-blue-700 border border-blue-200 backdrop-blur-xl text-xs sm:text-sm font-medium px-4 py-2 sm:py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 hover:-translate-y-0.5 cursor-pointer font-mono"
+                href="https://pypi.org/project/arczk-agent/"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cubee-hint="Install arczk-agent on PyPI for LangChain, AutoGPT, and CrewAI autonomous agents!"
+                data-cubee-anim="excited"
+              >
+                <span className="font-bold text-[11px] bg-blue-600 text-white px-1.5 py-0.5 rounded">PyPI</span>
+                <span>arczk-agent</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </a>
             </div>
 
             {/* Arc L1 Institutional Spec Ribbon (Direct arc.io inspiration) */}
@@ -722,6 +748,24 @@ export default function Home() {
               rel="noopener noreferrer"
             >
               X (@0xarcnano)
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a
+              className="hover:text-red-700 transition-colors"
+              href="https://www.npmjs.com/package/arcnano-x402"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              npm
+            </a>
+            <span className="text-neutral-300">•</span>
+            <a
+              className="hover:text-blue-700 transition-colors"
+              href="https://pypi.org/project/arczk-agent/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              PyPI
             </a>
           </div>
         </div>
