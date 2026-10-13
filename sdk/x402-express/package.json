@@ -1,6 +1,6 @@
 {
   "name": "arcnano-x402",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Drop-in HTTP X402 payment middleware with sub-8ms off-chain ZK Groth16 verification & Arc Testnet batch settlement for Express and Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
