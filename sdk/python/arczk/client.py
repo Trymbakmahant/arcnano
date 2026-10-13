@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from typing import Optional, Dict, Any, Union
 import requests
 
@@ -14,14 +15,14 @@ class ArcAgentClient:
     """
     Autonomous AI Agent HTTP client with automatic X402 payment handling.
     Intercepts HTTP 402 Payment Required, generates zero-knowledge spend proofs in memory,
-    and retries transparently with X-PAYMENT headers.
+    and retries transparently with standardized X-Payment and Authorization headers.
     """
 
     def __init__(
         self,
         vault: Optional[NoteVault] = None,
         prover: Optional[Groth16Prover] = None,
-        max_payment_per_call: int = 50000, # 0.05 USDC max limit per call
+        max_payment_per_call: int = 50000,  # 0.05 USDC max limit per call
         session: Optional[requests.Session] = None,
     ):
         self.vault = vault or NoteVault()
@@ -30,7 +31,7 @@ class ArcAgentClient:
         self.session = session or requests.Session()
 
     def parse_invoice(self, response: requests.Response) -> X402Invoice:
-        """Parses X402 challenge from response headers or JSON body."""
+        """Parses X402 challenge from response headers, WWW-Authenticate, or JSON body."""
         headers = response.headers
         recipient = headers.get("x402-recipient")
         pool = headers.get("x402-pool", "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca")
@@ -39,19 +40,44 @@ class ArcAgentClient:
         denomination = int(headers.get("x402-denomination", "10000"))
         chain_id = int(headers.get("x402-chain-id", "5042002"))
 
-        # Fallback to response JSON body if headers missing
+        # Parse standard RFC-style WWW-Authenticate: X402 ... header
+        auth_header = headers.get("www-authenticate", "")
+        if "X402" in auth_header:
+            pool_match = re.search(r'pool=["\']([^"\']+)["\']', auth_header)
+            if pool_match and not recipient:
+                pool = pool_match.group(1)
+            denom_match = re.search(r'denomination=["\']?(\d+)["\']?', auth_header)
+            if denom_match:
+                try:
+                    denomination = int(denom_match.group(1))
+                except ValueError:
+                    pass
+
+        # Parse response JSON body if present
         raw_challenge = {}
         try:
             body = response.json()
             raw_challenge = body
-            invoice_data = body.get("invoice", {})
-            if invoice_data:
+            invoice_data = body.get("invoice") or body
+            if isinstance(invoice_data, dict):
                 recipient = recipient or invoice_data.get("recipient")
                 pool = pool or invoice_data.get("pool")
                 root = root or invoice_data.get("root")
-                asp_root = asp_root or invoice_data.get("aspRoot")
-                denomination = int(invoice_data.get("denomination", denomination))
-                chain_id = int(invoice_data.get("chainId", chain_id))
+                asp_root = (
+                    asp_root
+                    or invoice_data.get("aspRoot")
+                    or invoice_data.get("asp_root")
+                )
+                if "denomination" in invoice_data:
+                    try:
+                        denomination = int(invoice_data["denomination"])
+                    except (ValueError, TypeError):
+                        pass
+                if "chainId" in invoice_data or "chain_id" in invoice_data:
+                    try:
+                        chain_id = int(invoice_data.get("chainId") or invoice_data.get("chain_id"))
+                    except (ValueError, TypeError):
+                        pass
         except Exception:
             pass
 
@@ -104,8 +130,12 @@ class ArcAgentClient:
             # Generate Groth16 spend proof in RAM
             proof_payload = self.prover.generate_proof(note, invoice)
 
-            # Attach payment header and retry
-            req_headers["X-PAYMENT"] = json.dumps(proof_payload.to_dict())
+            # Attach standard X402 payment headers and retry
+            payload_json = json.dumps(proof_payload.to_dict())
+            req_headers["X-Payment"] = payload_json
+            req_headers["X-PAYMENT"] = payload_json
+            req_headers["Authorization"] = f"X402 {payload_json}"
+
             retry_resp = self.session.request(method, url, headers=req_headers, **kwargs)
 
             if retry_resp.status_code in (200, 201, 204):
@@ -124,3 +154,9 @@ class ArcAgentClient:
 
     def post(self, url: str, **kwargs) -> requests.Response:
         return self.request("POST", url, **kwargs)
+
+    def put(self, url: str, **kwargs) -> requests.Response:
+        return self.request("PUT", url, **kwargs)
+
+    def delete(self, url: str, **kwargs) -> requests.Response:
+        return self.request("DELETE", url, **kwargs)

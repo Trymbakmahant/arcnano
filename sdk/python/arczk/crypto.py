@@ -32,6 +32,7 @@ def poseidon(inputs: List[Union[int, str]]) -> int:
     # Evaluate via node / circomlibjs bridge
     # Look for circomlibjs in current package, parent circuits, or global node_modules
     paths_to_check = [
+        os.path.abspath("node_modules/circomlibjs"),
         os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../circuits/node_modules/circomlibjs")),
         os.path.abspath(os.path.join(os.path.dirname(__file__), "../../x402-express/node_modules/circomlibjs")),
     ]
