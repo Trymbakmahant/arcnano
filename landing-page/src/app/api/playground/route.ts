@@ -10,15 +10,28 @@ const DEFAULT_ASP_ROOT = "191280181040033511699580074055410966542762870249148203
 
 export async function POST(req: NextRequest) {
   const startTime = performance.now();
+  let body: any = {};
+  try {
+    body = await req.json();
+  } catch {
+    // empty body
+  }
+
   const rawPaymentHeader = req.headers.get("x-payment") || req.headers.get("authorization");
+  const targetRecipient = body.recipient && body.recipient.startsWith("0x") && body.recipient.length === 42
+    ? body.recipient
+    : RECIPIENT_ADDRESS;
+  const isP2P = body.mode === "p2p_friend";
+  const amountFormatted = body.amount || "0.01 USDC";
+  const denominationUnits = amountFormatted === "1.00 USDC" ? "1000000" : amountFormatted === "0.10 USDC" ? "100000" : "10000";
 
   // 1. If no payment header present -> return standard HTTP 402 Payment Required
   if (!rawPaymentHeader || (!rawPaymentHeader.includes("{") && !rawPaymentHeader.startsWith("X402"))) {
     const invoice = {
       pool: POOL_ADDRESS,
-      denomination: "10000",
-      denominationFormatted: "0.01 USDC",
-      recipient: RECIPIENT_ADDRESS,
+      denomination: denominationUnits,
+      denominationFormatted: amountFormatted,
+      recipient: targetRecipient,
       root: DEFAULT_ROOT,
       aspRoot: DEFAULT_ASP_ROOT,
       chainId: 5042002,
@@ -31,17 +44,19 @@ export async function POST(req: NextRequest) {
         status: 402,
         protocol: "X402",
         scheme: "ArcNano-Groth16",
-        message: "This inference endpoint requires an ArcNano zero-knowledge spend proof. Submit a valid Groth16 proof in the X-PAYMENT header.",
+        message: isP2P
+          ? `Peer-to-peer transfer requires an ArcNano zero-knowledge spend proof to settle privately to ${targetRecipient}.`
+          : "This inference endpoint requires an ArcNano zero-knowledge spend proof. Submit a valid Groth16 proof in the X-PAYMENT header.",
         invoice,
       }),
       {
         status: 402,
         headers: {
           "Content-Type": "application/json",
-          "WWW-Authenticate": 'X402 realm="ArcNano", token="USDC", denomination="0.01 USDC"',
+          "WWW-Authenticate": `X402 realm="ArcNano", token="USDC", denomination="${amountFormatted}"`,
           "X402-Pool": POOL_ADDRESS,
-          "X402-Denomination": "10000",
-          "X402-Recipient": RECIPIENT_ADDRESS,
+          "X402-Denomination": denominationUnits,
+          "X402-Recipient": targetRecipient,
           "X402-Root": DEFAULT_ROOT,
           "X402-Asp-Root": DEFAULT_ASP_ROOT,
           "X402-Chain-Id": "5042002",
@@ -89,12 +104,12 @@ export async function POST(req: NextRequest) {
   }
 
   // 4. Verify Proof Coordinates and Recipient Binding
-  if (recipient && recipient.toLowerCase() !== RECIPIENT_ADDRESS.toLowerCase()) {
+  if (recipient && recipient.toLowerCase() !== targetRecipient.toLowerCase()) {
     return NextResponse.json(
       {
         error: "Proof Hijack Attempt Rejected",
         code: "RECIPIENT_MISMATCH",
-        message: `Proof is cryptographically bound to ${recipient}, but endpoint expected ${RECIPIENT_ADDRESS}. Frontrunning is mathematically impossible.`,
+        message: `Proof is cryptographically bound to ${recipient}, but endpoint expected ${targetRecipient}. Frontrunning is mathematically impossible.`,
       },
       { status: 401 }
     );
@@ -102,29 +117,60 @@ export async function POST(req: NextRequest) {
 
   // Record nullifier in session cache
   PLAYGROUND_NULLIFIERS.add(nullifierHash);
-  const latencyMs = Math.max(0.012, performance.now() - startTime);
+  const latencyMs = Math.max(0.014, performance.now() - startTime);
 
-  // 5. Parse agent prompt from request body
-  let prompt = "Explain ArcNano ZK payments";
-  let service = "llama-3.3-70b";
-  try {
-    const body = await req.json();
-    if (body.prompt) prompt = body.prompt;
-    if (body.service) service = body.service;
-  } catch {
-    // default
+  // 5. P2P Friend Anonymous Transfer Response
+  if (isP2P) {
+    return NextResponse.json({
+      status: "success",
+      mode: "p2p_friend",
+      verified: true,
+      verificationLatencyMs: latencyMs,
+      nullifierHash,
+      recipient: targetRecipient,
+      amount: amountFormatted,
+      memo: body.memo || "Anonymous Shielded Transfer",
+      friendName: body.friendName || "Friend",
+      settlement: {
+        batchStatus: "queued",
+        targetContract: POOL_ADDRESS,
+        method: "batchSpend(SpendProof[], recipient)",
+        sponsor: "Arc Circle Gas Station Paymaster",
+        senderGasPaid: "$0.00 USDC",
+        recipientGasPaid: "$0.00 USDC",
+        senderLinked: false,
+        privacyAudit: {
+          traditionalTransfer: {
+            from: body.senderAddress ? `${body.senderAddress.slice(0, 8)}...${body.senderAddress.slice(-4)}` : "0xYourWallet...",
+            to: `${targetRecipient.slice(0, 8)}...${targetRecipient.slice(-4)}`,
+            exposed: true,
+            graphLinkage: "100% Trackable On-Chain (Etherscan/Arkham forever)",
+          },
+          arcnanoTransfer: {
+            from: `${POOL_ADDRESS.slice(0, 8)}... (ArcNano Shielded Pool)`,
+            to: `${targetRecipient.slice(0, 8)}...${targetRecipient.slice(-4)}`,
+            senderIdentity: "ZERO MSG.SENDER (Never signed on-chain)",
+            graphLinkage: "0.00% (Cryptographically Unlinkable)",
+          },
+        },
+      },
+    });
   }
 
-  // 6. Return streamed / verified tokens
+  // 6. Agent API / LLM Stream Response
+  const prompt = body.prompt || "Explain ArcNano ZK payments";
+  const service = body.service || "llama-3.3-70b";
+
   const tokens = [
     "✅", "Zero-Knowledge", "Groth16", "proof", "verified", "in", `${latencyMs.toFixed(3)}ms`,
     "without", "exposing", "your", "wallet", "identity.",
-    "Your", "0.01", "USDC", "spend", "is", "queued", "for", "Arc", "L1", "batch", "settlement",
+    "Your", amountFormatted, "spend", "is", "queued", "for", "Arc", "L1", "batch", "settlement",
     "via", "Circle", "Gas", "Station.", "Autonomous", "inference", "delivered", "instantly."
   ];
 
   return NextResponse.json({
     status: "success",
+    mode: "agent_api",
     service,
     prompt,
     verified: true,
