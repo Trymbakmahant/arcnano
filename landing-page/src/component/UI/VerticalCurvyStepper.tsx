@@ -27,12 +27,12 @@ interface AgentAvatarItem {
 const avatarsList = agentAvatarsData as unknown as AgentAvatarItem[];
 const cubeeAvatar = avatarsList.find((a) => a.name === "Cubee") || avatarsList[0];
 
-const SOLUTION_THOUGHTS = [
+const STEP_1_THOUGHTS = [
   "Pillar 1: Receiver-batched settlement completely eliminates msg.sender from the chain.",
-  "Pillar 2: Circle Gas Station sponsors 100% of gas—agents pay $0.00 in native tokens.",
-  "Pillar 3: Dual Merkle ASP circuits prove non-sanctioned clean funds mathematically.",
-  "Pillar 4: In-memory Groth16 pairings verify in under 10ms for unblocked LLM streaming.",
-  "Scroll down to inspect all four architectural pillars along the stepper rail.",
+  "Zero on-chain spender trace: Spender generates Groth16 proofs off-chain and sends via X402.",
+  "The provider verifies in RAM and bundles settlements in batched Arc transactions.",
+  "Mempool surveillance bots see only the provider's settlement contract, never the agent.",
+  "Ask how receiver-batched settlement eliminates wallet tracking.",
 ];
 
 const STEP_2_THOUGHTS = [
@@ -233,6 +233,7 @@ export default function VerticalCurvyStepper() {
   });
 
   const pathMeasureRef = useRef<SVGPathElement>(null);
+  const runnerRef = useRef<HTMLDivElement>(null);
   const [runnerPos, setRunnerPos] = useState<{ x: number; y: number; visible: boolean }>({
     x: 456,
     y: 60,
@@ -252,6 +253,8 @@ export default function VerticalCurvyStepper() {
     const dStart = nodeDists[0];
     const dEnd = nodeDists[nodeDists.length - 1];
 
+    const lastPillarIdx = { current: -1 };
+    const lastAnim = { current: "" };
     let scrollTimeout: NodeJS.Timeout | null = null;
 
     const updatePosition = (p: number) => {
@@ -259,7 +262,12 @@ export default function VerticalCurvyStepper() {
       const currentDist = dStart + clampedP * (dEnd - dStart);
       const pt = pathEl.getPointAtLength(currentDist);
 
-      setRunnerPos({ x: pt.x, y: pt.y, visible: true });
+      if (runnerRef.current) {
+        runnerRef.current.style.transform = `translate3d(${pt.x}px, ${pt.y - 14}px, 0)`;
+        if (!runnerPos.visible) {
+          setRunnerPos((prev) => ({ ...prev, visible: true }));
+        }
+      }
 
       // Determine which pillar node is closest
       let closestIdx = 0;
@@ -271,15 +279,27 @@ export default function VerticalCurvyStepper() {
           closestIdx = idx;
         }
       });
-      setActivePillarIdx(closestIdx);
+
+      if (closestIdx !== lastPillarIdx.current) {
+        lastPillarIdx.current = closestIdx;
+        setActivePillarIdx(closestIdx);
+      }
 
       // Dynamic animation while scrolling vs resting
       const isFinish = closestIdx === 3 && clampedP > 0.88;
-      setRunnerAnim(isFinish ? "celebrate" : "excited");
+      const targetAnim = isFinish ? "celebrate" : "excited";
+      if (targetAnim !== lastAnim.current) {
+        lastAnim.current = targetAnim;
+        setRunnerAnim(targetAnim);
+      }
 
       if (scrollTimeout) clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        setRunnerAnim(isFinish ? "celebrate" : "proud");
+        const restAnim = isFinish ? "celebrate" : "proud";
+        if (restAnim !== lastAnim.current) {
+          lastAnim.current = restAnim;
+          setRunnerAnim(restAnim);
+        }
       }, 250);
     };
 
@@ -443,31 +463,6 @@ export default function VerticalCurvyStepper() {
       {/* Sentinel for Section 03 entrance */}
       <div id="solution-stepper-start" className="w-full h-1 pointer-events-none" />
 
-      {/* Top-Left Companion Cubee Cloud for Section 03 */}
-      <div className="hidden md:block absolute -left-4 sm:-left-8 md:-left-12 lg:-left-16 -top-[190px] z-30 pointer-events-auto">
-        <HeroCubeeCloud
-          sectionId="solution"
-          sectionLabel="Architectural Resolution"
-          thoughts={SOLUTION_THOUGHTS}
-          pretextTitle="ArcNano Architectural Resolution"
-          pretextHint="4 architectural pillars solving machine nanopayment traps"
-          triggerSelector="#solution-step-middle-0"
-          cloudPosition="right"
-        />
-      </div>
-
-      {/* Mobile Mascot (< md) */}
-      <div className="md:hidden flex justify-center mb-6">
-        <HeroCubeeCloud
-          sectionId="solution"
-          sectionLabel="Architectural Resolution"
-          thoughts={SOLUTION_THOUGHTS}
-          pretextTitle="ArcNano Architectural Resolution"
-          pretextHint="4 architectural pillars solving machine nanopayment traps"
-          triggerSelector="#solution-step-middle-0"
-        />
-      </div>
-
       {/* Dynamic Curvy Stepper SVG Track */}
       <div className="absolute inset-0 pointer-events-none z-10 w-full h-full">
         <svg
@@ -618,10 +613,12 @@ export default function VerticalCurvyStepper() {
         {/* Runner Cubee Traveling from Step 01 to Step 04 along the Curvy Line */}
         {runnerPos.visible && (
           <div
+            ref={runnerRef}
             className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-30 transition-transform duration-75 will-change-transform group"
             style={{
-              left: `${runnerPos.x}px`,
-              top: `${runnerPos.y - 14}px`,
+              left: 0,
+              top: 0,
+              transform: `translate3d(${runnerPos.x}px, ${runnerPos.y - 14}px, 0)`,
             }}
             onClick={() => {
               const moods = ["celebrate", "excited", "working", "proud"];
@@ -794,6 +791,34 @@ export default function VerticalCurvyStepper() {
                 </div>
               </motion.div>
               </div>
+
+              {/* Step 1 Companion Cubee Cloud (Right Column on Desktop, Mobile below) */}
+              {idx === 0 && (
+                <>
+                  <div className="hidden md:flex absolute top-6 right-0 w-[calc(50%-60px)] justify-start pl-6 pointer-events-auto z-20">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-1"
+                      sectionLabel="Pillar 01 // Zero msg.sender"
+                      thoughts={STEP_1_THOUGHTS}
+                      pretextTitle="Zero msg.sender Identity Decoupling"
+                      pretextHint="Receiver-batched settlement completely eliminates msg.sender from the chain"
+                      triggerSelector="#solution-step-middle-0"
+                      cloudPosition="left"
+                    />
+                  </div>
+                  <div className="md:hidden flex justify-center mt-6">
+                    <HeroCubeeCloud
+                      sectionId="solution-step-1-m"
+                      sectionLabel="Pillar 01 // Zero msg.sender"
+                      thoughts={STEP_1_THOUGHTS}
+                      pretextTitle="Zero msg.sender Identity Decoupling"
+                      pretextHint="Receiver-batched settlement completely eliminates msg.sender from the chain"
+                      triggerSelector="#solution-step-middle-0"
+                      cloudPosition="left"
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Step 2 Companion Cubee Cloud (Left Column on Desktop, Mobile below) */}
               {idx === 1 && (
