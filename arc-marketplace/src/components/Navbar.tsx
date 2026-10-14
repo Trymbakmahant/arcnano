@@ -108,8 +108,19 @@ export function Navbar({
           </button>
         </nav>
 
-        {/* Right Actions: List Agent CTA & Account State */}
+        {/* Right Actions: Mainnet Badge & Account State */}
         <div className="flex items-center space-x-2.5 shrink-0">
+          {/* Mainnet Explorer Contract Link */}
+          <a
+            href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono font-medium rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs whitespace-nowrap"
+            title="ArcNanoPool Contract on Arc Mainnet Explorer (Chain 5042)"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Live on Mainnet</span>
+          </a>
           {currentUser ? (
             <>
               {/* List Agent Button */}

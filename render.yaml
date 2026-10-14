@@ -35,3 +35,32 @@ services:
         value: 20
       - key: PORT
         value: 4020
+
+  # ArcNano Agent Marketplace (Next.js)
+  - type: web
+    name: arcnano-marketplace
+    runtime: node
+    rootDir: arc-marketplace
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: ARC_RPC_URL
+        value: "https://rpc.testnet.arc.network"
+      - key: ARC_CHAIN_ID
+        value: "5042002"
+      - key: POOL_ADDRESS
+        value: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+      - key: USDC_ADDRESS
+        value: "0x3600000000000000000000000000000000000000"
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GLM_API_URL
+        sync: false
+      - key: GLM_API_KEY
+        sync: false

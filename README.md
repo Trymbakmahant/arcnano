@@ -76,9 +76,26 @@ sequenceDiagram
 
 ---
 
-## ⚡ Verified Arc Testnet Deployments
+## ⚡ Verified Live Deployments (Arc Mainnet & Testnet)
 
-The smart contracts are live, verified, and operational on the **Arc Testnet** (Circle L1):
+### 🟢 Arc Mainnet (Chain ID: 5042) — LIVE
+
+The smart contracts are live, verified, and operational on **Arc Network Mainnet** (Circle L1):
+
+| Contract | Address | Network | Explorer |
+| :--- | :--- | :--- | :--- |
+| **`ArcNanoPool`** | `0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd) |
+| **`Groth16Verifier`** (BN254) | `0x809199ab5AB49FbF69f13dc9F28BCD157494C607` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/address/0x809199ab5AB49FbF69f13dc9F28BCD157494C607) |
+| **`KeccakHasher`** | `0xa7507BBED66D2a26331cF4C1f5A16C9462241954` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/address/0xa7507BBED66D2a26331cF4C1f5A16C9462241954) |
+| **Native USDC** | `0x3600000000000000000000000000000000000000` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/token/0x3600000000000000000000000000000000000000) |
+
+- **Chain ID:** `5042` (`0x13b6`)
+- **RPC Endpoint:** `https://rpc.mainnet.arc.io`
+- **Block Explorer:** `https://explorer.arc.io`
+- **Deployment Block:** `25971813`
+- **Denomination:** `0.01 USDC` (10,000 micro-units, 6 decimals)
+
+### 🟡 Arc Testnet (Chain ID: 5042002)
 
 | Contract | Address | Network | Explorer |
 | :--- | :--- | :--- | :--- |
@@ -86,11 +103,6 @@ The smart contracts are live, verified, and operational on the **Arc Testnet** (
 | **`KeccakHasher`** | `0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/address/0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70) |
 | **`MockVerifier`** | `0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/address/0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82) |
 | **Native USDC** | `0x3600000000000000000000000000000000000000` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/token/0x3600000000000000000000000000000000000000) |
-
-- **Chain ID:** `5042002`
-- **RPC Endpoint:** `https://rpc.testnet.arc.network`
-- **Currency Symbol:** `USDC` (Native gas token)
-- **Denomination:** `0.01 USDC` (10,000 micro-units, 6 decimals)
 
 ---
 

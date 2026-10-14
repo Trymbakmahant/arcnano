@@ -52,22 +52,27 @@ export default function PlaygroundPage() {
               <ExternalLink className="w-3 h-3 text-neutral-400" />
             </a>
             <a
-              href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+              href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-neutral-950 transition-colors flex items-center gap-1"
+              className="hover:text-neutral-950 transition-colors flex items-center gap-1 font-semibold text-emerald-700"
             >
-              <span>Arcscan Contract</span>
-              <ExternalLink className="w-3 h-3 text-neutral-400" />
+              <span>Mainnet Contract</span>
+              <ExternalLink className="w-3 h-3 text-emerald-600" />
             </a>
           </nav>
 
           {/* Right Status Badge */}
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full">
+            <a
+              href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 px-3 py-1 rounded-full shadow-2xs transition-colors"
+            >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Arc Testnet
-            </span>
+              Live on Mainnet (5042)
+            </a>
           </div>
         </div>
       </header>

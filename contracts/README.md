@@ -90,7 +90,23 @@ forge script script/Deploy.s.sol:DeployArcNano \
 
 ---
 
-## 🌐 Deployed Contracts (Arc Testnet - Chain ID `5042002`)
+## 🌐 Deployed Contracts
+
+### 🟢 Arc Mainnet (Chain ID `5042`) — PRODUCTION LIVE
+
+| Contract | Address | Explorer |
+| :--- | :--- | :--- |
+| **ArcNanoPool** | `0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd` | [View on Arc Explorer](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd) |
+| **Groth16Verifier** (BN254) | `0x809199ab5AB49FbF69f13dc9F28BCD157494C607` | [View on Arc Explorer](https://explorer.arc.io/address/0x809199ab5AB49FbF69f13dc9F28BCD157494C607) |
+| **KeccakHasher** | `0xa7507BBED66D2a26331cF4C1f5A16C9462241954` | [View on Arc Explorer](https://explorer.arc.io/address/0xa7507BBED66D2a26331cF4C1f5A16C9462241954) |
+| **Native USDC Token** | `0x3600000000000000000000000000000000000000` | [View on Arc Explorer](https://explorer.arc.io/token/0x3600000000000000000000000000000000000000) |
+| **Deployer Wallet** | `0x0e3616146024A81aA6C31FdA02458a01Bc903315` | [View on Arc Explorer](https://explorer.arc.io/address/0x0e3616146024A81aA6C31FdA02458a01Bc903315) |
+
+- **Deployment Block:** `25971813`
+- **Fixed Denomination:** `10,000` raw units (0.01 USDC, 6 decimals)
+- **Deployment Status:** ✅ Live and verified on Arc Mainnet
+
+### 🟡 Arc Testnet (Chain ID `5042002`)
 
 | Contract | Address | Explorer |
 | :--- | :--- | :--- |
@@ -102,5 +118,5 @@ forge script script/Deploy.s.sol:DeployArcNano \
 
 - **Deployment Block:** `64733045`
 - **Fixed Denomination:** `10,000` raw units (0.01 USDC, 6 decimals)
-- **Deployment Status:** ✅ Live and verified on-chain
+- **Deployment Status:** ✅ Live and verified on Arc Testnet
 

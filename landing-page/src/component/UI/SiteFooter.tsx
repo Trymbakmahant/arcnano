@@ -76,6 +76,15 @@ function SiteFooter() {
           >
             PyPI
           </a>
+          <span className="text-neutral-300">•</span>
+          <a
+            className="hover:text-emerald-700 font-semibold text-emerald-800 transition-colors"
+            href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Mainnet Contract (0x8D49...5Dd)
+          </a>
         </div>
       </div>
     </footer>

@@ -62,8 +62,9 @@ export const DOC_CATEGORIES: DocCategory[] = [
   },
   {
     id: "contracts",
-    name: "Arc Testnet Deployments",
+    name: "Arc Network Smart Contracts",
     items: [
+      { id: "mainnet-details", title: "Arc Mainnet (Chain 5042) Live Deployment", badge: "LIVE MAINNET" },
       { id: "contracts-reference", title: "ArcNanoPool.sol Reference" },
       { id: "testnet-details", title: "Arc Testnet (Circle L1) Details" },
     ],
@@ -721,12 +722,14 @@ API providers can configure their risk profile in \`arcnano-x402\`:
   "contracts-reference": {
     id: "contracts-reference",
     title: "ArcNanoPool.sol Reference",
-    category: "Arc Testnet Deployments",
+    category: "Arc Network Smart Contracts",
     summary: "Solidity API reference and function signatures for ArcNanoPool.sol.",
     content: `
 # ArcNanoPool.sol Contract Reference
 
-The contract is deployed and verified on **Arc Testnet**: \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`.
+The contract is deployed and verified on:
+- **Arc Mainnet (Chain 5042):** [\`0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd\`](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd)
+- **Arc Testnet (Chain 5042002):** [\`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca)
 
 ## Function Signatures
 
@@ -752,10 +755,51 @@ struct SpendProof {
 `,
   },
 
+  "mainnet-details": {
+    id: "mainnet-details",
+    title: "Arc Mainnet (Chain 5042) Live Deployment",
+    badge: "LIVE MAINNET",
+    category: "Arc Network Smart Contracts",
+    summary: "Production verified ArcNano smart contracts deployed live on Arc Network Mainnet.",
+    content: `
+# Arc Network Mainnet (Chain ID 5042) Configuration
+
+ArcNano is officially deployed and live on **Arc Network Mainnet**. All transactions are validated using Circle's native USDC gas asset and real production BN254 Groth16 zk-SNARK pairing verifiers.
+
+- **Network Name:** Arc Mainnet
+- **Chain ID:** \`5042\` (\`0x13b6\`)
+- **RPC Endpoint:** \`https://rpc.mainnet.arc.io\`
+- **Block Explorer:** [https://explorer.arc.io](https://explorer.arc.io)
+- **Deployment Block:** \`25971813\`
+- **Native Gas Token:** USDC (\`0x3600000000000000000000000000000000000000\`)
+- **Fixed Note Denomination:** \`10,000\` raw units ($0.01 USDC)
+
+---
+
+## Production Mainnet Contracts
+
+| Contract | Address | Arc Explorer |
+| :--- | :--- | :--- |
+| **\`ArcNanoPool\`** | \`0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd\` | [View on Arc Explorer](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd) |
+| **\`Groth16Verifier\`** (BN254) | \`0x809199ab5AB49FbF69f13dc9F28BCD157494C607\` | [View on Arc Explorer](https://explorer.arc.io/address/0x809199ab5AB49FbF69f13dc9F28BCD157494C607) |
+| **\`KeccakHasher\`** | \`0xa7507BBED66D2a26331cF4C1f5A16C9462241954\` | [View on Arc Explorer](https://explorer.arc.io/address/0xa7507BBED66D2a26331cF4C1f5A16C9462241954) |
+| **Native USDC Token** | \`0x3600000000000000000000000000000000000000\` | [View on Arc Explorer](https://explorer.arc.io/token/0x3600000000000000000000000000000000000000) |
+
+---
+
+## On-Chain Verification & Deployment Hashes
+
+- **Pool Contract Tx:** [\`0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3\`](https://explorer.arc.io/tx/0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3)
+- **Verifier Contract Tx:** [\`0x1665be07712a4c63a82ceb2dca7c23df81d12045d67d69e49a16bc76411f348e\`](https://explorer.arc.io/tx/0x1665be07712a4c63a82ceb2dca7c23df81d12045d67d69e49a16bc76411f348e)
+- **Hasher Contract Tx:** [\`0x767ebafba6b4733ff0fa0fdc8ac01b095ad3f119cdd3b0fa4efb20d0fc3f4ef3\`](https://explorer.arc.io/tx/0x767ebafba6b4733ff0fa0fdc8ac01b095ad3f119cdd3b0fa4efb20d0fc3f4ef3)
+- **Deployer Wallet:** [\`0x0e3616146024A81aA6C31FdA02458a01Bc903315\`](https://explorer.arc.io/address/0x0e3616146024A81aA6C31FdA02458a01Bc903315)
+`,
+  },
+
   "testnet-details": {
     id: "testnet-details",
     title: "Arc Testnet (Circle L1) Details",
-    category: "Arc Testnet Deployments",
+    category: "Arc Network Smart Contracts",
     summary: "RPC endpoints, chain ID, explorer links, and testnet addresses.",
     content: `
 # Arc Testnet (Circle L1) Configuration

@@ -156,8 +156,8 @@ export default function ArcNanoHero() {
         </a>
 
         {/* Right Glass Pill Nav (Cofounder inspired) */}
-        <div className="hidden md:flex items-center gap-2">
-          <nav className="flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/65 px-2 py-1.5 shadow-sm backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/65 px-2 py-1.5 shadow-sm backdrop-blur-md">
             <a
               href="#problem"
               className="rounded-full px-3.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
@@ -192,14 +192,30 @@ export default function ArcNanoHero() {
             </a>
           </nav>
 
+          {/* Live on Mainnet Contract Link */}
           <a
-            href="https://github.com/Trymbakmahant/arcnano"
+            href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-medium text-emerald-700 backdrop-blur-md transition hover:bg-emerald-100/80 shadow-xs"
+            className="flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 backdrop-blur-md transition hover:bg-emerald-500/20 hover:border-emerald-400 shadow-xs group"
+            title="ArcNanoPool Contract on Arc Mainnet Explorer (Chain 5042)"
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Production Ready
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="tracking-tight">Live on Mainnet</span>
+            <span className="hidden sm:inline font-mono text-[10px] text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300/80">
+              5042
+            </span>
+            <svg
+              className="w-3 h-3 text-emerald-700 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
           </a>
         </div>
       </header>
@@ -297,6 +313,14 @@ export default function ArcNanoHero() {
               className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
             >
               @0xarcnano ↗
+            </a>
+            <a
+              href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition border border-emerald-200/60"
+            >
+              Arc Explorer Contract ↗
             </a>
           </div>
         </div>

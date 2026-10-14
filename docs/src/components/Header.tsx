@@ -93,7 +93,7 @@ export default function Header({ onOpenSearch }: HeaderProps) {
             title="arcnano-x402 on npm"
           >
             <span className="font-extrabold text-[10px] tracking-tight">npm</span>
-            <span className="text-[10px] opacity-80">v0.1.2</span>
+            <span className="text-[10px] opacity-80">v0.1.4</span>
           </a>
 
           {/* PyPI Package Link */}
@@ -105,17 +105,23 @@ export default function Header({ onOpenSearch }: HeaderProps) {
             title="arczk-agent on PyPI"
           >
             <span className="font-extrabold text-[10px] tracking-tight">PyPI</span>
-            <span className="text-[10px] opacity-80">v0.1.1</span>
+            <span className="text-[10px] opacity-80">v0.1.2</span>
           </a>
 
+          {/* Live on Mainnet Contract Link */}
           <a
-            href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+            href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
             target="_blank"
             rel="noreferrer"
-            className="hidden lg:flex items-center gap-1.5 text-[var(--gh-text-muted)] hover:text-[var(--gh-text)] transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-2xs"
+            title="ArcNanoPool Contract on Arc Mainnet Explorer (Chain 5042)"
           >
-            <span>Arcscan</span>
-            <ExternalLink className="w-3 h-3" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold">Live on Mainnet</span>
+            <ExternalLink className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
           </a>
 
           <a

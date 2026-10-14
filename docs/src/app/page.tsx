@@ -150,6 +150,15 @@ export default function DocsPage() {
             </a>
             <span>•</span>
             <a
+              href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-emerald-500 font-semibold text-emerald-600 dark:text-emerald-400 transition-colors"
+            >
+              Arc Mainnet (5042)
+            </a>
+            <span>•</span>
+            <a
               href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
               target="_blank"
               rel="noreferrer"
