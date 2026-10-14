@@ -104,7 +104,74 @@ print("Response:", response.json())
 
 ---
 
-### 2. LangChain Autonomous Agent Integration
+### 2. Model Context Protocol (MCP) Server for Antigravity & Claude Code
+
+`arczk-agent` includes an official Model Context Protocol (MCP) server that empowers any LLM agent or IDE (**Google Antigravity**, **Claude Code**, **Claude Desktop**, **Cursor**) to autonomously manage zero-knowledge payments.
+
+#### MCP Tools Provided:
+- **`create_shielded_note`**: Mints a local ZK note (Poseidon commitment, secret, nullifier) in `agent_vault.json` and outputs the commitment for pool deposit.
+- **`get_vault_status`**: Inspects local unspent balance and active note commitments.
+- **`get_burner_wallet`**: Checks the agent's on-chain burner wallet address and balance (ARC & USDC) on Arc Testnet, auto-generating one if not set.
+- **`deposit_to_pool`**: Automatically signs and submits the on-chain deposit using your burner wallet, or generates the commitment for web Playground funding.
+- **`pay_x402_api`**: Calls any HTTP 402 endpoint, generates a Groth16 proof in RAM (~74ms), and unlocks the data stream without revealing the caller's identity.
+
+---
+
+#### 🚀 Setup Guide: Google Antigravity IDE
+
+Add `arcnano` to your Antigravity IDE MCP configuration (either in `~/.gemini/antigravity-ide/mcp_config.json` or your project `.agents/mcp_config.json`).
+
+> **💡 Autonomous Burner Wallet (Optional):** Add `ARCNANO_BURNER_PRIVATE_KEY` so Antigravity can automatically sign on-chain deposits without you having to click MetaMask!
+
+```json
+{
+  "mcpServers": {
+    "arcnano": {
+      "command": "python3",
+      "args": ["-m", "arczk.mcp_server"],
+      "env": {
+        "ARCNANO_BURNER_PRIVATE_KEY": "0xYourBurnerPrivateKeyHere",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+---
+
+#### 🚀 Setup Guide: Claude Code
+
+Add the ArcNano MCP server to Claude Code with an optional burner wallet:
+
+```bash
+claude mcp add arcnano python3 -m arczk.mcp_server
+```
+
+Or configure it with your burner wallet in `~/.claude/mcp.json` or Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "arcnano": {
+      "command": "python3",
+      "args": ["-m", "arczk.mcp_server"],
+      "env": {
+        "ARCNANO_BURNER_PRIVATE_KEY": "0xYourBurnerPrivateKeyHere"
+      }
+    }
+  }
+}
+```
+
+Once loaded, you can ask Claude Code or Antigravity:
+> *"What is my ArcNano burner wallet address and balance?"*  
+> *"Create and deposit a 0.01 USDC shielded note on Arc Testnet."*  
+> *"Call https://api.inference.ai/v1/generate and pay with ArcNano ZK proof."*
+
+---
+
+### 3. LangChain Autonomous Agent Integration
 
 Plug `ArcNanoLangChainTool` into any LangChain agent executor:
 
@@ -136,7 +203,7 @@ agent_executor.invoke({
 
 ---
 
-### 3. CrewAI Autonomous Agent Tool
+### 4. CrewAI Autonomous Agent Tool
 
 ```python
 from crewai import Agent, Task, Crew

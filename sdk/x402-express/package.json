@@ -1,15 +1,20 @@
 {
   "name": "arcnano-x402",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Drop-in HTTP X402 payment middleware with sub-8ms off-chain ZK Groth16 verification & Arc Testnet batch settlement for Express and Node.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "arcnano-relayer": "dist/bin/relayer.js",
+    "arcnano-mcp": "dist/bin/mcp.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "tsx test/verifier.test.ts && tsx test/middleware.test.ts && tsx test/paymaster.test.ts && tsx test/daemon.test.ts",
     "test:paymaster": "tsx test/paymaster.test.ts",
     "test:daemon": "tsx test/daemon.test.ts",
     "relayer": "tsx bin/relayer.ts",
+    "mcp": "tsx bin/mcp.ts",
     "benchmark": "tsx test/benchmark.ts"
   },
   "files": [

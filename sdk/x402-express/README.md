@@ -152,19 +152,66 @@ Content-Type: application/json
 }
 ```
 
-### 2. Submit ZK Proof in Request Header
+### 2. Autonomous TypeScript Client (`ArcAgentClient`)
 
-Clients fulfill the invoice by passing their Groth16 proof in the `Authorization` or `X-Payment` header:
+You can now use `arcnano-x402` on the client side as well! The client transparently intercepts HTTP 402 challenges, computes the Groth16 zero-knowledge proof, and fulfills payment:
 
-```bash
-# Authorization header format
-curl -X POST https://your-api.com/api/v1/inference \
-  -H "Content-Type: application/json" \
-  -H 'Authorization: X402 {"proof":{"pi_a":["0x...","0x..."],"pi_b":[["0x...","0x..."],["0x...","0x..."]],"pi_c":["0x...","0x..."]},"root":"0x...","nullifierHash":"0x42f7...","recipient":"0x063829800C7214C6AaD38f57C72561641cD80333"}' \
-  -d '{"prompt": "Analyze market trends"}'
+```typescript
+import { ArcAgentClient, NoteVault } from "arcnano-x402";
+
+// 1. Initialize local shielded note vault
+const vault = new NoteVault("~/.arcnano/agent_vault.json");
+
+// 2. Mint/fund a shielded note locally (0.01 USDC)
+await vault.createNote(10000);
+
+// 3. Create autonomous agent client
+const client = new ArcAgentClient(vault);
+
+// 4. Query any protected API — the client auto-intercepts HTTP 402 and pays in <10ms!
+const response = await client.fetch("https://your-api.com/api/v1/inference", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ prompt: "Analyze market trends on Arc" }),
+});
+
+const data = await response.json();
+console.log("Agent response:", data);
 ```
 
-Alternatively, pass a Base64-encoded payload or set the `X-Payment` header with the JSON payload.
+---
+
+## Model Context Protocol (MCP) Server for Antigravity & Claude Code
+
+`arcnano-x402` includes a built-in Model Context Protocol (MCP) server that works with **Google Antigravity**, **Claude Code**, and **Cursor**.
+
+#### MCP Tools Provided:
+- **`create_shielded_note`**: Mints a local ZK note (Poseidon commitment, secret, nullifier) in `agent_vault.json`.
+- **`get_vault_status`**: Inspects local unspent balance and active note commitments.
+- **`get_burner_wallet`**: Checks the agent's on-chain burner wallet address and balance (ARC & USDC) on Arc Testnet.
+- **`deposit_to_pool`**: Automatically signs and submits on-chain deposits using the burner wallet, or outputs the commitment for Playground funding.
+- **`pay_x402_api`**: Calls any HTTP 402 endpoint, generates a Groth16 proof in RAM (~74ms), and unlocks the data stream without revealing the caller's identity.
+
+#### 🚀 Antigravity / Claude Code Configuration:
+
+```json
+{
+  "mcpServers": {
+    "arcnano": {
+      "command": "npx",
+      "args": ["-y", "arcnano-x402", "mcp"],
+      "env": {
+        "ARCNANO_BURNER_PRIVATE_KEY": "0xYourBurnerPrivateKeyHere"
+      }
+    }
+  }
+}
+```
+
+Or run via Claude Code CLI:
+```bash
+claude mcp add arcnano npx -y arcnano-x402 mcp
+```
 
 ---
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arczk-agent"
-version = "0.1.1"
+version = "0.1.2"
 description = "Autonomous AI Agent SDK for ArcNano Shielded Zero-Knowledge Nanopayments on Arc"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -41,6 +41,9 @@ dependencies = [
     "requests>=2.28.0",
     "httpx>=0.24.0"
 ]
+
+[project.scripts]
+arcnano-mcp = "arczk.mcp_server:run_stdio_server"
 
 [project.urls]
 Homepage = "https://github.com/Trymbakmahant/arcnano"

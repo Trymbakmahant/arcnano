@@ -9,8 +9,9 @@ from .vault import NoteVault
 from .prover import Groth16Prover
 from .client import ArcAgentClient
 from .integrations import ArcNanoPaymentTool
+from .mcp_server import run_stdio_server, MCP_TOOLS
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __all__ = [
     "ShieldedNote",
     "X402Invoice",
@@ -23,4 +24,6 @@ __all__ = [
     "Groth16Prover",
     "ArcAgentClient",
     "ArcNanoPaymentTool",
+    "run_stdio_server",
+    "MCP_TOOLS",
 ]

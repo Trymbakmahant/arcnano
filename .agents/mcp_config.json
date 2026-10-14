@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "arcnano": {
+      "command": "python3",
+      "args": ["-m", "arczk.mcp_server"],
+      "env": {
+        "PYTHONPATH": "sdk/python",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
