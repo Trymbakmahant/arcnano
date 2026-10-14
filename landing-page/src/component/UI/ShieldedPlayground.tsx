@@ -11,7 +11,6 @@ import {
   Copy,
   Check,
   ChevronDown,
-  Sparkles,
   ExternalLink,
   Send,
   ArrowDownToLine,
@@ -229,13 +228,6 @@ export default function ShieldedPlayground() {
     setWalletDropdownOpen(false);
   };
 
-  // Instant local sandbox connection for test environments
-  const handleConnectSandbox = () => {
-    setWalletAddress("0x429671f28b4931aCfc8A6c0c2941566B33534b8B");
-    setIsWalletConnected(true);
-    setNoWalletModalOpen(false);
-  };
-
   // EXECUTE DEPOSIT
   const handleDeposit = async () => {
     if (!isWalletConnected) {
@@ -313,7 +305,14 @@ export default function ShieldedPlayground() {
       return;
     }
 
-    const targetRecip = recipientAddress.trim() || "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F";
+    const targetRecip = recipientAddress.trim();
+    if (!targetRecip || !targetRecip.startsWith("0x") || targetRecip.length !== 42) {
+      alert("Please enter a valid recipient Arc address (0x...).");
+      return;
+    }
+
+    const randHex = Math.random().toString(16).substring(2, 10);
+    const spendNullifier = unspentNotes[0]?.nullifierHash || `0x${randHex}11223344556677889900aabbccddeeff`;
 
     setIsProcessing(true);
     setProcessingStatus("Generating Groth16 witness in RAM...");
@@ -337,11 +336,11 @@ export default function ShieldedPlayground() {
             },
             publicSignals: [
               "15055926234077295509216400193975320613085685875483293700481590095656163448343",
-              "0x11223344556677889900aabbccddeeff00112233",
+              spendNullifier,
               targetRecip,
               "19128018104003351169958007405541096654276287024914820341236452486826146398487",
             ],
-            nullifierHash: "0x11223344556677889900aabbccddeeff00112233",
+            nullifierHash: spendNullifier,
             recipient: targetRecip,
           }),
         },
@@ -355,6 +354,10 @@ export default function ShieldedPlayground() {
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "Transfer failed");
+      }
 
       // Deduct from notes
       let remainingToDeduct = amt;
@@ -375,7 +378,7 @@ export default function ShieldedPlayground() {
         amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
         recipient: targetRecip,
         latencyMs: data.verificationLatencyMs || 0.42,
-        nullifierHash: "0x11223344556677889900aabbccddeeff00112233",
+        nullifierHash: spendNullifier,
         sponsor: "Circle Gas Station ($0.00 Gas)",
         privacyAudit: data.settlement?.privacyAudit,
       });
@@ -810,7 +813,7 @@ export default function ShieldedPlayground() {
                         const clip = await navigator.clipboard.readText();
                         if (clip && clip.startsWith("0x")) setRecipientAddress(clip.trim());
                       } catch {
-                        setRecipientAddress("0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F");
+                        // Clipboard permission denied or unavailable
                       }
                     }}
                     className="text-[11px] font-mono font-medium text-neutral-600 hover:text-neutral-950 px-2 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors cursor-pointer shrink-0"
@@ -1126,7 +1129,7 @@ export default function ShieldedPlayground() {
                 No Browser Wallet Detected
               </h3>
               <p className="text-xs text-neutral-500 leading-relaxed">
-                Please install a Web3 browser extension (such as MetaMask or Rabby) to connect, or use the Sandbox mode.
+                Please install and unlock an EVM browser wallet extension (such as MetaMask, Rabby, or Brave Wallet) to interact with Arc Testnet.
               </p>
             </div>
 
@@ -1135,20 +1138,11 @@ export default function ShieldedPlayground() {
                 href="https://metamask.io/download/"
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-blue-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <span>Install MetaMask Extension</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
-
-              <button
-                type="button"
-                onClick={handleConnectSandbox}
-                className="w-full py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0033FF] font-medium text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Continue with Sandbox Mode</span>
-              </button>
             </div>
 
             <button

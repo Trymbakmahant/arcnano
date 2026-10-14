@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 // In-memory double-spend nullifier cache for playground session
 const PLAYGROUND_NULLIFIERS = new Set<string>();
 
-const RECIPIENT_ADDRESS = "0x063829800C7214C6AaD38f57C72561641cD80333";
 const POOL_ADDRESS = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
 const DEFAULT_ROOT = "15055926234077295509216400193975320613085685875483293700481590095656163448343";
 const DEFAULT_ASP_ROOT = "19128018104003351169958007405541096654276287024914820341236452486826146398487";
@@ -18,12 +17,42 @@ export async function POST(req: NextRequest) {
   }
 
   const rawPaymentHeader = req.headers.get("x-payment") || req.headers.get("authorization");
-  const targetRecipient = body.recipient && body.recipient.startsWith("0x") && body.recipient.length === 42
-    ? body.recipient
-    : RECIPIENT_ADDRESS;
-  const isP2P = body.mode === "p2p_friend";
+
+  // Parse X-PAYMENT header payload early if present
+  let payload: any = {};
+  if (rawPaymentHeader && (rawPaymentHeader.includes("{") || rawPaymentHeader.startsWith("X402"))) {
+    try {
+      let headerStr = rawPaymentHeader.replace(/^X402\s+/, "").trim();
+      if (!headerStr.startsWith("{")) {
+        headerStr = Buffer.from(headerStr, "base64").toString("utf-8");
+      }
+      payload = JSON.parse(headerStr);
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: "Malformed X-PAYMENT header payload", details: err.message },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Determine recipient strictly from body or payment payload (no hardcoded fallback)
+  const targetRecipient =
+    body.recipient && typeof body.recipient === "string" && body.recipient.startsWith("0x") && body.recipient.length === 42
+      ? body.recipient
+      : payload.recipient && typeof payload.recipient === "string" && payload.recipient.startsWith("0x") && payload.recipient.length === 42
+      ? payload.recipient
+      : null;
+
+  if (!targetRecipient) {
+    return NextResponse.json(
+      { error: "Missing or invalid recipient address. Please provide a valid 42-character 0x Arc address." },
+      { status: 400 }
+    );
+  }
+
+  const isP2P = body.mode === "p2p_transfer" || body.mode === "p2p_friend";
   const amountFormatted = body.amount || "0.01 USDC";
-  const denominationUnits = amountFormatted === "1.00 USDC" ? "1000000" : amountFormatted === "0.10 USDC" ? "100000" : "10000";
+  const denominationUnits = amountFormatted.startsWith("1.00") ? "1000000" : amountFormatted.startsWith("0.10") ? "100000" : "10000";
 
   // 1. If no payment header present -> return standard HTTP 402 Payment Required
   if (!rawPaymentHeader || (!rawPaymentHeader.includes("{") && !rawPaymentHeader.startsWith("X402"))) {
@@ -62,21 +91,6 @@ export async function POST(req: NextRequest) {
           "X402-Chain-Id": "5042002",
         },
       }
-    );
-  }
-
-  // 2. Parse X-PAYMENT Header
-  let payload: any;
-  try {
-    let headerStr = rawPaymentHeader.replace(/^X402\s+/, "").trim();
-    if (!headerStr.startsWith("{")) {
-      headerStr = Buffer.from(headerStr, "base64").toString("utf-8");
-    }
-    payload = JSON.parse(headerStr);
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: "Malformed X-PAYMENT header payload", details: err.message },
-      { status: 400 }
     );
   }
 
