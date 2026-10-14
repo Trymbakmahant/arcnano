@@ -351,32 +351,20 @@ export default function ShieldedPlayground() {
       {/* MAIN CONTAINER */}
       <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center">
         
-        {/* HERO TITLE & SUBTITLE */}
-        <div className="text-center mb-7 sm:mb-8 max-w-lg">
-          <h1 className="text-4xl sm:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
-            The Privacy Layer <br />
-            <span className="text-[#0033FF] font-semibold">for</span> your Money
-          </h1>
-          <p className="mt-3.5 text-xs sm:text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
-            Privacy for your transactions. Ownership of your assets.
-            Use ArcNano &amp; explore crypto in a whole new way.
-          </p>
-
-          {/* Quick Wallet & Shielded Balance Pill */}
-          <div className="mt-3.5 inline-flex items-center gap-3 px-3 py-1.5 rounded-full bg-white/90 border border-neutral-200/90 shadow-2xs text-[11px] font-mono text-neutral-600">
-            <span className="flex items-center gap-1.5 text-neutral-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
-            </span>
-            <span className="text-neutral-300">|</span>
-            <span>
-              Shielded: <strong className="text-neutral-900 font-semibold">{shieldedBalance} USDC</strong>
-            </span>
-            <span className="text-neutral-300">|</span>
-            <span>
-              Public: <strong className="text-neutral-700">{walletBalance.toFixed(2)} USDC</strong>
-            </span>
-          </div>
+        {/* Quick Wallet & Shielded Balance Pill */}
+        <div className="mb-4 inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/90 border border-neutral-200/90 shadow-2xs text-[11px] font-mono text-neutral-600">
+          <span className="flex items-center gap-1.5 text-neutral-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+          </span>
+          <span className="text-neutral-300">|</span>
+          <span>
+            Shielded: <strong className="text-neutral-900 font-semibold">{shieldedBalance} USDC</strong>
+          </span>
+          <span className="text-neutral-300">|</span>
+          <span>
+            Public: <strong className="text-neutral-700">{walletBalance.toFixed(2)} USDC</strong>
+          </span>
         </div>
 
         {/* THE UMBRA-STYLE CARD */}
