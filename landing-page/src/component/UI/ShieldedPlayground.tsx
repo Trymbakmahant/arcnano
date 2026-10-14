@@ -34,8 +34,7 @@ const ARC_CHAIN_ID = 5042002;
 const ARC_CHAIN_HEX = "0x4cef12";
 const POOL_CONTRACT = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
 const DEFAULT_RECIPIENT = "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F"; // Bob
-const WALLETCONNECT_PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "a42cfa80-88d3-4a8d-b1bc-2997397b5ad2";
+const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 interface DemoFriend {
   id: string;
@@ -1229,18 +1228,23 @@ export default function ShieldedPlayground() {
                   </div>
                 </div>
 
-                {/* Reown Project ID indicator */}
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 bg-neutral-100/90 border border-neutral-200/80 px-2.5 py-1 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Reown Project: {WALLETCONNECT_PROJECT_ID.slice(0, 8)}...{WALLETCONNECT_PROJECT_ID.slice(-4)}</span>
-                </div>
+                {/* Reown Project ID indicator (only when configured in env) */}
+                {WALLETCONNECT_PROJECT_ID ? (
+                  <div className="inline-flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 bg-neutral-100/90 border border-neutral-200/80 px-2.5 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Reown Project: {WALLETCONNECT_PROJECT_ID.slice(0, 6)}...{WALLETCONNECT_PROJECT_ID.slice(-4)}</span>
+                  </div>
+                ) : null}
 
                 {/* Pairing Code Copy */}
                 <div className="flex items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      copyToClipboard(`wc:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b@2?relay-protocol=irn&projectId=${WALLETCONNECT_PROJECT_ID}`);
+                      const uri = WALLETCONNECT_PROJECT_ID
+                        ? `wc:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b@2?relay-protocol=irn&projectId=${WALLETCONNECT_PROJECT_ID}`
+                        : "wc:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b@2?relay-protocol=irn";
+                      copyToClipboard(uri);
                       setWcCopied(true);
                       setTimeout(() => setWcCopied(false), 2000);
                     }}
