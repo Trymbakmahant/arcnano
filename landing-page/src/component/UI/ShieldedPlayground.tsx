@@ -74,7 +74,7 @@ interface ShieldedNote {
 
 export default function ShieldedPlayground() {
   // Navigation tab: 'deposit' | 'send' | 'withdraw'
-  const [activeTab, setActiveTab] = useState<"deposit" | "send" | "withdraw">("send");
+  const [activeTab, setActiveTab] = useState<"deposit" | "send" | "withdraw">("deposit");
 
   // Wallet State
   const [walletAddress, setWalletAddress] = useState<string>("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
