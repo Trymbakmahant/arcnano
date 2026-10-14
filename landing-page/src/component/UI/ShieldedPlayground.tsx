@@ -20,6 +20,7 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
+  Info,
 } from "lucide-react";
 import {
   createWalletClient,
@@ -162,6 +163,13 @@ interface ShieldedNote {
   txHash?: string;
 }
 
+interface ToastNotification {
+  id: string;
+  type: "success" | "error" | "warning" | "info";
+  title: string;
+  message?: string;
+}
+
 export default function ShieldedPlayground() {
   // Navigation tab: 'deposit' | 'send' | 'withdraw' (Default: 'deposit')
   const [activeTab, setActiveTab] = useState<"deposit" | "send" | "withdraw">("deposit");
@@ -202,6 +210,69 @@ export default function ShieldedPlayground() {
   const [processingStatus, setProcessingStatus] = useState<string>("");
   const [lastReceipt, setLastReceipt] = useState<any | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+
+  // TOAST NOTIFICATIONS STATE
+  const [toasts, setToasts] = useState<ToastNotification[]>([]);
+
+  const showToast = useCallback(
+    (type: "success" | "error" | "warning" | "info", title: string, message?: string) => {
+      const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      setToasts((prev) => [...prev, { id, type, title, message }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 4500);
+    },
+    []
+  );
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // INSUFFICIENT TESTNET BALANCE / SIMULATION PROMPT MODAL
+  const [simulateModalData, setSimulateModalData] = useState<{
+    amt: number;
+    tokenSymbol: string;
+    currentBal: string;
+    commitment: string;
+    nullifierHash: string;
+    secret: string;
+    nullifierSeed: string;
+  } | null>(null);
+
+  const confirmSimulatedDeposit = () => {
+    if (!simulateModalData) return;
+    const { amt, tokenSymbol, commitment, nullifierHash, secret, nullifierSeed } = simulateModalData;
+    const newNote: ShieldedNote = {
+      id: `note-${Date.now()}`,
+      tokenSymbol,
+      amount: amt,
+      commitment,
+      nullifierHash,
+      secret,
+      nullifierSeed,
+      isSpent: false,
+      createdAt: "Just now",
+    };
+
+    setNotes((prev) => [newNote, ...prev]);
+    setLastReceipt({
+      type: "deposit",
+      amount: `${amt.toFixed(2)} ${tokenSymbol}`,
+      commitment: newNote.commitment,
+      noteId: newNote.id,
+      pool: POOL_CONTRACT,
+      sponsor: "Simulated Test Note (Zero Testnet Token Required)",
+    });
+    setDepositAmount("");
+    setSimulateModalData(null);
+    showToast("success", "Simulated Note Minted", `Added ${amt.toFixed(2)} ${tokenSymbol} to your shielded pool.`);
+  };
+
+  const cancelSimulatedDeposit = () => {
+    setSimulateModalData(null);
+    showToast("info", "Deposit Deferred", "Fund your wallet on Arc Testnet to deposit on-chain tokens.");
+  };
 
   // Calculate unspent shielded balance for selected token
   const unspentNotes = notes.filter((n) => !n.isSpent && n.tokenSymbol === selectedToken.symbol);
@@ -354,6 +425,7 @@ export default function ShieldedPlayground() {
         setIsWalletConnected(true);
         setActiveProvider(mmProvider);
         updateWalletBalances(accounts[0]);
+        showToast("success", "MetaMask Connected", `Connected: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`);
 
         // Switch MetaMask to Arc Testnet
         try {
@@ -380,6 +452,11 @@ export default function ShieldedPlayground() {
       }
     } catch (err: any) {
       console.warn("User rejected or failed MetaMask connection:", err);
+      if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
+        showToast("info", "Connection Cancelled", "MetaMask connection request was rejected.");
+      } else {
+        showToast("error", "Connection Failed", err?.shortMessage || err?.message || "Failed to connect MetaMask.");
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -405,6 +482,7 @@ export default function ShieldedPlayground() {
         setIsWalletConnected(true);
         setActiveProvider(ethereum);
         updateWalletBalances(accounts[0]);
+        showToast("success", "Wallet Connected", `Connected: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`);
 
         try {
           await ethereum.request({
@@ -430,6 +508,11 @@ export default function ShieldedPlayground() {
       }
     } catch (err: any) {
       console.warn("User rejected or failed browser wallet connection:", err);
+      if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
+        showToast("info", "Connection Cancelled", "Wallet connection request was rejected.");
+      } else {
+        showToast("error", "Connection Failed", err?.shortMessage || err?.message || "Failed to connect wallet.");
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -443,6 +526,7 @@ export default function ShieldedPlayground() {
     setIsWalletConnected(false);
     setWalletAddress("");
     setWalletDropdownOpen(false);
+    showToast("info", "Wallet Disconnected", "Browser wallet has been disconnected.");
   };
 
   // EXECUTE ON-CHAIN DEPOSIT VIA BROWSER WALLET
@@ -462,7 +546,7 @@ export default function ShieldedPlayground() {
 
     const amt = parseFloat(depositAmount);
     if (!amt || amt <= 0) {
-      alert("Please enter a valid deposit amount.");
+      showToast("warning", "Invalid Deposit Amount", "Please enter a valid deposit amount greater than 0.");
       return;
     }
 
@@ -550,40 +634,17 @@ export default function ShieldedPlayground() {
         console.warn("Could not check token balance:", balErr);
       }
 
-      // If user has insufficient testnet tokens, alert them with option to test in playground
+      // If user has insufficient testnet tokens, offer playground simulation modal
       if (tokenBal < poolDenom) {
-        const proceedSim = confirm(
-          `Your connected wallet has ${(Number(tokenBal) / 1e6).toFixed(4)} ${selectedToken.symbol} on Arc Testnet (0.01 required).\n\nWould you like to simulate this note in the playground anyway? (To execute on-chain, please fund your wallet on Arc Testnet).`
-        );
-        if (!proceedSim) {
-          setIsProcessing(false);
-          setProcessingStatus("");
-          return;
-        }
-
-        // Add simulated note for testing
-        const newNote: ShieldedNote = {
-          id: `note-${Date.now()}`,
+        setSimulateModalData({
+          amt,
           tokenSymbol: selectedToken.symbol,
-          amount: amt,
+          currentBal: (Number(tokenBal) / 1e6).toFixed(4),
           commitment,
           nullifierHash,
           secret,
           nullifierSeed,
-          isSpent: false,
-          createdAt: "Just now",
-        };
-
-        setNotes((prev) => [newNote, ...prev]);
-        setLastReceipt({
-          type: "deposit",
-          amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
-          commitment: newNote.commitment,
-          noteId: newNote.id,
-          pool: POOL_CONTRACT,
-          sponsor: "Simulated Test Note (Insufficient Arc Testnet Balance)",
         });
-        setDepositAmount("");
         setIsProcessing(false);
         setProcessingStatus("");
         return;
@@ -657,12 +718,13 @@ export default function ShieldedPlayground() {
       });
 
       setDepositAmount("");
+      showToast("success", "Shielded Note Minted", `Successfully deposited ${amt.toFixed(2)} ${selectedToken.symbol} into ArcNano pool.`);
     } catch (err: any) {
       console.error("Deposit error:", err);
       if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
-        alert("Transaction cancelled: Request was rejected in your wallet.");
+        showToast("info", "Transaction Cancelled", "Request was rejected in your wallet.");
       } else {
-        alert(err?.shortMessage || err?.message || "Deposit transaction failed.");
+        showToast("error", "Deposit Failed", err?.shortMessage || err?.message || "Deposit transaction failed.");
       }
     } finally {
       setIsProcessing(false);
@@ -679,19 +741,23 @@ export default function ShieldedPlayground() {
 
     const amt = parseFloat(sendAmount);
     if (!amt || amt <= 0) {
-      alert("Please enter a valid send amount.");
+      showToast("warning", "Invalid Send Amount", "Please enter a valid transfer amount greater than 0.");
       return;
     }
 
     if (shieldedBalance < amt) {
-      alert(`Insufficient shielded balance! You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool. Please deposit first.`);
+      showToast(
+        "warning",
+        "Insufficient Shielded Balance",
+        `You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool. Please deposit first.`
+      );
       setActiveTab("deposit");
       return;
     }
 
     const targetRecip = recipientAddress.trim();
     if (!targetRecip || !targetRecip.startsWith("0x") || targetRecip.length !== 42) {
-      alert("Please enter a valid recipient Arc address (0x...).");
+      showToast("warning", "Invalid Recipient Address", "Please enter a valid Arc recipient address starting with 0x (42 characters).");
       return;
     }
 
@@ -769,9 +835,10 @@ export default function ShieldedPlayground() {
 
       setSendAmount("");
       setRecipientAddress("");
-    } catch (err) {
+      showToast("success", "Shielded Transfer Delivered", `Sent ${amt.toFixed(2)} ${selectedToken.symbol} anonymously via Groth16 zk-SNARK.`);
+    } catch (err: any) {
       console.error(err);
-      alert("Transfer failed. Please try again.");
+      showToast("error", "Transfer Failed", err?.message || "Transfer failed. Please try again.");
     } finally {
       setIsProcessing(false);
       setProcessingStatus("");
@@ -787,12 +854,16 @@ export default function ShieldedPlayground() {
 
     const amt = parseFloat(withdrawAmount);
     if (!amt || amt <= 0) {
-      alert("Please enter a valid withdrawal amount.");
+      showToast("warning", "Invalid Withdrawal Amount", "Please enter a valid withdrawal amount greater than 0.");
       return;
     }
 
     if (shieldedBalance < amt) {
-      alert(`Insufficient shielded balance! You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool.`);
+      showToast(
+        "warning",
+        "Insufficient Shielded Balance",
+        `You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool.`
+      );
       return;
     }
 
@@ -831,18 +902,20 @@ export default function ShieldedPlayground() {
       });
 
       setWithdrawAmount("");
-    } catch (err) {
+      showToast("success", "Withdrawal Complete", `Withdrew ${amt.toFixed(2)} ${selectedToken.symbol} back to your public wallet.`);
+    } catch (err: any) {
       console.error(err);
-      alert("Withdrawal failed. Please try again.");
+      showToast("error", "Withdrawal Failed", err?.message || "Withdrawal failed. Please try again.");
     } finally {
       setIsProcessing(false);
       setProcessingStatus("");
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, label: string = "Address") => {
     navigator.clipboard.writeText(text);
     setCopied(true);
+    showToast("info", "Copied to Clipboard", `${label} copied to clipboard.`);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -1790,6 +1863,134 @@ export default function ShieldedPlayground() {
           </div>
         </div>
       )}
+
+      {/* INSUFFICIENT TESTNET BALANCE / SIMULATION PROMPT MODAL */}
+      {simulateModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-neutral-900">
+                    Arc Testnet Balance Notice
+                  </h3>
+                  <span className="text-[10px] font-mono text-amber-600 font-semibold block">
+                    Pool Denomination: 0.01 {simulateModalData.tokenSymbol}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={cancelSimulatedDeposit}
+                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-500 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 space-y-2">
+              <div className="flex justify-between items-center font-mono">
+                <span className="text-neutral-500">Your Wallet Balance:</span>
+                <span className="font-bold text-neutral-900">
+                  {simulateModalData.currentBal} {simulateModalData.tokenSymbol}
+                </span>
+              </div>
+              <div className="flex justify-between items-center font-mono">
+                <span className="text-neutral-500">Required on Arc:</span>
+                <span className="font-bold text-neutral-900">
+                  0.0100 {simulateModalData.tokenSymbol}
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-500 pt-2 border-t border-neutral-200 leading-relaxed font-sans">
+                Your wallet currently has insufficient testnet tokens for an on-chain deposit. You can simulate the shielded note locally to test zero-knowledge transfers and withdrawals in the playground!
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-1 font-mono text-xs">
+              <button
+                type="button"
+                onClick={confirmSimulatedDeposit}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#0033FF] hover:bg-blue-700 text-white font-medium flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Simulate Note</span>
+              </button>
+              <button
+                type="button"
+                onClick={cancelSimulatedDeposit}
+                className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING TOAST NOTIFICATIONS */}
+      <div
+        aria-live="polite"
+        className="fixed bottom-5 right-5 z-[150] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-[calc(100vw-2.5rem)] pointer-events-none"
+      >
+        {toasts.map((toast) => {
+          const isSuccess = toast.type === "success";
+          const isError = toast.type === "error";
+          const isWarning = toast.type === "warning";
+
+          const bgBorderColor = isSuccess
+            ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-50 shadow-emerald-950/40"
+            : isError
+            ? "bg-rose-950/90 border-rose-500/40 text-rose-50 shadow-rose-950/40"
+            : isWarning
+            ? "bg-amber-950/90 border-amber-500/40 text-amber-50 shadow-amber-950/40"
+            : "bg-[#0b1329]/95 border-cyan-500/40 text-cyan-50 shadow-cyan-950/40";
+
+          const iconColor = isSuccess
+            ? "text-emerald-400"
+            : isError
+            ? "text-rose-400"
+            : isWarning
+            ? "text-amber-400"
+            : "text-cyan-400";
+
+          return (
+            <div
+              key={toast.id}
+              className={`pointer-events-auto rounded-2xl border p-4 shadow-xl backdrop-blur-xl transition-all duration-300 flex items-start gap-3 ${bgBorderColor}`}
+            >
+              <div className="shrink-0 mt-0.5">
+                {isSuccess && <CheckCircle2 className={`w-5 h-5 ${iconColor}`} />}
+                {isError && <AlertCircle className={`w-5 h-5 ${iconColor}`} />}
+                {isWarning && <AlertCircle className={`w-5 h-5 ${iconColor}`} />}
+                {!isSuccess && !isError && !isWarning && <Info className={`w-5 h-5 ${iconColor}`} />}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h4 className="text-xs font-semibold tracking-wide text-white font-mono">
+                  {toast.title}
+                </h4>
+                {toast.message && (
+                  <p className="text-[11px] text-white/70 mt-0.5 leading-relaxed break-words font-sans">
+                    {toast.message}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => dismissToast(toast.id)}
+                className="shrink-0 p-1 text-white/40 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Dismiss toast"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
