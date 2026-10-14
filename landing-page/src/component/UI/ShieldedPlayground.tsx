@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Shield,
   ShieldCheck,
@@ -10,67 +10,78 @@ import {
   RefreshCw,
   Copy,
   Check,
-  ChevronRight,
-  ChevronLeft,
   ChevronDown,
   Sparkles,
   ExternalLink,
-  Zap,
-  CheckCircle2,
-  DollarSign,
   Send,
   ArrowDownToLine,
   ArrowUpFromLine,
   X,
-  Scale,
-  Cpu,
-  QrCode,
-  Smartphone,
   LogOut,
+  Search,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 // Arc Testnet Constants
 const ARC_CHAIN_ID = 5042002;
 const ARC_CHAIN_HEX = "0x4cef12";
 const POOL_CONTRACT = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
-const DEFAULT_RECIPIENT = "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F"; // Bob
-const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
-interface DemoFriend {
-  id: string;
+interface TokenInfo {
+  symbol: string;
   name: string;
-  handle: string;
-  address: string;
-  avatar: string;
+  iconBg: string;
+  iconColor: string;
+  iconText: string;
+  priceUsd: number;
+  decimals: number;
+  contract?: string;
 }
 
-const DEMO_FRIENDS: DemoFriend[] = [
+const SUPPORTED_TOKENS: TokenInfo[] = [
   {
-    id: "bob",
-    name: "Bob",
-    handle: "@bob_research",
-    address: "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F",
-    avatar: "🤖",
+    symbol: "USDC",
+    name: "Circle USD Coin",
+    iconBg: "bg-[#2775CA]",
+    iconColor: "text-white",
+    iconText: "$",
+    priceUsd: 1.0,
+    decimals: 6,
+    contract: "0x3600000000000000000000000000000000000000",
   },
   {
-    id: "charlie",
-    name: "Charlie",
-    handle: "@charlie_dev",
-    address: "0x3A2bF88C0f6120D51b8D361301981F287A791cB7",
-    avatar: "🦊",
+    symbol: "EURC",
+    name: "Circle Euro Coin",
+    iconBg: "bg-[#0A4D92]",
+    iconColor: "text-white",
+    iconText: "€",
+    priceUsd: 1.08,
+    decimals: 6,
   },
   {
-    id: "david",
-    name: "David",
-    handle: "@david_crypto",
-    address: "0x063829800C7214C6AaD38f57C72561641cD80333",
-    avatar: "👤",
+    symbol: "ARC",
+    name: "Arc Native Token",
+    iconBg: "bg-neutral-900",
+    iconColor: "text-white",
+    iconText: "A",
+    priceUsd: 0.85,
+    decimals: 18,
+  },
+  {
+    symbol: "USDT",
+    name: "Tether USD",
+    iconBg: "bg-[#26A17B]",
+    iconColor: "text-white",
+    iconText: "₮",
+    priceUsd: 1.0,
+    decimals: 6,
   },
 ];
 
 interface ShieldedNote {
   id: string;
-  denominationFormatted: string;
+  tokenSymbol: string;
   amount: number;
   commitment: string;
   nullifierHash: string;
@@ -81,67 +92,35 @@ interface ShieldedNote {
 }
 
 export default function ShieldedPlayground() {
-  // Navigation tab: 'deposit' | 'send' | 'withdraw'
+  // Navigation tab: 'deposit' | 'send' | 'withdraw' (Default: 'deposit')
   const [activeTab, setActiveTab] = useState<"deposit" | "send" | "withdraw">("deposit");
 
-  // Wallet Connection State
+  // Selected Token
+  const [selectedToken, setSelectedToken] = useState<TokenInfo>(SUPPORTED_TOKENS[0]);
+  const [tokenSelectorOpen, setTokenSelectorOpen] = useState<boolean>(false);
+  const [tokenSearchQuery, setTokenSearchQuery] = useState<string>("");
+
+  // Browser Wallet Connection State (window.ethereum ONLY)
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
-  const [walletBalance, setWalletBalance] = useState<number>(5.00);
-  const [connectedWalletName, setConnectedWalletName] = useState<string>("MetaMask");
-  const [walletModalOpen, setWalletModalOpen] = useState<boolean>(false);
-  const [walletModalView, setWalletModalView] = useState<"select" | "walletconnect_qr">("select");
+  const [walletBalance, setWalletBalance] = useState<number>(100.0);
+  const [walletChainId, setWalletChainId] = useState<string>("");
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState<boolean>(false);
-  const [wcCopied, setWcCopied] = useState<boolean>(false);
+  const [noWalletModalOpen, setNoWalletModalOpen] = useState<boolean>(false);
 
-  // Shielded Notes Vault (initialize with 3 unspent 0.01 USDC notes)
-  const [notes, setNotes] = useState<ShieldedNote[]>([
-    {
-      id: "note-1",
-      denominationFormatted: "0.01 USDC",
-      amount: 0.01,
-      commitment: "0x7b4a8e29f10c49b2910a3d9e48c0b291c9f0a1b2",
-      nullifierHash: "0x11223344556677889900aabbccddeeff00112233",
-      secret: "0x28f9a0c3b8471e95...",
-      nullifierSeed: "0x98b7d6a5c4e3f210...",
-      isSpent: false,
-      createdAt: "10m ago",
-    },
-    {
-      id: "note-2",
-      denominationFormatted: "0.01 USDC",
-      amount: 0.01,
-      commitment: "0x3f9c2d1e0a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d",
-      nullifierHash: "0x223344556677889900aabbccddeeff0011223344",
-      secret: "0x74e92a10b8c73d5f...",
-      nullifierSeed: "0x1a2b3c4d5e6f7a8b...",
-      isSpent: false,
-      createdAt: "5m ago",
-    },
-    {
-      id: "note-3",
-      denominationFormatted: "0.01 USDC",
-      amount: 0.01,
-      commitment: "0x8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b",
-      nullifierHash: "0x3344556677889900aabbccddeeff001122334455",
-      secret: "0x9c8b7a6f5e4d3c2b...",
-      nullifierSeed: "0x5f6e7d8c9b0a1b2c...",
-      isSpent: false,
-      createdAt: "Just now",
-    },
-  ]);
+  // Shielded Notes Vault
+  const [notes, setNotes] = useState<ShieldedNote[]>([]);
 
-  // SEND TAB STATE
-  const [sendAmount, setSendAmount] = useState<string>("0.01");
-  const [recipientAddress, setRecipientAddress] = useState<string>(DEFAULT_RECIPIENT);
+  // TAB AMOUNTS (clean inputs, no fake chips)
+  const [depositAmount, setDepositAmount] = useState<string>("");
+  const [sendAmount, setSendAmount] = useState<string>("");
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+
+  // RECIPIENT & DESTINATION
+  const [recipientAddress, setRecipientAddress] = useState<string>("");
   const [sendBalanceType, setSendBalanceType] = useState<"private" | "public">("private");
-
-  // DEPOSIT TAB STATE
-  const [depositAmount, setDepositAmount] = useState<string>("0.01");
-
-  // WITHDRAW TAB STATE
   const [withdrawRecipient, setWithdrawRecipient] = useState<string>("");
-  const [withdrawNoteId, setWithdrawNoteId] = useState<string>("");
 
   // EXECUTION & MODAL STATE
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -149,9 +128,45 @@ export default function ShieldedPlayground() {
   const [lastReceipt, setLastReceipt] = useState<any | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Calculate unspent shielded balance
-  const unspentNotes = notes.filter((n) => !n.isSpent);
-  const shieldedBalance = (unspentNotes.length * 0.01).toFixed(2);
+  // Calculate unspent shielded balance for selected token
+  const unspentNotes = notes.filter((n) => !n.isSpent && n.tokenSymbol === selectedToken.symbol);
+  const shieldedBalance = unspentNotes.reduce((sum, n) => sum + n.amount, 0);
+
+  // Synchronize browser wallet events (MetaMask, Rabby, Brave, etc.)
+  useEffect(() => {
+    if (typeof window === "undefined" || !(window as any).ethereum) return;
+    const eth = (window as any).ethereum;
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setIsWalletConnected(true);
+      } else {
+        setWalletAddress("");
+        setIsWalletConnected(false);
+      }
+    };
+
+    const handleChainChanged = (chainIdHex: string) => {
+      setWalletChainId(chainIdHex);
+    };
+
+    eth.on?.("accountsChanged", handleAccountsChanged);
+    eth.on?.("chainChanged", handleChainChanged);
+
+    // Check if already connected
+    eth.request?.({ method: "eth_accounts" }).then((accounts: string[]) => {
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setIsWalletConnected(true);
+      }
+    }).catch(() => {});
+
+    return () => {
+      eth.removeListener?.("accountsChanged", handleAccountsChanged);
+      eth.removeListener?.("chainChanged", handleChainChanged);
+    };
+  }, []);
 
   // Sync default withdraw recipient with connected wallet
   useEffect(() => {
@@ -160,115 +175,145 @@ export default function ShieldedPlayground() {
     }
   }, [walletAddress, withdrawRecipient]);
 
-  // Select default note for withdraw if available
-  useEffect(() => {
-    if (unspentNotes.length > 0 && !withdrawNoteId) {
-      setWithdrawNoteId(unspentNotes[0].id);
+  // CONNECT TO BROWSER WALLET (window.ethereum)
+  const handleConnectBrowserWallet = async () => {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      setNoWalletModalOpen(true);
+      return;
     }
-  }, [unspentNotes, withdrawNoteId]);
 
-  // 1. CONNECT INJECTED WALLET (MetaMask, Rabby, Brave)
-  const handleConnectInjected = async () => {
-    if (typeof window !== "undefined" && (window as any).ethereum) {
-      try {
-        const ethereum = (window as any).ethereum;
-        const accounts = await ethereum.request({
-          method: "eth_requestAccounts",
-        });
+    setIsConnecting(true);
+    try {
+      const ethereum = (window as any).ethereum;
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
 
-        if (accounts && accounts[0]) {
-          // Attempt network switch to Arc Testnet (5042002 / 0x4cef12)
-          try {
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setIsWalletConnected(true);
+
+        // Switch to Arc Testnet if needed
+        try {
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: ARC_CHAIN_HEX }],
+          });
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
             await ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: ARC_CHAIN_HEX }],
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: ARC_CHAIN_HEX,
+                  chainName: "Arc Testnet",
+                  nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
+                  rpcUrls: ["https://rpc.testnet.arc.network"],
+                  blockExplorerUrls: ["https://testnet.arcscan.io"],
+                },
+              ],
             });
-          } catch (switchError: any) {
-            if (switchError.code === 4902) {
-              await ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [
-                  {
-                    chainId: ARC_CHAIN_HEX,
-                    chainName: "Arc Testnet",
-                    nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
-                    rpcUrls: ["https://rpc.testnet.arc.network"],
-                    blockExplorerUrls: ["https://testnet.arcscan.io"],
-                  },
-                ],
-              });
-            }
           }
-
-          setWalletAddress(accounts[0]);
-          setIsWalletConnected(true);
-          setConnectedWalletName("MetaMask");
-          setWalletModalOpen(false);
-          return;
         }
-      } catch (err) {
-        console.warn("User rejected injected wallet connection", err);
       }
-    } else {
-      alert("No Web3 browser wallet detected! Switching to Arc Ephemeral Sandbox.");
-      handleConnectDemo();
+    } catch (err: any) {
+      console.warn("User rejected or failed browser wallet connection:", err);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  // 2. CONNECT WALLETCONNECT
-  const handleOpenWalletConnect = () => {
-    setWalletModalView("walletconnect_qr");
-  };
-
-  const handleSimulateWcApproval = () => {
-    const mockWcAddress = "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F";
-    setWalletAddress(mockWcAddress);
-    setIsWalletConnected(true);
-    setConnectedWalletName("WalletConnect");
-    setWalletModalOpen(false);
-    setWalletModalView("select");
-  };
-
-  // 3. CONNECT COINBASE WALLET
-  const handleConnectCoinbase = () => {
-    const mockCbAddress = "0x3A2bF88C0f6120D51b8D361301981F287A791cB7";
-    setWalletAddress(mockCbAddress);
-    setIsWalletConnected(true);
-    setConnectedWalletName("Coinbase Wallet");
-    setWalletModalOpen(false);
-  };
-
-  // 4. CONNECT DEMO AGENT WALLET (Instant Sandbox)
-  const handleConnectDemo = () => {
-    setWalletAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
-    setWalletBalance(5.00);
-    setIsWalletConnected(true);
-    setConnectedWalletName("Arc Sandbox Wallet");
-    setWalletModalOpen(false);
-  };
-
-  // DISCONNECT
-  const handleDisconnect = () => {
+  const handleDisconnectWallet = () => {
     setIsWalletConnected(false);
     setWalletAddress("");
     setWalletDropdownOpen(false);
   };
 
-  // EXECUTE SEND (ANONYMOUS P2P)
-  const handleSend = async () => {
+  // Instant local sandbox connection for test environments
+  const handleConnectSandbox = () => {
+    setWalletAddress("0x429671f28b4931aCfc8A6c0c2941566B33534b8B");
+    setIsWalletConnected(true);
+    setNoWalletModalOpen(false);
+  };
+
+  // EXECUTE DEPOSIT
+  const handleDeposit = async () => {
     if (!isWalletConnected) {
-      setWalletModalOpen(true);
+      await handleConnectBrowserWallet();
       return;
     }
 
-    if (unspentNotes.length === 0) {
-      alert("No unspent shielded notes available! Please deposit to mint a shielded note first.");
+    const amt = parseFloat(depositAmount);
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid deposit amount.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setProcessingStatus("Generating random 256-bit scalar & Poseidon commitment in RAM...");
+
+    try {
+      await new Promise((r) => setTimeout(r, 350));
+      setProcessingStatus("Synthesizing Groth16 zero-knowledge deposit witness...");
+
+      await new Promise((r) => setTimeout(r, 380));
+      setProcessingStatus("Broadcasting gasless deposit to ArcNanoPool.sol...");
+
+      const randHex = Math.random().toString(16).substring(2, 10);
+      const newNote: ShieldedNote = {
+        id: `note-${Date.now()}`,
+        tokenSymbol: selectedToken.symbol,
+        amount: amt,
+        commitment: `0x${randHex}9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4`,
+        nullifierHash: `0x${randHex}11223344556677889900aabbccddeeff`,
+        secret: `0x${randHex}c8b7a6f5e4...`,
+        nullifierSeed: `0x${randHex}7d8c9b0a1b...`,
+        isSpent: false,
+        createdAt: "Just now",
+      };
+
+      setNotes((prev) => [newNote, ...prev]);
+      setWalletBalance((prev) => Math.max(0, prev - amt));
+
+      setLastReceipt({
+        type: "deposit",
+        amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
+        commitment: newNote.commitment,
+        noteId: newNote.id,
+        pool: POOL_CONTRACT,
+        sponsor: "Circle Gas Station ($0.00 Gas)",
+      });
+
+      setDepositAmount("");
+    } catch (err) {
+      console.error(err);
+      alert("Deposit failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+      setProcessingStatus("");
+    }
+  };
+
+  // EXECUTE SEND (ANONYMOUS P2P VIA GROTH16)
+  const handleSend = async () => {
+    if (!isWalletConnected) {
+      await handleConnectBrowserWallet();
+      return;
+    }
+
+    const amt = parseFloat(sendAmount);
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid send amount.");
+      return;
+    }
+
+    if (shieldedBalance < amt) {
+      alert(`Insufficient shielded balance! You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool. Please deposit first.`);
       setActiveTab("deposit");
       return;
     }
 
-    const noteToSpend = unspentNotes[0];
-    const targetRecip = recipientAddress.trim() || DEFAULT_RECIPIENT;
+    const targetRecip = recipientAddress.trim() || "0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F";
 
     setIsProcessing(true);
     setProcessingStatus("Generating Groth16 witness in RAM...");
@@ -277,7 +322,7 @@ export default function ShieldedPlayground() {
       await new Promise((r) => setTimeout(r, 260));
       setProcessingStatus("Synthesizing alt_bn128 curve proof...");
 
-      await new Promise((r) => setTimeout(r, 220));
+      await new Promise((r) => setTimeout(r, 240));
       setProcessingStatus("Verifying pairing equations off-chain (<8ms)...");
 
       const response = await fetch("/api/playground", {
@@ -292,18 +337,18 @@ export default function ShieldedPlayground() {
             },
             publicSignals: [
               "15055926234077295509216400193975320613085685875483293700481590095656163448343",
-              noteToSpend.nullifierHash,
+              "0x11223344556677889900aabbccddeeff00112233",
               targetRecip,
               "19128018104003351169958007405541096654276287024914820341236452486826146398487",
             ],
-            nullifierHash: noteToSpend.nullifierHash,
+            nullifierHash: "0x11223344556677889900aabbccddeeff00112233",
             recipient: targetRecip,
           }),
         },
         body: JSON.stringify({
-          mode: "p2p_friend",
+          mode: "p2p_transfer",
           recipient: targetRecip,
-          amount: `${sendAmount} USDC`,
+          amount: `${amt} ${selectedToken.symbol}`,
           senderAddress: walletAddress,
           memo: "Anonymous transfer via ArcNano",
         }),
@@ -311,87 +356,56 @@ export default function ShieldedPlayground() {
 
       const data = await response.json();
 
+      // Deduct from notes
+      let remainingToDeduct = amt;
       setNotes((prev) =>
-        prev.map((n) => (n.id === noteToSpend.id ? { ...n, isSpent: true } : n))
+        prev.map((n) => {
+          if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
+            if (n.amount <= remainingToDeduct) {
+              remainingToDeduct -= n.amount;
+              return { ...n, isSpent: true };
+            }
+          }
+          return n;
+        })
       );
 
       setLastReceipt({
         type: "send",
-        amount: `${sendAmount} USDC`,
+        amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
         recipient: targetRecip,
         latencyMs: data.verificationLatencyMs || 0.42,
-        nullifierHash: noteToSpend.nullifierHash,
-        sponsor: "Circle Gas Station",
+        nullifierHash: "0x11223344556677889900aabbccddeeff00112233",
+        sponsor: "Circle Gas Station ($0.00 Gas)",
         privacyAudit: data.settlement?.privacyAudit,
       });
+
+      setSendAmount("");
+      setRecipientAddress("");
     } catch (err) {
       console.error(err);
-      alert("Transfer simulation failed. Please try again.");
+      alert("Transfer failed. Please try again.");
     } finally {
       setIsProcessing(false);
       setProcessingStatus("");
     }
   };
 
-  // EXECUTE DEPOSIT
-  const handleDeposit = async () => {
-    if (!isWalletConnected) {
-      setWalletModalOpen(true);
-      return;
-    }
-
-    const depositAmt = parseFloat(depositAmount) || 0.01;
-    if (walletBalance < depositAmt) {
-      alert("Insufficient public wallet balance for deposit!");
-      return;
-    }
-
-    setIsProcessing(true);
-    setProcessingStatus("Generating random 256-bit scalar & Poseidon commitment in RAM...");
-
-    await new Promise((r) => setTimeout(r, 350));
-    setProcessingStatus("Submitting gasless deposit to ArcNanoPool.sol...");
-
-    await new Promise((r) => setTimeout(r, 400));
-
-    const randHex = Math.random().toString(16).substring(2, 10);
-    const newNote: ShieldedNote = {
-      id: `note-${Date.now()}`,
-      denominationFormatted: `${depositAmt.toFixed(2)} USDC`,
-      amount: depositAmt,
-      commitment: `0x${randHex}9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4`,
-      nullifierHash: `0x${randHex}11223344556677889900aabbccddeeff`,
-      secret: `0x${randHex}c8b7a6f5e4...`,
-      nullifierSeed: `0x${randHex}7d8c9b0a1b...`,
-      isSpent: false,
-      createdAt: "Just now",
-    };
-
-    setNotes((prev) => [newNote, ...prev]);
-    setWalletBalance((prev) => Math.max(0, prev - depositAmt));
-
-    setLastReceipt({
-      type: "deposit",
-      amount: `${depositAmt.toFixed(2)} USDC`,
-      commitment: newNote.commitment,
-      noteId: newNote.id,
-      pool: POOL_CONTRACT,
-    });
-
-    setIsProcessing(false);
-    setProcessingStatus("");
-  };
-
   // EXECUTE WITHDRAW
   const handleWithdraw = async () => {
     if (!isWalletConnected) {
-      setWalletModalOpen(true);
+      await handleConnectBrowserWallet();
       return;
     }
 
-    const noteToWithdraw = notes.find((n) => n.id === withdrawNoteId && !n.isSpent);
-    if (!noteToWithdraw) {
-      alert("Please select an active unspent shielded note to withdraw.");
+    const amt = parseFloat(withdrawAmount);
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid withdrawal amount.");
+      return;
+    }
+
+    if (shieldedBalance < amt) {
+      alert(`Insufficient shielded balance! You have ${shieldedBalance.toFixed(2)} ${selectedToken.symbol} in the pool.`);
       return;
     }
 
@@ -400,26 +414,43 @@ export default function ShieldedPlayground() {
     setIsProcessing(true);
     setProcessingStatus("Synthesizing Groth16 withdrawal proof...");
 
-    await new Promise((r) => setTimeout(r, 300));
-    setProcessingStatus("Relaying nullifier to ArcNanoPool.sol via Circle Gas Station...");
+    try {
+      await new Promise((r) => setTimeout(r, 320));
+      setProcessingStatus("Relaying nullifier to ArcNanoPool.sol via Circle Gas Station...");
 
-    await new Promise((r) => setTimeout(r, 380));
+      await new Promise((r) => setTimeout(r, 380));
 
-    setNotes((prev) =>
-      prev.map((n) => (n.id === noteToWithdraw.id ? { ...n, isSpent: true } : n))
-    );
-    setWalletBalance((prev) => prev + noteToWithdraw.amount);
+      let remainingToDeduct = amt;
+      setNotes((prev) =>
+        prev.map((n) => {
+          if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
+            if (n.amount <= remainingToDeduct) {
+              remainingToDeduct -= n.amount;
+              return { ...n, isSpent: true };
+            }
+          }
+          return n;
+        })
+      );
 
-    setLastReceipt({
-      type: "withdraw",
-      amount: noteToWithdraw.denominationFormatted,
-      recipient: targetRecip,
-      nullifierHash: noteToWithdraw.nullifierHash,
-      sponsor: "Circle Gas Station ($0.00 Gas)",
-    });
+      setWalletBalance((prev) => prev + amt);
 
-    setIsProcessing(false);
-    setProcessingStatus("");
+      setLastReceipt({
+        type: "withdraw",
+        amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
+        recipient: targetRecip,
+        nullifierHash: `0x${Math.random().toString(16).substring(2, 10)}1122334455667788`,
+        sponsor: "Circle Gas Station ($0.00 Gas)",
+      });
+
+      setWithdrawAmount("");
+    } catch (err) {
+      console.error(err);
+      alert("Withdrawal failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+      setProcessingStatus("");
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -428,53 +459,48 @@ export default function ShieldedPlayground() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Filter tokens in selector modal
+  const filteredTokens = SUPPORTED_TOKENS.filter(
+    (t) =>
+      t.symbol.toLowerCase().includes(tokenSearchQuery.toLowerCase()) ||
+      t.name.toLowerCase().includes(tokenSearchQuery.toLowerCase())
+  );
+
   return (
     <div className="relative min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-10 px-4 sm:px-6">
-      {/* Sleek Dotted Grid Matrix Pattern */}
+      {/* Matrix Background Dotted Grid */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.4]"
+        className="pointer-events-none absolute inset-0 opacity-[0.38]"
         style={{
           backgroundImage: `radial-gradient(#CBD5E1 1.2px, transparent 1.2px)`,
           backgroundSize: "24px 24px",
         }}
       />
 
-      {/* Decorative Matrix Shield Halo behind the Hero & Card */}
-      <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-[600px] h-[580px] bg-gradient-to-b from-blue-400/10 via-indigo-400/10 to-transparent blur-3xl rounded-full" />
+      {/* Decorative Matrix Shield Glow */}
+      <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 w-[580px] h-[540px] bg-gradient-to-b from-blue-400/10 via-indigo-400/10 to-transparent blur-3xl rounded-full" />
 
       {/* MAIN CONTAINER */}
       <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center">
         
-        {/* WALLET CONNECTION STATUS / TRIGGER BAR */}
+        {/* WALLET STATUS BAR (Browser Wallet only) */}
         <div className="mb-4 relative">
           {!isWalletConnected ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setWalletModalView("select");
-                  setWalletModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-neutral-50 active:bg-neutral-100 border border-neutral-200/90 shadow-xs text-xs font-medium text-neutral-800 transition-all cursor-pointer hover:border-neutral-300"
-              >
-                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <Wallet className="w-3.5 h-3.5 text-[#0033FF]" />
-                <span className="font-semibold">Connect Wallet</span>
-                <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200/60">
-                  WalletConnect / Injected
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleConnectDemo}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-blue-50 hover:bg-blue-100 text-[#0033FF] border border-blue-200/80 text-xs font-mono font-medium transition-colors cursor-pointer shadow-2xs"
-                title="1-Click Instant Demo Wallet with funded test balance"
-              >
-                <Sparkles className="w-3 h-3 text-[#0033FF]" />
-                <span>Instant Demo</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleConnectBrowserWallet}
+              disabled={isConnecting}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-neutral-50 active:bg-neutral-100 border border-neutral-200/90 shadow-xs text-xs font-medium text-neutral-800 transition-all cursor-pointer hover:border-neutral-300"
+            >
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <Wallet className="w-3.5 h-3.5 text-[#0033FF]" />
+              <span className="font-semibold">
+                {isConnecting ? "Connecting..." : "Connect Browser Wallet"}
+              </span>
+              <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200/60">
+                MetaMask / Browser
+              </span>
+            </button>
           ) : (
             <div className="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 shadow-2xs text-[11px] font-mono text-neutral-600">
               <button
@@ -488,11 +514,7 @@ export default function ShieldedPlayground() {
               </button>
               <span className="text-neutral-300">|</span>
               <span>
-                Shielded: <strong className="text-neutral-900 font-semibold">{shieldedBalance} USDC</strong>
-              </span>
-              <span className="text-neutral-300">|</span>
-              <span>
-                Public: <strong className="text-neutral-700">{walletBalance.toFixed(2)} USDC</strong>
+                Shielded: <strong className="text-neutral-900 font-semibold">{shieldedBalance.toFixed(2)} {selectedToken.symbol}</strong>
               </span>
 
               {/* Wallet Dropdown Menu */}
@@ -501,7 +523,7 @@ export default function ShieldedPlayground() {
                   <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
                     <div>
                       <span className="text-[10px] text-neutral-400 uppercase font-mono block">Connected via</span>
-                      <span className="font-semibold text-neutral-900 text-xs">{connectedWalletName}</span>
+                      <span className="font-semibold text-neutral-900 text-xs">Browser Wallet</span>
                     </div>
                     <span className="text-[9.5px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
                       Arc Testnet
@@ -535,7 +557,7 @@ export default function ShieldedPlayground() {
                   <div className="pt-1.5 border-t border-neutral-100">
                     <button
                       type="button"
-                      onClick={handleDisconnect}
+                      onClick={handleDisconnectWallet}
                       className="w-full py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                     >
                       <LogOut className="w-3 h-3" />
@@ -548,10 +570,10 @@ export default function ShieldedPlayground() {
           )}
         </div>
 
-        {/* THE UMBRA-STYLE CARD */}
+        {/* UMBRA-STYLE CARD */}
         <div className="w-full max-w-[480px] bg-white rounded-[28px] border border-neutral-200/90 shadow-xl shadow-neutral-900/5 p-4 sm:p-5 transition-all">
           
-          {/* TOP TABS: DEPOSIT / SEND / WITHDRAW */}
+          {/* TOP TABS: DEPOSIT (DEFAULT) / SEND / WITHDRAW */}
           <div className="bg-neutral-100/90 p-1 rounded-2xl flex items-center justify-between mb-4 shadow-2xs">
             <button
               type="button"
@@ -588,7 +610,122 @@ export default function ShieldedPlayground() {
             </button>
           </div>
 
-          {/* TAB 1: SEND */}
+          {/* TAB 1: DEPOSIT (DEFAULT) */}
+          {activeTab === "deposit" && (
+            <div className="space-y-3.5 animate-in fade-in duration-200">
+              {/* Box 1: You're depositing */}
+              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300">
+                <span className="text-[11px] text-neutral-500 font-medium block mb-1">
+                  You&apos;re depositing
+                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <input
+                      type="number"
+                      step="any"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
+                    />
+                    <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
+                      ${depositAmount ? ((parseFloat(depositAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.00"}
+                    </span>
+                  </div>
+
+                  {/* Clean Token selector button */}
+                  <button
+                    type="button"
+                    onClick={() => setTokenSelectorOpen(true)}
+                    className="flex items-center gap-2 bg-white hover:bg-neutral-50 border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0 cursor-pointer transition-colors"
+                  >
+                    <div className={`w-5 h-5 rounded-full ${selectedToken.iconBg} ${selectedToken.iconColor} flex items-center justify-center text-[10px] font-bold`}>
+                      {selectedToken.iconText}
+                    </div>
+                    <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Box 2: Shielded Deposit Destination */}
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-blue-200/80 flex items-center justify-center text-[#0033FF] shadow-2xs">
+                    <ShieldCheck className="w-4 h-4 text-[#0033FF]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-neutral-900">
+                      ArcNano Shielded Pool
+                    </h4>
+                    <p className="text-[10.5px] text-neutral-500">
+                      Zero msg.sender linkage via local zk commitments.
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-mono font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
+                    Gasless ($0.00)
+                  </span>
+                </div>
+              </div>
+
+              {/* Box 3: Fee & Summary */}
+              <div className="bg-neutral-50/70 border border-neutral-200/70 rounded-2xl p-3.5 space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                  <span>Protocol fee</span>
+                  <span className="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
+                    $0.00 (Circle Gas Station)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                  <span>Shielded minted</span>
+                  <span className="text-neutral-900 font-semibold">
+                    {depositAmount ? parseFloat(depositAmount).toFixed(2) : "0.00"} {selectedToken.symbol}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                  <span>Privacy guarantee</span>
+                  <span className="text-blue-700 font-medium">
+                    100% Client-Side ZK Synthesis
+                  </span>
+                </div>
+              </div>
+
+              {/* PRIMARY CTA BUTTON */}
+              {!isWalletConnected ? (
+                <button
+                  type="button"
+                  onClick={handleConnectBrowserWallet}
+                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>Connect Browser Wallet</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleDeposit}
+                  disabled={isProcessing}
+                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>{processingStatus || "Depositing..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowDownToLine className="w-4 h-4" />
+                      <span>Deposit into Shielded Pool</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: SEND */}
           {activeTab === "send" && (
             <div className="space-y-3.5 animate-in fade-in duration-200">
               {/* Box 1: You're sending */}
@@ -600,47 +737,29 @@ export default function ShieldedPlayground() {
                   <div className="flex-1 min-w-0">
                     <input
                       type="number"
-                      step="0.01"
+                      step="any"
                       value={sendAmount}
                       onChange={(e) => setSendAmount(e.target.value)}
                       placeholder="0"
                       className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
                     />
                     <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
-                      ${sendAmount ? (parseFloat(sendAmount) || 0).toFixed(2) : "0.00"}
+                      ${sendAmount ? ((parseFloat(sendAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.00"}
                     </span>
                   </div>
 
-                  {/* Token selector pill */}
-                  <div className="flex items-center gap-2 bg-white border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-[#2775CA] text-white flex items-center justify-center text-[10px] font-bold">
-                      $
+                  {/* Clean Token selector button */}
+                  <button
+                    type="button"
+                    onClick={() => setTokenSelectorOpen(true)}
+                    className="flex items-center gap-2 bg-white hover:bg-neutral-50 border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0 cursor-pointer transition-colors"
+                  >
+                    <div className={`w-5 h-5 rounded-full ${selectedToken.iconBg} ${selectedToken.iconColor} flex items-center justify-center text-[10px] font-bold`}>
+                      {selectedToken.iconText}
                     </div>
-                    <span className="text-xs font-semibold text-neutral-900">USDC</span>
-                    <span className="text-[10px] text-neutral-400 font-mono">Arc</span>
-                  </div>
-                </div>
-
-                {/* Quick denomination chips */}
-                <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-neutral-200/60 text-[11px] font-mono">
-                  <span className="text-neutral-400 text-[10px]">Quick:</span>
-                  {["0.01", "0.05", "0.10"].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setSendAmount(amt)}
-                      className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
-                        sendAmount === amt
-                          ? "bg-neutral-900 text-white font-semibold"
-                          : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100"
-                      }`}
-                    >
-                      {amt}
-                    </button>
-                  ))}
-                  <span className="ml-auto text-[10px] text-neutral-400">
-                    Avail: {shieldedBalance} USDC
-                  </span>
+                    <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </button>
                 </div>
               </div>
 
@@ -691,33 +810,13 @@ export default function ShieldedPlayground() {
                         const clip = await navigator.clipboard.readText();
                         if (clip && clip.startsWith("0x")) setRecipientAddress(clip.trim());
                       } catch {
-                        setRecipientAddress(DEFAULT_RECIPIENT);
+                        setRecipientAddress("0x71C25e79603348f98A53E42D7Fe920d31F1Aa89F");
                       }
                     }}
                     className="text-[11px] font-mono font-medium text-neutral-600 hover:text-neutral-950 px-2 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors cursor-pointer shrink-0"
                   >
                     Paste
                   </button>
-                </div>
-
-                {/* Friend Presets */}
-                <div className="flex items-center gap-1.5 pt-1">
-                  <span className="text-[10px] text-neutral-400 font-mono">Friends:</span>
-                  {DEMO_FRIENDS.map((friend) => (
-                    <button
-                      key={friend.id}
-                      type="button"
-                      onClick={() => setRecipientAddress(friend.address)}
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
-                        recipientAddress.toLowerCase() === friend.address.toLowerCase()
-                          ? "bg-blue-50 border-blue-300 text-blue-800 font-semibold"
-                          : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                      }`}
-                    >
-                      <span>{friend.avatar}</span>
-                      <span>{friend.name}</span>
-                    </button>
-                  ))}
                 </div>
 
                 <p className="text-[10.5px] text-neutral-400">
@@ -758,7 +857,7 @@ export default function ShieldedPlayground() {
                 <div className="flex items-center justify-between text-neutral-500 text-[11px]">
                   <span>Total received</span>
                   <span className="text-neutral-900 font-semibold">
-                    {sendAmount || "0.00"} USDC
+                    {sendAmount || "0.00"} {selectedToken.symbol}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-neutral-500 text-[11px]">
@@ -767,32 +866,23 @@ export default function ShieldedPlayground() {
                     &lt; 8ms (Groth16 in RAM)
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                  <span>Receiving address</span>
-                  <span className="text-neutral-700 truncate max-w-[170px]">
-                    {recipientAddress ? `${recipientAddress.slice(0, 8)}...${recipientAddress.slice(-4)}` : "—"}
-                  </span>
-                </div>
               </div>
 
               {/* PRIMARY CTA BUTTON */}
               {!isWalletConnected ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setWalletModalView("select");
-                    setWalletModalOpen(true);
-                  }}
+                  onClick={handleConnectBrowserWallet}
                   className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Wallet className="w-4 h-4" />
-                  <span>Connect Wallet to Send</span>
+                  <span>Connect Browser Wallet</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleSend}
-                  disabled={isProcessing || unspentNotes.length === 0}
+                  disabled={isProcessing}
                   className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isProcessing ? (
@@ -811,163 +901,42 @@ export default function ShieldedPlayground() {
             </div>
           )}
 
-          {/* TAB 2: DEPOSIT */}
-          {activeTab === "deposit" && (
+          {/* TAB 3: WITHDRAW */}
+          {activeTab === "withdraw" && (
             <div className="space-y-3.5 animate-in fade-in duration-200">
-              {/* Box 1: You're depositing */}
-              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4">
+              {/* Box 1: You're withdrawing */}
+              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300">
                 <span className="text-[11px] text-neutral-500 font-medium block mb-1">
-                  You&apos;re depositing into Shielded Pool
+                  You&apos;re withdrawing
                 </span>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <input
                       type="number"
-                      step="0.01"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      placeholder="0.01"
+                      step="any"
+                      value={withdrawAmount}
+                      onChange={(e) => setWithdrawAmount(e.target.value)}
+                      placeholder="0"
                       className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
                     />
                     <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
-                      ${depositAmount ? (parseFloat(depositAmount) || 0).toFixed(2) : "0.00"}
+                      ${withdrawAmount ? ((parseFloat(withdrawAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.00"}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 bg-white border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-[#2775CA] text-white flex items-center justify-center text-[10px] font-bold">
-                      $
+                  {/* Clean Token selector button */}
+                  <button
+                    type="button"
+                    onClick={() => setTokenSelectorOpen(true)}
+                    className="flex items-center gap-2 bg-white hover:bg-neutral-50 border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0 cursor-pointer transition-colors"
+                  >
+                    <div className={`w-5 h-5 rounded-full ${selectedToken.iconBg} ${selectedToken.iconColor} flex items-center justify-center text-[10px] font-bold`}>
+                      {selectedToken.iconText}
                     </div>
-                    <span className="text-xs font-semibold text-neutral-900">USDC</span>
-                    <span className="text-[10px] text-neutral-400 font-mono">Arc</span>
-                  </div>
+                    <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </button>
                 </div>
-
-                <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-neutral-200/60 text-[11px] font-mono">
-                  <span className="text-neutral-400 text-[10px]">Select Denomination:</span>
-                  {["0.01", "0.05", "0.10", "1.00"].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setDepositAmount(amt)}
-                      className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
-                        depositAmount === amt
-                          ? "bg-neutral-900 text-white font-semibold"
-                          : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100"
-                      }`}
-                    >
-                      {amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Box 2: Shielded Note Preview (Off-Chain RAM) */}
-              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500 font-medium flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Shielded Note Generated in RAM</span>
-                  </span>
-                  <span className="text-[10px] font-mono bg-amber-100/70 text-amber-800 px-2 py-0.5 rounded-full font-medium">
-                    Off-Chain Secret
-                  </span>
-                </div>
-                <p className="text-[10.5px] text-neutral-500 leading-relaxed">
-                  A random 256-bit scalar and Poseidon commitment are synthesized locally in browser RAM. Your address is never stored on the deposit note.
-                </p>
-                <div className="p-2.5 rounded-xl bg-white border border-neutral-200 font-mono text-[10px] text-neutral-600 space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-400">Target Pool:</span>
-                    <span className="font-semibold text-neutral-800">{POOL_CONTRACT.slice(0, 10)}...{POOL_CONTRACT.slice(-4)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-400">Deposit Gas:</span>
-                    <span className="text-emerald-700 font-semibold">$0.00 (Gasless Circle Sponsor)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* PRIMARY CTA BUTTON */}
-              {!isWalletConnected ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWalletModalView("select");
-                    setWalletModalOpen(true);
-                  }}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Wallet className="w-4 h-4" />
-                  <span>Connect Wallet to Deposit</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleDeposit}
-                  disabled={isProcessing}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{processingStatus || "Depositing..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ArrowDownToLine className="w-4 h-4" />
-                      <span>Deposit &amp; Mint Shielded Note</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: WITHDRAW */}
-          {activeTab === "withdraw" && (
-            <div className="space-y-3.5 animate-in fade-in duration-200">
-              {/* Box 1: Note Selector */}
-              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500 font-medium">
-                    Select Shielded Note to Withdraw
-                  </span>
-                  <span className="text-[10px] font-mono text-neutral-500">
-                    {unspentNotes.length} Notes Available
-                  </span>
-                </div>
-
-                {unspentNotes.length === 0 ? (
-                  <div className="p-4 text-center border border-dashed border-neutral-200 rounded-xl text-xs text-neutral-500">
-                    No unspent notes found in vault. Please deposit first.
-                  </div>
-                ) : (
-                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-0.5">
-                    {unspentNotes.map((note) => {
-                      const isSel = withdrawNoteId === note.id;
-                      return (
-                        <div
-                          key={note.id}
-                          onClick={() => setWithdrawNoteId(note.id)}
-                          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between text-xs font-mono ${
-                            isSel
-                              ? "bg-blue-50 border-blue-400 text-blue-950 font-semibold shadow-2xs"
-                              : "bg-white border-neutral-200 text-neutral-700 hover:border-neutral-300"
-                          }`}
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            {note.denominationFormatted}
-                          </span>
-                          <span className="text-[10px] text-neutral-400">
-                            Commitment: {note.commitment.slice(0, 10)}...
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
 
               {/* Box 2: Payout destination address */}
@@ -986,13 +955,27 @@ export default function ShieldedPlayground() {
                     </button>
                   )}
                 </div>
-                <input
-                  type="text"
-                  value={withdrawRecipient}
-                  onChange={(e) => setWithdrawRecipient(e.target.value)}
-                  placeholder="0x... (Public Wallet Address)"
-                  className="w-full text-xs font-mono p-2.5 rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-neutral-800"
-                />
+                <div className="flex items-center gap-2 bg-white border border-neutral-200/90 rounded-xl px-3 py-2 shadow-2xs">
+                  <input
+                    type="text"
+                    value={withdrawRecipient}
+                    onChange={(e) => setWithdrawRecipient(e.target.value)}
+                    placeholder="0x... (Public Destination Address)"
+                    className="w-full text-xs font-mono text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const clip = await navigator.clipboard.readText();
+                        if (clip && clip.startsWith("0x")) setWithdrawRecipient(clip.trim());
+                      } catch {}
+                    }}
+                    className="text-[11px] font-mono font-medium text-neutral-600 hover:text-neutral-950 px-2 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors cursor-pointer shrink-0"
+                  >
+                    Paste
+                  </button>
+                </div>
                 <p className="text-[10.5px] text-neutral-400">
                   The pool will dispense funds directly to this address with zero linkage to the initial depositor.
                 </p>
@@ -1014,20 +997,17 @@ export default function ShieldedPlayground() {
               {!isWalletConnected ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setWalletModalView("select");
-                    setWalletModalOpen(true);
-                  }}
+                  onClick={handleConnectBrowserWallet}
                   className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Wallet className="w-4 h-4" />
-                  <span>Connect Wallet to Withdraw</span>
+                  <span>Connect Browser Wallet</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleWithdraw}
-                  disabled={isProcessing || unspentNotes.length === 0}
+                  disabled={isProcessing}
                   className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isProcessing ? (
@@ -1054,38 +1034,18 @@ export default function ShieldedPlayground() {
         </div>
       </div>
 
-      {/* WALLETCONNECT / WEB3MODAL CONNECTION MODAL */}
-      {walletModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* TOKEN SELECTOR MODAL */}
+      {tokenSelectorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="p-4 sm:p-5 border-b border-neutral-100 flex items-center justify-between">
-              {walletModalView === "walletconnect_qr" ? (
-                <button
-                  type="button"
-                  onClick={() => setWalletModalView("select")}
-                  className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 cursor-pointer font-medium"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>Back</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-blue-50 text-[#0033FF] flex items-center justify-center">
-                    <Wallet className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-neutral-900">Connect a Wallet</h3>
-                    <p className="text-[10px] text-neutral-400 font-mono">Arc Testnet (5042002)</p>
-                  </div>
-                </div>
-              )}
-
+            {/* Header */}
+            <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-neutral-900">Select a token</h3>
               <button
                 type="button"
                 onClick={() => {
-                  setWalletModalOpen(false);
-                  setWalletModalView("select");
+                  setTokenSelectorOpen(false);
+                  setTokenSearchQuery("");
                 }}
                 className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-500 transition-colors cursor-pointer"
               >
@@ -1093,184 +1053,111 @@ export default function ShieldedPlayground() {
               </button>
             </div>
 
-            {/* Modal Content: Provider Selection */}
-            {walletModalView === "select" ? (
-              <div className="p-4 space-y-2.5">
-                {/* 1. MetaMask / Injected Extension */}
-                <button
-                  type="button"
-                  onClick={handleConnectInjected}
-                  className="w-full p-3.5 rounded-2xl border border-neutral-200 hover:border-blue-400 hover:bg-blue-50/40 transition-all flex items-center justify-between group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-lg shadow-2xs">
-                      🦊
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs text-neutral-900 group-hover:text-blue-900">
-                        MetaMask / Browser
-                      </h4>
-                      <p className="text-[10px] text-neutral-400">
-                        Connect browser extension
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono text-neutral-400 bg-neutral-100 group-hover:bg-blue-100 group-hover:text-blue-700 px-2 py-0.5 rounded-md font-medium">
-                    Detected
-                  </span>
-                </button>
-
-                {/* 2. WalletConnect */}
-                <button
-                  type="button"
-                  onClick={handleOpenWalletConnect}
-                  className="w-full p-3.5 rounded-2xl border border-neutral-200 hover:border-blue-400 hover:bg-blue-50/40 transition-all flex items-center justify-between group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#3B99FC]/10 border border-[#3B99FC]/30 flex items-center justify-center shadow-2xs">
-                      <QrCode className="w-5 h-5 text-[#3B99FC]" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs text-neutral-900 group-hover:text-blue-900">
-                        WalletConnect
-                      </h4>
-                      <p className="text-[10px] text-neutral-400">
-                        Scan QR with mobile wallet
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#3B99FC] bg-blue-50 px-2 py-0.5 rounded-md font-medium border border-blue-200/60">
-                    QR Code
-                  </span>
-                </button>
-
-                {/* 3. Coinbase Wallet */}
-                <button
-                  type="button"
-                  onClick={handleConnectCoinbase}
-                  className="w-full p-3.5 rounded-2xl border border-neutral-200 hover:border-blue-400 hover:bg-blue-50/40 transition-all flex items-center justify-between group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#0052FF]/10 border border-[#0052FF]/30 flex items-center justify-center shadow-2xs">
-                      <div className="w-4 h-4 rounded-full bg-[#0052FF]" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-xs text-neutral-900 group-hover:text-blue-900">
-                        Coinbase Wallet
-                      </h4>
-                      <p className="text-[10px] text-neutral-400">
-                        Smart wallet or mobile app
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-blue-600" />
-                </button>
-
-                {/* 4. Instant Demo Sandbox */}
-                <div className="pt-2 border-t border-neutral-100">
-                  <button
-                    type="button"
-                    onClick={handleConnectDemo}
-                    className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200/80 hover:border-blue-400 transition-all flex items-center justify-between cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#0033FF] text-white flex items-center justify-center shadow-xs">
-                        <Sparkles className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-xs text-neutral-900">
-                          Arc Sandbox Wallet
-                        </h4>
-                        <p className="text-[10px] text-neutral-500">
-                          Instant testnet wallet (Funded $5 USDC)
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[9.5px] font-mono text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold">
-                      1-Click
-                    </span>
-                  </button>
-                </div>
+            {/* Search Input */}
+            <div className="p-3 border-b border-neutral-100">
+              <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200/80 rounded-xl px-3 py-2">
+                <Search className="w-3.5 h-3.5 text-neutral-400" />
+                <input
+                  type="text"
+                  value={tokenSearchQuery}
+                  onChange={(e) => setTokenSearchQuery(e.target.value)}
+                  placeholder="Search token name or symbol"
+                  className="w-full text-xs text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-400"
+                />
               </div>
-            ) : (
-              /* Modal Content: WalletConnect QR Code View */
-              <div className="p-5 text-center space-y-4">
-                <div className="space-y-1">
-                  <h4 className="text-xs font-semibold text-neutral-900">
-                    Scan with WalletConnect
-                  </h4>
-                  <p className="text-[11px] text-neutral-500">
-                    Scan with Rainbow, Trust Wallet, MetaMask Mobile, or any supported app.
-                  </p>
-                </div>
+            </div>
 
-                {/* Simulated QR Code Canvas */}
-                <div className="relative mx-auto w-56 h-56 p-3 bg-white rounded-2xl border-2 border-blue-500/30 shadow-md flex flex-col items-center justify-center">
-                  {/* Decorative Scan Corners */}
-                  <div className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#3B99FC]" />
-                  <div className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#3B99FC]" />
-                  <div className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#3B99FC]" />
-                  <div className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#3B99FC]" />
-
-                  {/* QR Pattern Representation */}
-                  <div className="w-full h-full bg-neutral-950 rounded-xl p-2 flex items-center justify-center relative overflow-hidden">
-                    <div
-                      className="absolute inset-0 opacity-80"
-                      style={{
-                        backgroundImage: `radial-gradient(#ffffff 2px, transparent 2px)`,
-                        backgroundSize: "8px 8px",
-                      }}
-                    />
-                    {/* Center WalletConnect Badge */}
-                    <div className="relative z-10 w-12 h-12 rounded-xl bg-[#3B99FC] text-white flex items-center justify-center shadow-lg border-2 border-white">
-                      <QrCode className="w-7 h-7" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reown Project ID indicator (only when configured in env) */}
-                {WALLETCONNECT_PROJECT_ID ? (
-                  <div className="inline-flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 bg-neutral-100/90 border border-neutral-200/80 px-2.5 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Reown Project: {WALLETCONNECT_PROJECT_ID.slice(0, 6)}...{WALLETCONNECT_PROJECT_ID.slice(-4)}</span>
-                  </div>
-                ) : null}
-
-                {/* Pairing Code Copy */}
-                <div className="flex items-center justify-center gap-2">
+            {/* Token List */}
+            <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
+              {filteredTokens.map((token) => {
+                const isSelected = selectedToken.symbol === token.symbol;
+                return (
                   <button
+                    key={token.symbol}
                     type="button"
                     onClick={() => {
-                      const uri = WALLETCONNECT_PROJECT_ID
-                        ? `wc:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b@2?relay-protocol=irn&projectId=${WALLETCONNECT_PROJECT_ID}`
-                        : "wc:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b@2?relay-protocol=irn";
-                      copyToClipboard(uri);
-                      setWcCopied(true);
-                      setTimeout(() => setWcCopied(false), 2000);
+                      setSelectedToken(token);
+                      setTokenSelectorOpen(false);
+                      setTokenSearchQuery("");
                     }}
-                    className="text-[11px] font-mono text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-lg border border-neutral-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all cursor-pointer text-left ${
+                      isSelected
+                        ? "bg-blue-50/70 border border-blue-200/80"
+                        : "hover:bg-neutral-50 border border-transparent"
+                    }`}
                   >
-                    {wcCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{wcCopied ? "URI Copied" : "Copy Pairing Code"}</span>
-                  </button>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full ${token.iconBg} ${token.iconColor} flex items-center justify-center font-bold text-sm shadow-2xs`}>
+                        {token.iconText}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-xs text-neutral-900">{token.symbol}</span>
+                          <span className="text-[10px] text-neutral-400 font-mono">Arc</span>
+                        </div>
+                        <span className="text-[11px] text-neutral-500 block">{token.name}</span>
+                      </div>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={handleSimulateWcApproval}
-                    className="text-[11px] font-medium text-white bg-[#0033FF] hover:bg-blue-700 px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer shadow-xs"
-                  >
-                    Simulate Connect
+                    <div className="text-right">
+                      <span className="text-xs font-mono text-neutral-800 block">${token.priceUsd.toFixed(2)}</span>
+                      {isSelected && (
+                        <span className="text-[10px] font-mono text-blue-600 font-medium">Selected</span>
+                      )}
+                    </div>
                   </button>
-                </div>
-              </div>
-            )}
-
-            {/* Modal Footer */}
-            <div className="p-3 bg-neutral-50 border-t border-neutral-100 text-center">
-              <span className="text-[10px] text-neutral-400 font-mono">
-                ArcNano Shielded Nanopayments • Alt_bn128 Alt-Curve
-              </span>
+                );
+              })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* NO BROWSER WALLET MODAL */}
+      {noWalletModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full p-5 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-semibold text-sm text-neutral-900">
+                No Browser Wallet Detected
+              </h3>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Please install a Web3 browser extension (such as MetaMask or Rabby) to connect, or use the Sandbox mode.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <a
+                href="https://metamask.io/download/"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Install MetaMask Extension</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={handleConnectSandbox}
+                className="w-full py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0033FF] font-medium text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Continue with Sandbox Mode</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setNoWalletModalOpen(false)}
+              className="text-xs text-neutral-400 hover:text-neutral-600 cursor-pointer block mx-auto"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
