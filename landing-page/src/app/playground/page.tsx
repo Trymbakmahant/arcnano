@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, CircuitBoard, ExternalLink, BookOpen, Shield } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import ShieldedPlayground from "@/component/UI/ShieldedPlayground";
 
 export default function PlaygroundPage() {
@@ -62,19 +62,12 @@ export default function PlaygroundPage() {
             </a>
           </nav>
 
-          {/* Right Action Button (Royal Blue pill like screenshot) */}
+          {/* Right Status Badge */}
           <div className="flex items-center gap-2.5">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Arc Testnet
             </span>
-            <Link
-              href="/#blueprint"
-              className="bg-[#0033FF] hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Get Started</span>
-            </Link>
           </div>
         </div>
       </header>
