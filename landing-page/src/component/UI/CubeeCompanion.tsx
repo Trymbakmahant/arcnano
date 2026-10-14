@@ -252,12 +252,12 @@ export default function CubeeCompanion() {
         return;
       }
 
-      const demoLink = target.closest('a[href="/demo"], a[href*="/demo"]');
-      if (demoLink) {
+      const flowLink = target.closest('a[href="#blueprint"], a[href*="#blueprint"]');
+      if (flowLink) {
         triggerHint(
-          "Explore our cryptographic architecture flowchart with sub-8ms off-chain verification & bilinear pairings!",
+          "Trace our 6-step autonomous agent payment protocol with Groth16 zero-gas settlement live!",
           "curious",
-          { title: "Cryptographic Flowchart Demo", hint: "Interactive architectural flow visualizer" }
+          { title: "Autonomous A2A Flow", hint: "Interactive 6-step protocol execution flow" }
         );
         return;
       }

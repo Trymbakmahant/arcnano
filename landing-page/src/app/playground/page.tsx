@@ -66,11 +66,11 @@ export default function PlaygroundPage() {
               <ExternalLink className="w-3 h-3 text-neutral-400" />
             </a>
             <Link
-              href="/demo"
+              href="/#blueprint"
               className="text-neutral-600 hover:text-neutral-950 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50"
             >
               <CircuitBoard className="w-3.5 h-3.5 text-amber-600" />
-              <span>Agent Demo & Schematic</span>
+              <span>Autonomous A2A Flow</span>
             </Link>
             <a
               href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"

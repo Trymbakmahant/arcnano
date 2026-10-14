@@ -159,16 +159,22 @@ export default function ArcNanoHero() {
         <div className="hidden md:flex items-center gap-2">
           <nav className="flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/65 px-2 py-1.5 shadow-sm backdrop-blur-md">
             <a
-              href="#blueprint"
+              href="#problem"
+              className="rounded-full px-3.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+            >
+              Threat Model
+            </a>
+            <a
+              href="#solution"
               className="rounded-full px-3.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
             >
               Architecture
             </a>
             <a
-              href="/demo"
+              href="#blueprint"
               className="rounded-full px-3.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
             >
-              Flowchart Demo
+              Protocol Flow
             </a>
             <a
               href="/playground"
@@ -227,18 +233,18 @@ export default function ArcNanoHero() {
           {/* Cofounder-Style 2-Button CTA Row */}
           <div className="mt-8 flex flex-wrap items-center gap-3.5">
             <a
-              href="/demo"
+              href="#blueprint"
               className="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-medium text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
             >
-              <span>Launch Flowchart Demo</span>
+              <span>Explore Protocol Flow</span>
               <span className="transition-transform group-hover:translate-x-0.5">→</span>
             </a>
 
             <a
-              href="#problem"
+              href="/playground"
               className="inline-flex items-center gap-2 rounded-xl border border-slate-300/80 bg-white/75 px-5 py-3.5 text-sm font-medium text-slate-800 shadow-sm backdrop-blur-md transition hover:bg-white hover:border-slate-400"
             >
-              <span>The Problem We Solve</span>
+              <span>Shielded Playground</span>
             </a>
           </div>
 
