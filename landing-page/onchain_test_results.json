@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-10-13T17:59:06.749Z",
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Wallet Funding Check",
+      "status": "PASS",
+      "details": "All 3 wallets funded with Gas & USDC (Agent A has 1.206449 USDC)"
+    },
+    {
+      "name": "pool.denomination()",
+      "status": "PASS",
+      "details": "Denomination = 10000 raw units (0.01 USDC)"
+    },
+    {
+      "name": "pool.token()",
+      "status": "PASS",
+      "details": "Token = 0x3600000000000000000000000000000000000000"
+    },
+    {
+      "name": "pool.owner()",
+      "status": "PASS",
+      "details": "Owner = 0x063829800C7214C6AaD38f57C72561641cD80333"
+    },
+    {
+      "name": "pool.complianceEnforced()",
+      "status": "PASS",
+      "details": "Compliance Enforced = true"
+    },
+    {
+      "name": "pool.getLastRoot()",
+      "status": "PASS",
+      "details": "Last Root = 0x11b2608c0cb5d419021b129e1d46f346f27e2f26bf3d3ee1a83d729d1baf5d01"
+    },
+    {
+      "name": "pool.nextIndex()",
+      "status": "PASS",
+      "details": "Current Leaf Count = 17"
+    },
+    {
+      "name": "pool.isAspRootValid(ASP_ROOT)",
+      "status": "PASS",
+      "details": "ASP Root 0x...1337 Valid = true"
+    },
+    {
+      "name": "pool.deposit(commitment1)",
+      "status": "PASS",
+      "details": "Tx: 0x3d953dafc88c3888421bcc19bb7223009fdade4cf3d5d289b8fb382f9a7c286f (Block #67027712, Gas: 281664)"
+    },
+    {
+      "name": "Merkle Tree State Post-Deposit",
+      "status": "PASS",
+      "details": "NextIndex: 18, New Root: 0x03410b8f1f771fd5f56a2fc341473a88d03bc81ce04318ee9fc3fe38711a8486, isKnownRoot: true"
+    },
+    {
+      "name": "pool.spend(proof1, agentB)",
+      "status": "PASS",
+      "details": "Tx: 0xfe14d23fe0b13d280c256f9055af2b272bfc5602bb619e1a4fbebb42a8d84f3b (Block #67027717, Gas: 96996)"
+    },
+    {
+      "name": "Spend Payout & Nullifier Registry Verification",
+      "status": "PASS",
+      "details": "Nullifier isSpent: true, On-chain USDC Transferred: 0.01 USDC"
+    },
+    {
+      "name": "Double-Spend Defense Revert",
+      "status": "PASS",
+      "details": "On-chain call successfully rejected spent nullifier: The contract function \"spend\" reverted with the following signature:\n0x3c4f9111"
+    },
+    {
+      "name": "pool.batchSpend(proofs, agentB)",
+      "status": "PASS",
+      "details": "Tx: 0x37635019d5e7bd559f461938f32423a2f5cf66caa0e93bdfa0977c2889b0e1a3 (Block #67027727, Gas: 132328)"
+    },
+    {
+      "name": "Batch Spend Validation",
+      "status": "PASS",
+      "details": "Nullifiers 2 & 3 spent. On-chain USDC Transferred: 0.02 USDC (2 notes)"
+    },
+    {
+      "name": "pool.setAspRoot(testAspRoot, true)",
+      "status": "PASS",
+      "details": "Tx: 0xa3f19cd4425ce4f98eb87668d4241f3aeb26950b718d8536b2f4dc53aeac5386, Active: true"
+    },
+    {
+      "name": "pool.setAspRoot(testAspRoot, false)",
+      "status": "PASS",
+      "details": "Tx: 0xf065f7acc08e36e1833e796d7150c905c44d62b03705304b8e0bb84d1584da7f, Deactivated: true"
+    },
+    {
+      "name": "pool.setComplianceEnforced(bool)",
+      "status": "PASS",
+      "details": "Successfully toggled to false (true) and restored to true (true)"
+    },
+    {
+      "name": "Ownable Protection",
+      "status": "PASS",
+      "details": "Non-owner (Agent A) unauthorized call successfully rejected"
+    },
+    {
+      "name": "Invalid Merkle Root Defense",
+      "status": "PASS",
+      "details": "Spend rejected when proof refers to unrecorded Merkle root"
+    },
+    {
+      "name": "Invalid ASP Root Defense",
+      "status": "PASS",
+      "details": "Spend rejected when ASP root is not authorized"
+    }
+  ]
+}
