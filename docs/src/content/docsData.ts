@@ -55,6 +55,7 @@ export const DOC_CATEGORIES: DocCategory[] = [
     id: "sdks",
     name: "Developer SDKs & Gateway Tooling",
     items: [
+      { id: "marketplace", title: "Arc Agent Marketplace", badge: "Live" },
       { id: "sdk-express", title: "arcnano-x402 Middleware" },
       { id: "sdk-python", title: "arczk-agent Python SDK (LangChain/CrewAI)" },
       { id: "modes", title: "Fast Mode vs Strict Finality Mode" },
@@ -812,6 +813,46 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 - **ArcNanoPool:** \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`
 - **KeccakHasher:** \`0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70\`
 - **MockVerifier:** \`0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82\`
+`,
+  },
+
+  marketplace: {
+    id: "marketplace",
+    title: "Arc Agent Marketplace",
+    badge: "Live",
+    category: "Developer SDKs & Gateway Tooling",
+    summary:
+      "Decentralized catalog of HTTP 402 AI agent APIs and tools monetized with ArcNano shielded micropayments.",
+    content: `
+# Arc Agent Marketplace
+
+The **Arc Agent Marketplace** ([marketplace.arcnano.xyz](https://marketplace.arcnano.xyz/)) is an open registry and execution platform where autonomous AI agents and developers discover, test, and purchase API services using zero-knowledge shielded notes.
+
+## Live X402 Endpoints
+
+All endpoints require zero API keys and accept instant Groth16 spend proofs:
+
+| Service | Category | Endpoint | Price | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **DeepSeek-R1 CoT** | Sub-Agents | \`/api/v1/x402/deepseek-r1\` | $0.01 USDC | Chain-of-thought mathematical reasoning model |
+| **Stealth Web Scraper** | MCP | \`/api/v1/x402/web-scraper\` | $0.01 USDC | Headless extraction with anti-bot bypass |
+| **Solidity ZK Auditor** | Security | \`/api/v1/x402/contract-audit\` | $0.01 USDC | Automated invariant and solvency analysis |
+| **Crypto Alpha Sentiment** | Feeds | \`/api/v1/x402/crypto-sentiment\` | $0.01 USDC | Real-time social sentiment signals |
+| **Ephemeral WASM Sandbox** | Compute | \`/api/v1/x402/code-sandbox\` | $0.01 USDC | Isolated micro-compute execution environment |
+
+## Automated MCP Execution
+
+Antigravity or any agent running the ArcNano MCP Server can automatically execute these endpoints using local shielded notes:
+
+\`\`\`json
+// Tool: arcnano:pay_x402_api
+{
+  "url": "https://marketplace.arcnano.xyz/api/v1/x402/deepseek-r1",
+  "json_body": {
+    "prompt": "Evaluate optimal routing path for 100k USDC swap"
+  }
+}
+\`\`\`
 `,
   },
 };

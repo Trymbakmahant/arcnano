@@ -75,6 +75,15 @@ export default function Header({ onOpenSearch }: HeaderProps) {
         {/* Right: Actions */}
         <div className="flex items-center gap-3 text-xs font-medium">
           <a
+            href="https://marketplace.arcnano.xyz/"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[var(--gh-text)] hover:bg-[var(--gh-canvas-subtle)] border border-[var(--gh-border)] transition-colors text-indigo-600 dark:text-indigo-400 font-medium"
+          >
+            <span>Marketplace ↗</span>
+          </a>
+
+          <a
             href="https://arcnano.xyz/playground"
             target="_blank"
             rel="noreferrer"

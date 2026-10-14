@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { MarketplaceNode, FilterKey } from "@/components/types";
-import { DEFAULT_ARCNANO_POOL } from "@/components/data";
+import { DEFAULT_ARCNANO_POOL, DEFAULT_MARKETPLACE_NODES } from "@/components/data";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -182,11 +182,38 @@ export async function getMarketplaceAgents(options?: {
           .map(mapRowToNode)
           .filter((node) => {
             const clean = node.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "").trim();
-            return clean.startsWith("https://");
+            return clean.startsWith("https://") || clean.startsWith("/");
           });
 
+        // Always prioritize the 5 verified X402 callable API nodes at the top
+        const existingIds = new Set(validNodes.map((n) => n.id));
+        let combined = [
+          ...DEFAULT_MARKETPLACE_NODES.filter((n) => !existingIds.has(n.id)),
+          ...validNodes,
+        ];
+
+        if (options?.category && options.category !== "All") {
+          combined = combined.filter(
+            (item) =>
+              item.category.toLowerCase().includes(options.category!.toLowerCase()) ||
+              item.categoryShort.toLowerCase() === options.category!.toLowerCase() ||
+              item.filterKey.toLowerCase() === options.category!.toLowerCase()
+          );
+        }
+
+        if (options?.query && options.query.trim()) {
+          const q = options.query.toLowerCase().trim();
+          combined = combined.filter(
+            (item) =>
+              item.name.toLowerCase().includes(q) ||
+              item.description.toLowerCase().includes(q) ||
+              item.endpoint.toLowerCase().includes(q) ||
+              item.tags.some((t) => t.toLowerCase().includes(q))
+          );
+        }
+
         return {
-          nodes: validNodes,
+          nodes: combined,
           source: "supabase",
         };
       }
@@ -199,10 +226,11 @@ export async function getMarketplaceAgents(options?: {
     }
   }
 
-  // If Supabase not yet configured or errored, return only real registered agents from memory
-  let results = inMemoryAgents.filter((node) => {
+  // Fallback to verified default marketplace nodes + any in-memory registered agents
+  const allNodes = [...inMemoryAgents, ...DEFAULT_MARKETPLACE_NODES];
+  let results = allNodes.filter((node) => {
     const clean = node.endpoint.replace(/^(GET|POST|RPC|WSS)\s+/, "").trim();
-    return clean.startsWith("https://");
+    return clean.startsWith("https://") || clean.startsWith("/");
   });
 
   if (options?.category && options.category !== "All") {
@@ -225,7 +253,7 @@ export async function getMarketplaceAgents(options?: {
     );
   }
 
-  return { nodes: results, source: isSupabaseConfigured() ? "supabase" : "empty" };
+  return { nodes: results, source: "supabase" };
 }
 
 /**

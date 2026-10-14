@@ -183,6 +183,14 @@ export default function ArcNanoHero() {
               Playground
             </a>
             <a
+              href="https://marketplace.arcnano.xyz/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full px-3.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+            >
+              Marketplace ↗
+            </a>
+            <a
               href="https://docs.arcnano.xyz/"
               target="_blank"
               rel="noopener noreferrer"

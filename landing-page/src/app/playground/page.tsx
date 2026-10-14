@@ -43,6 +43,15 @@ export default function PlaygroundPage() {
               A2A Architecture
             </Link>
             <a
+              href="https://marketplace.arcnano.xyz/"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-neutral-950 transition-colors flex items-center gap-1 text-indigo-600 font-medium"
+            >
+              <span>Marketplace</span>
+              <ExternalLink className="w-3 h-3 text-indigo-500" />
+            </a>
+            <a
               href="https://docs.arcnano.xyz/"
               target="_blank"
               rel="noreferrer"

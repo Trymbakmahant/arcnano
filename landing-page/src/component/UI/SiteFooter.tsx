@@ -32,6 +32,16 @@ function SiteFooter() {
 
         <div className="flex items-center gap-4 sm:gap-6 text-xs font-mono text-neutral-600">
           <a
+            className="hover:text-neutral-950 transition-colors flex items-center gap-1 text-indigo-600 font-semibold"
+            href="https://marketplace.arcnano.xyz/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>Marketplace</span>
+            <ExternalLink className="w-3 h-3 text-indigo-500" />
+          </a>
+          <span className="text-neutral-300">•</span>
+          <a
             className="hover:text-neutral-950 transition-colors flex items-center gap-1"
             href="https://docs.arcnano.xyz/"
             target="_blank"
