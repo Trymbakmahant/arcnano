@@ -33,36 +33,36 @@ const STEPS_META: StepMeta[] = [
   },
   {
     step: 2,
-    label: "02 // Invoke",
-    shortTitle: "Invoke",
-    description: "Agent A submits an unauthenticated invocation to Agent B's inference tool endpoint.",
+    label: "02 // Request Going",
+    shortTitle: "02: Request (Green)",
+    description: "Agent A sends an unauthenticated invocation request (green beam) to Agent B's inference tool endpoint.",
     badge: "POST /execute",
   },
   {
     step: 3,
-    label: "03 // HTTP 402",
-    shortTitle: "HTTP 402",
-    description: "Agent B's middleware rejects with HTTP 402 challenge containing invoice hash and Merkle tree root.",
-    badge: "402 Payment Required",
+    label: "03 // Request Failed (402)",
+    shortTitle: "03: 402 Failed (Red)",
+    description: "Request fails authentication! Agent B rejects with HTTP 402 challenge (red beam) containing invoice hash & Merkle tree root.",
+    badge: "402 Failed: Challenge",
   },
   {
     step: 4,
-    label: "04 // ZK Proof",
-    shortTitle: "ZK Proof",
-    description: "Agent A computes an off-chain Groth16 ZK proof in RAM in ~74ms, generating a cryptographically secure nullifier.",
-    badge: "~74ms Off-Chain",
+    label: "04 // Pay with Proof",
+    shortTitle: "04: Pay with Proof",
+    description: "Agent A pays by computing a Groth16 ZK proof in RAM (~74ms) and resubmitting with X-ArcNano-Proof header.",
+    badge: "Header: X-ArcNano-Proof",
   },
   {
     step: 5,
-    label: "05 // Stream",
-    shortTitle: "Stream",
-    description: "Agent B validates proof in RAM in <8ms and immediately initiates HTTP 200 chunked data streaming.",
-    badge: "<8ms In-Memory",
+    label: "05 // Success Stream",
+    shortTitle: "05: Success (200)",
+    description: "Agent B verifies payment proof in <8ms — Success! Unlocks HTTP 200 chunked data streaming back to Agent A.",
+    badge: "200 OK Stream",
   },
   {
     step: 6,
     label: "06 // Settlement",
-    shortTitle: "Settlement",
+    shortTitle: "06: Settlement",
     description: "Agent B webhooks proof to ArcNano Relayer, which batches 10–50 notes on Arc L1 with $0.00 agent gas.",
     badge: "$0.00 Gas Paymaster",
   },
@@ -400,11 +400,11 @@ export default function A2APaymentFlow() {
       timelineRef.current = tl;
 
       // ================= TIMELINE STEPS =================
-      // STEP 1: Discovery Query (Agent A -> Agent B halfway)
+      // STEP 1: Discovery Query (Agent A -> Agent B halfway) in GREEN
       tl.to("#card-agent-a", {
-        borderColor: "#D97706",
-        backgroundColor: "#FFFBEB",
-        boxShadow: "0 10px 25px -5px rgba(217, 119, 6, 0.15)",
+        borderColor: "#10B981",
+        backgroundColor: "#ECFDF5",
+        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)",
         duration: 1.2,
       })
       .to(path1ActiveRef.current, {
@@ -415,7 +415,7 @@ export default function A2APaymentFlow() {
       }, "<")
       .to(pill1Ref.current, { opacity: 1, y: 0, scale: 1, duration: 0.8 }, "<+=0.3")
 
-      // STEP 2: Tool Invocation (Agent A -> Agent B full connection)
+      // STEP 2: Request Going (Agent A -> Agent B in GREEN)
       .to(path1ActiveRef.current, {
         strokeDashoffset: 0,
         opacity: 1,
@@ -424,17 +424,18 @@ export default function A2APaymentFlow() {
       })
       .to(pill2Ref.current, { opacity: 1, y: 0, scale: 1, duration: 0.8 }, "<+=0.3")
       .to("#card-agent-b", {
-        borderColor: "#D97706",
-        backgroundColor: "#FFFBEB",
-        boxShadow: "0 10px 25px -5px rgba(217, 119, 6, 0.15)",
+        borderColor: "#10B981",
+        backgroundColor: "#ECFDF5",
+        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)",
         duration: 1.2,
       }, "<+=0.4")
 
-      // STEP 3: HTTP 402 Challenge Rejected (Agent B -> Prover RAM)
+      // STEP 3: Request FAILS after reaching Agent B -> Agent B turns RED & returns HTTP 402 Challenge
       .to("#card-agent-b", {
         borderColor: "#EF4444",
         backgroundColor: "#FEF2F2",
-        duration: 1,
+        boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.2)",
+        duration: 0.8,
       })
       .to(path2ActiveRef.current, {
         opacity: 1,
@@ -450,7 +451,7 @@ export default function A2APaymentFlow() {
         duration: 1.2,
       }, "<+=0.8")
 
-      // STEP 4: Groth16 Proof Generated in RAM & Transmitted to Verifier RAM
+      // STEP 4: Pay with X-ArcNano-Proof (Groth16 in RAM)
       .to("#active-zk-pulse", {
         scale: 1.6,
         opacity: 0.85,
@@ -466,14 +467,20 @@ export default function A2APaymentFlow() {
         ease: "power1.inOut",
       }, "<+=0.3")
       .to("#card-verifier", {
-        borderColor: "#0284C7",
-        backgroundColor: "#F0F9FF",
-        boxShadow: "0 10px 25px -5px rgba(2, 132, 199, 0.15)",
+        borderColor: "#8B5CF6",
+        backgroundColor: "#F5F3FF",
+        boxShadow: "0 10px 25px -5px rgba(139, 92, 246, 0.15)",
         duration: 1.2,
       }, "<+=0.8")
 
-      // STEP 5: Authenticated Payload & <8ms In-Memory Verification -> HTTP 200 Stream Return
-      .to(pill5Ref.current, { opacity: 1, y: 0, scale: 1, duration: 1 })
+      // STEP 5: Payment Verified -> SUCCESS! HTTP 200 Stream Return in GREEN
+      .to("#card-verifier", {
+        borderColor: "#10B981",
+        backgroundColor: "#ECFDF5",
+        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.2)",
+        duration: 0.8,
+      })
+      .to(pill5Ref.current, { opacity: 1, y: 0, scale: 1, duration: 1 }, "<+=0.2")
       .to(path4ActiveRef.current, {
         opacity: 1,
         strokeDashoffset: 0,
@@ -483,7 +490,7 @@ export default function A2APaymentFlow() {
       .to("#card-agent-a", {
         borderColor: "#10B981",
         backgroundColor: "#ECFDF5",
-        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.15)",
+        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.25)",
         duration: 1.2,
       }, "<+=0.5")
 
@@ -563,28 +570,40 @@ export default function A2APaymentFlow() {
               {STEPS_META.map((meta) => {
                 const isActive = currentStep === meta.step;
                 const isPast = currentStep > meta.step;
+                const isFailedStep = meta.step === 3;
+                const isSuccessStep = meta.step === 5;
+
+                let btnStyle = "bg-neutral-50 text-neutral-600 border-neutral-200/80 hover:bg-neutral-100";
+                let dotStyle = "bg-neutral-400";
+
+                if (isActive) {
+                  if (isFailedStep) {
+                    btnStyle = "bg-rose-600 text-white border-rose-600 shadow-xs scale-[1.02]";
+                    dotStyle = "bg-white animate-ping";
+                  } else if (isSuccessStep) {
+                    btnStyle = "bg-emerald-600 text-white border-emerald-600 shadow-xs scale-[1.02]";
+                    dotStyle = "bg-white animate-ping";
+                  } else {
+                    btnStyle = "bg-neutral-950 text-white border-neutral-950 shadow-xs scale-[1.02]";
+                    dotStyle = "bg-emerald-400 animate-ping";
+                  }
+                } else if (isPast) {
+                  if (isFailedStep) {
+                    btnStyle = "bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100/60";
+                    dotStyle = "bg-rose-500";
+                  } else {
+                    btnStyle = "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100/60";
+                    dotStyle = "bg-emerald-500";
+                  }
+                }
 
                 return (
                   <button
                     key={meta.step}
                     onClick={() => jumpToStep(meta.step)}
-                    className={`flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono transition-all whitespace-nowrap cursor-pointer border ${
-                      isActive
-                        ? "bg-neutral-950 text-white border-neutral-950 shadow-xs scale-[1.02]"
-                        : isPast
-                        ? "bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100/60"
-                        : "bg-neutral-50 text-neutral-600 border-neutral-200/80 hover:bg-neutral-100"
-                    }`}
+                    className={`flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono transition-all whitespace-nowrap cursor-pointer border ${btnStyle}`}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isActive
-                          ? "bg-amber-400 animate-ping"
-                          : isPast
-                          ? "bg-amber-500"
-                          : "bg-neutral-400"
-                      }`}
-                    />
+                    <span className={`w-1.5 h-1.5 rounded-full ${dotStyle}`} />
                     <span className="font-semibold">{`Step ${meta.step}:`}</span>
                     <span>{meta.shortTitle}</span>
                   </button>
@@ -669,7 +688,7 @@ export default function A2APaymentFlow() {
               <path ref={path6BaseRef} stroke="rgba(0,0,0,0.12)" strokeWidth="2" strokeDasharray="4 4" strokeLinecap="round" />
 
               {/* ================= ANIMATED ACTIVE BEAMS (VIBRANT ROCK-SOLID STROKES) ================= */}
-              <path ref={path1ActiveRef} className="flow-path-active" stroke="#D97706" strokeWidth="3" strokeLinecap="round" />
+              <path ref={path1ActiveRef} className="flow-path-active" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
               <path ref={path2ActiveRef} className="flow-path-active" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" />
               <path ref={path3ActiveRef} className="flow-path-active" stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" />
               <path ref={path4ActiveRef} className="flow-path-active" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" />
@@ -677,28 +696,28 @@ export default function A2APaymentFlow() {
               <path ref={path6ActiveRef} className="flow-path-active" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
 
               {/* ================= DYNAMIC TRAVELING ARROWHEADS (RIDE AT STROKE TIP) ================= */}
-              {/* Arrow 1: Amber (Steps 1 & 2: Agent A -> Agent B) */}
+              {/* Arrow 1: Green (Steps 1 & 2: Agent A -> Agent B Request Going) */}
               <g ref={arrow1Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
-                <circle cx="0" cy="0" r="7" fill="#D97706" opacity="0.25" />
-                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#D97706" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="0" cy="0" r="7" fill="#10B981" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
                 <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
               </g>
 
-              {/* Arrow 2: Red (Step 3: Agent B -> Prover RAM) */}
+              {/* Arrow 2: Red (Step 3: Agent B -> Prover RAM 402 Failure Challenge) */}
               <g ref={arrow2Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
                 <circle cx="0" cy="0" r="7" fill="#EF4444" opacity="0.25" />
                 <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#EF4444" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
                 <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
               </g>
 
-              {/* Arrow 3: Purple (Step 4: Prover -> Verifier RAM) */}
+              {/* Arrow 3: Purple (Step 4: Prover -> Verifier RAM Paying with Proof) */}
               <g ref={arrow3Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
                 <circle cx="0" cy="0" r="7" fill="#8B5CF6" opacity="0.25" />
                 <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#8B5CF6" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
                 <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
               </g>
 
-              {/* Arrow 4: Emerald (Step 5: Verifier -> Agent A HTTP 200 Stream) */}
+              {/* Arrow 4: Emerald (Step 5: Verifier -> Agent A HTTP 200 Stream SUCCESS) */}
               <g ref={arrow4Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
                 <circle cx="0" cy="0" r="7" fill="#10B981" opacity="0.25" />
                 <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
@@ -725,10 +744,10 @@ export default function A2APaymentFlow() {
               ref={pill1Ref}
               className="step-badge-node absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
             >
-              <div className="bg-white px-2 py-0.5 rounded-md border border-neutral-200/90 shadow-xs flex items-center gap-1 font-mono text-[9.5px] text-neutral-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <div className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shadow-xs flex items-center gap-1 font-mono text-[9.5px] text-emerald-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span className="font-bold">01</span>
-                <span className="text-neutral-500">MCP Discovery</span>
+                <span>MCP Discovery</span>
               </div>
             </div>
 
@@ -736,10 +755,10 @@ export default function A2APaymentFlow() {
               ref={pill2Ref}
               className="step-badge-node absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
             >
-              <div className="bg-white px-2 py-0.5 rounded-md border border-neutral-200/90 shadow-xs flex items-center gap-1 font-mono text-[9.5px] text-neutral-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <div className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-300 shadow-xs flex items-center gap-1 font-mono text-[9.5px] text-emerald-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold">02</span>
-                <span className="text-neutral-500">Unauthenticated Invoke</span>
+                <span>Request Going (POST /execute)</span>
               </div>
             </div>
 
@@ -747,10 +766,11 @@ export default function A2APaymentFlow() {
               ref={pill3Ref}
               className="step-badge-node absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
             >
-              <div className="bg-rose-50 px-2.5 py-0.5 rounded-md border border-rose-200 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-rose-900">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <div className="bg-rose-50 px-2.5 py-0.5 rounded-md border border-rose-300 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-rose-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping" />
                 <span className="font-bold">03</span>
-                <span>HTTP 402: Invoice &amp; Tree Root</span>
+                <span className="font-bold text-rose-700 bg-rose-100 px-1 py-0.5 rounded text-[9px] border border-rose-200">FAILED</span>
+                <span>HTTP 402: Payment Required Challenge</span>
               </div>
             </div>
 
@@ -758,10 +778,11 @@ export default function A2APaymentFlow() {
               ref={pill4Ref}
               className="step-badge-node absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
             >
-              <div className="bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-200 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-purple-900">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping" />
+              <div className="bg-purple-50 px-2.5 py-0.5 rounded-md border border-purple-300 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-purple-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
                 <span className="font-bold">04</span>
-                <span>X-ArcNano-Proof (Groth16 in RAM)</span>
+                <span className="font-bold text-purple-700 bg-purple-100 px-1 py-0.5 rounded text-[9px] border border-purple-200">PAY WITH PROOF</span>
+                <span>Header: X-ArcNano-Proof (~74ms RAM)</span>
               </div>
             </div>
 
@@ -769,10 +790,11 @@ export default function A2APaymentFlow() {
               ref={pill5Ref}
               className="step-badge-node absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
             >
-              <div className="bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-emerald-900">
+              <div className="bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-300 shadow-xs flex items-center gap-1.5 font-mono text-[10px] text-emerald-900">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold">05</span>
-                <span>&lt;8ms Verified: HTTP 200 Stream</span>
+                <span className="font-bold text-emerald-700 bg-emerald-100 px-1 py-0.5 rounded text-[9px] border border-emerald-200">SUCCESS</span>
+                <span>HTTP 200: Stream Unlocked (&lt;8ms Verified)</span>
               </div>
             </div>
 
@@ -813,8 +835,30 @@ export default function A2APaymentFlow() {
                   Consumer
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9.5px] font-mono text-neutral-500">Active</span>
+                  {currentStep <= 2 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-emerald-700 font-semibold">Requesting</span>
+                    </>
+                  )}
+                  {currentStep === 3 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-rose-700 font-bold">402 Failed</span>
+                    </>
+                  )}
+                  {currentStep === 4 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-purple-700 font-semibold">Paying with Proof</span>
+                    </>
+                  )}
+                  {currentStep >= 5 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-emerald-700 font-bold">200 Stream</span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -852,8 +896,36 @@ export default function A2APaymentFlow() {
                   Provider
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-                  <span className="text-[9.5px] font-mono text-neutral-500">Listening</span>
+                  {currentStep === 1 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                      <span className="text-[9.5px] font-mono text-neutral-500">Listening</span>
+                    </>
+                  )}
+                  {currentStep === 2 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-emerald-700 font-medium">Request Arrived</span>
+                    </>
+                  )}
+                  {currentStep === 3 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                      <span className="text-[9.5px] font-mono text-rose-700 font-bold bg-rose-50 px-1 rounded border border-rose-200">402 Rejected</span>
+                    </>
+                  )}
+                  {currentStep === 4 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-purple-700">Verifying Proof</span>
+                    </>
+                  )}
+                  {currentStep >= 5 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[9.5px] font-mono text-emerald-700 font-bold">200 Streaming</span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -932,9 +1004,23 @@ export default function A2APaymentFlow() {
                 <span className="font-mono text-[8.5px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 font-bold">
                   Gateway RAM
                 </span>
-                <span className="text-[9.5px] font-mono text-sky-700 font-semibold">
-                  &lt;8ms In-Memory
-                </span>
+                <div className="flex items-center gap-1">
+                  {currentStep < 4 && (
+                    <span className="text-[9.5px] font-mono text-neutral-400">Standby</span>
+                  )}
+                  {currentStep === 4 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                      <span className="text-[9.5px] font-mono text-purple-700 font-semibold">Verifying Proof</span>
+                    </>
+                  )}
+                  {currentStep >= 5 && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[9.5px] font-mono text-emerald-700 font-bold">Verified (&lt;8ms)</span>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-start gap-2">
