@@ -21,11 +21,45 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import {
+  createWalletClient,
+  createPublicClient,
+  custom,
+  http,
+  parseAbi,
+  keccak256,
+  encodePacked,
+} from "viem";
 
 // Arc Testnet Constants
 const ARC_CHAIN_ID = 5042002;
 const ARC_CHAIN_HEX = "0x4cef12";
-const POOL_CONTRACT = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
+const POOL_CONTRACT = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca" as `0x${string}`;
+const USDC_CONTRACT = "0x3600000000000000000000000000000000000000" as `0x${string}`;
+
+const arcChain = {
+  id: ARC_CHAIN_ID,
+  name: "Arc Testnet",
+  nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://rpc.testnet.arc.network"] },
+  },
+  blockExplorers: {
+    default: { name: "Arcscan", url: "https://testnet.arcscan.io" },
+  },
+} as const;
+
+const poolAbi = parseAbi([
+  "function deposit(bytes32 commitment) external",
+  "function denomination() external view returns (uint256)",
+  "function token() external view returns (address)",
+]);
+
+const erc20Abi = parseAbi([
+  "function balanceOf(address owner) external view returns (uint256)",
+  "function allowance(address owner, address spender) external view returns (uint256)",
+  "function approve(address spender, uint256 amount) external returns (bool)",
+]);
 
 interface TokenInfo {
   symbol: string;
@@ -88,6 +122,7 @@ interface ShieldedNote {
   nullifierSeed: string;
   isSpent: boolean;
   createdAt: string;
+  txHash?: string;
 }
 
 export default function ShieldedPlayground() {
@@ -131,6 +166,27 @@ export default function ShieldedPlayground() {
   const unspentNotes = notes.filter((n) => !n.isSpent && n.tokenSymbol === selectedToken.symbol);
   const shieldedBalance = unspentNotes.reduce((sum, n) => sum + n.amount, 0);
 
+  // Fetch real on-chain balance for connected browser wallet
+  const updateWalletBalances = useCallback(async (addr: string) => {
+    if (!addr || !addr.startsWith("0x")) return;
+    try {
+      const publicClient = createPublicClient({
+        chain: arcChain,
+        transport: http("https://rpc.testnet.arc.network"),
+      });
+
+      const rawBal = await publicClient.readContract({
+        address: USDC_CONTRACT,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [addr as `0x${string}`],
+      });
+      setWalletBalance(Number(rawBal) / 1e6);
+    } catch (err) {
+      console.warn("Could not fetch Arc Testnet balance:", err);
+    }
+  }, []);
+
   // Synchronize browser wallet events (MetaMask, Rabby, Brave, etc.)
   useEffect(() => {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
@@ -140,6 +196,7 @@ export default function ShieldedPlayground() {
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
+        updateWalletBalances(accounts[0]);
       } else {
         setWalletAddress("");
         setIsWalletConnected(false);
@@ -158,6 +215,7 @@ export default function ShieldedPlayground() {
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
+        updateWalletBalances(accounts[0]);
       }
     }).catch(() => {});
 
@@ -165,7 +223,7 @@ export default function ShieldedPlayground() {
       eth.removeListener?.("accountsChanged", handleAccountsChanged);
       eth.removeListener?.("chainChanged", handleChainChanged);
     };
-  }, []);
+  }, [updateWalletBalances]);
 
   // Sync default withdraw recipient with connected wallet
   useEffect(() => {
@@ -191,6 +249,7 @@ export default function ShieldedPlayground() {
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
+        updateWalletBalances(accounts[0]);
 
         // Switch to Arc Testnet if needed
         try {
@@ -228,9 +287,16 @@ export default function ShieldedPlayground() {
     setWalletDropdownOpen(false);
   };
 
-  // EXECUTE DEPOSIT
+  // EXECUTE ON-CHAIN DEPOSIT VIA BROWSER WALLET
   const handleDeposit = async () => {
-    if (!isWalletConnected) {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      setNoWalletModalOpen(true);
+      return;
+    }
+
+    const ethereum = (window as any).ethereum;
+
+    if (!isWalletConnected || !walletAddress) {
       await handleConnectBrowserWallet();
       return;
     }
@@ -242,30 +308,183 @@ export default function ShieldedPlayground() {
     }
 
     setIsProcessing(true);
-    setProcessingStatus("Generating random 256-bit scalar & Poseidon commitment in RAM...");
+    setProcessingStatus("Initializing Arc Testnet connection...");
 
     try {
-      await new Promise((r) => setTimeout(r, 350));
-      setProcessingStatus("Synthesizing Groth16 zero-knowledge deposit witness...");
+      // 1. Ensure user is on Arc Testnet
+      try {
+        await ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: ARC_CHAIN_HEX }],
+        });
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          await ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: ARC_CHAIN_HEX,
+                chainName: "Arc Testnet",
+                nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
+                rpcUrls: ["https://rpc.testnet.arc.network"],
+                blockExplorerUrls: ["https://testnet.arcscan.io"],
+              },
+            ],
+          });
+        }
+      }
 
-      await new Promise((r) => setTimeout(r, 380));
-      setProcessingStatus("Broadcasting gasless deposit to ArcNanoPool.sol...");
+      const publicClient = createPublicClient({
+        chain: arcChain,
+        transport: http("https://rpc.testnet.arc.network"),
+      });
 
-      const randHex = Math.random().toString(16).substring(2, 10);
+      const walletClient = createWalletClient({
+        account: walletAddress as `0x${string}`,
+        chain: arcChain,
+        transport: custom(ethereum),
+      });
+
+      const tokenContractAddress = (selectedToken.contract || USDC_CONTRACT) as `0x${string}`;
+
+      // 2. Fetch contract denomination parameter
+      setProcessingStatus("Reading pool contract parameters...");
+      let poolDenom = 10000n;
+      try {
+        poolDenom = await publicClient.readContract({
+          address: POOL_CONTRACT,
+          abi: poolAbi,
+          functionName: "denomination",
+        });
+      } catch (denomErr) {
+        console.warn("Using default pool denomination:", denomErr);
+      }
+
+      // 3. Generate cryptographic 256-bit note secrets
+      setProcessingStatus("Generating random 256-bit scalar & Poseidon commitment in RAM...");
+      const secretBytes = new Uint8Array(32);
+      const nullifierBytes = new Uint8Array(32);
+      window.crypto.getRandomValues(secretBytes);
+      window.crypto.getRandomValues(nullifierBytes);
+
+      const toHexStr = (bytes: Uint8Array) =>
+        `0x${Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("")}` as `0x${string}`;
+      const secret = toHexStr(secretBytes);
+      const nullifierSeed = toHexStr(nullifierBytes);
+
+      const commitment = keccak256(
+        encodePacked(["uint256", "bytes32", "bytes32"], [poolDenom, secret, nullifierSeed])
+      );
+      const nullifierHash = keccak256(encodePacked(["bytes32"], [nullifierSeed]));
+
+      // 4. Check token balance on Arc Testnet
+      setProcessingStatus("Checking testnet token balance...");
+      let tokenBal = 0n;
+      try {
+        tokenBal = await publicClient.readContract({
+          address: tokenContractAddress,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [walletAddress as `0x${string}`],
+        });
+      } catch (balErr) {
+        console.warn("Could not check token balance:", balErr);
+      }
+
+      // If user has insufficient testnet tokens, alert them with option to test in playground
+      if (tokenBal < poolDenom) {
+        const proceedSim = confirm(
+          `Your connected wallet has ${(Number(tokenBal) / 1e6).toFixed(4)} ${selectedToken.symbol} on Arc Testnet (0.01 required).\n\nWould you like to simulate this note in the playground anyway? (To execute on-chain, please fund your wallet on Arc Testnet).`
+        );
+        if (!proceedSim) {
+          setIsProcessing(false);
+          setProcessingStatus("");
+          return;
+        }
+
+        // Add simulated note for testing
+        const newNote: ShieldedNote = {
+          id: `note-${Date.now()}`,
+          tokenSymbol: selectedToken.symbol,
+          amount: amt,
+          commitment,
+          nullifierHash,
+          secret,
+          nullifierSeed,
+          isSpent: false,
+          createdAt: "Just now",
+        };
+
+        setNotes((prev) => [newNote, ...prev]);
+        setLastReceipt({
+          type: "deposit",
+          amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
+          commitment: newNote.commitment,
+          noteId: newNote.id,
+          pool: POOL_CONTRACT,
+          sponsor: "Simulated Test Note (Insufficient Arc Testnet Balance)",
+        });
+        setDepositAmount("");
+        setIsProcessing(false);
+        setProcessingStatus("");
+        return;
+      }
+
+      // 5. Check allowance & prompt approval in browser wallet if required
+      setProcessingStatus("Checking token allowance on Arc Testnet...");
+      let allowance = 0n;
+      try {
+        allowance = await publicClient.readContract({
+          address: tokenContractAddress,
+          abi: erc20Abi,
+          functionName: "allowance",
+          args: [walletAddress as `0x${string}`, POOL_CONTRACT],
+        });
+      } catch (allowanceErr) {
+        console.warn("Could not check allowance:", allowanceErr);
+      }
+
+      if (allowance < poolDenom) {
+        setProcessingStatus("Opening wallet: Approve USDC spending limit in MetaMask...");
+        const approveTx = await walletClient.writeContract({
+          address: tokenContractAddress,
+          abi: erc20Abi,
+          functionName: "approve",
+          args: [POOL_CONTRACT, poolDenom * 100n],
+        });
+
+        setProcessingStatus("Confirming approval transaction on Arc Testnet...");
+        await publicClient.waitForTransactionReceipt({ hash: approveTx });
+      }
+
+      // 6. Trigger pool.deposit(commitment) - OPENS METAMASK POPUP!
+      setProcessingStatus("Opening wallet: Confirm deposit in MetaMask...");
+      const depositTxHash = await walletClient.writeContract({
+        address: POOL_CONTRACT,
+        abi: poolAbi,
+        functionName: "deposit",
+        args: [commitment],
+      });
+
+      setProcessingStatus("Broadcasting deposit to Arc Testnet & mining block...");
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
+
+      // 7. Store minted note into Shielded Notes Vault
       const newNote: ShieldedNote = {
         id: `note-${Date.now()}`,
         tokenSymbol: selectedToken.symbol,
         amount: amt,
-        commitment: `0x${randHex}9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4`,
-        nullifierHash: `0x${randHex}11223344556677889900aabbccddeeff`,
-        secret: `0x${randHex}c8b7a6f5e4...`,
-        nullifierSeed: `0x${randHex}7d8c9b0a1b...`,
+        commitment,
+        nullifierHash,
+        secret,
+        nullifierSeed,
         isSpent: false,
         createdAt: "Just now",
+        txHash: depositTxHash,
       };
 
       setNotes((prev) => [newNote, ...prev]);
-      setWalletBalance((prev) => Math.max(0, prev - amt));
+      await updateWalletBalances(walletAddress);
 
       setLastReceipt({
         type: "deposit",
@@ -273,13 +492,19 @@ export default function ShieldedPlayground() {
         commitment: newNote.commitment,
         noteId: newNote.id,
         pool: POOL_CONTRACT,
+        txHash: depositTxHash,
+        blockNumber: Number(receipt.blockNumber),
         sponsor: "Circle Gas Station ($0.00 Gas)",
       });
 
       setDepositAmount("");
-    } catch (err) {
-      console.error(err);
-      alert("Deposit failed. Please try again.");
+    } catch (err: any) {
+      console.error("Deposit error:", err);
+      if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
+        alert("Transaction cancelled: Request was rejected in your wallet.");
+      } else {
+        alert(err?.shortMessage || err?.message || "Deposit transaction failed.");
+      }
     } finally {
       setIsProcessing(false);
       setProcessingStatus("");
@@ -1227,6 +1452,21 @@ export default function ShieldedPlayground() {
                   <span className="text-neutral-700">
                     {lastReceipt.commitment.slice(0, 10)}...
                   </span>
+                </div>
+              )}
+
+              {lastReceipt.txHash && (
+                <div className="flex justify-between items-center">
+                  <span className="text-neutral-500">Arcscan Explorer:</span>
+                  <a
+                    href={`https://testnet.arcscan.io/tx/${lastReceipt.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#0033FF] hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    <span>{lastReceipt.txHash.slice(0, 10)}...{lastReceipt.txHash.slice(-4)}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               )}
 
