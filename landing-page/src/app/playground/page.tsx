@@ -3,84 +3,78 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, CircuitBoard, Sparkles, ExternalLink, BookOpen } from "lucide-react";
+import { ChevronLeft, CircuitBoard, ExternalLink, BookOpen, Shield } from "lucide-react";
 import ShieldedPlayground from "@/component/UI/ShieldedPlayground";
 
 export default function PlaygroundPage() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-neutral-900 font-sans antialiased selection:bg-sky-500 selection:text-white relative flex flex-col justify-between overflow-x-hidden">
-      {/* Background CAD Grid */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage: `linear-gradient(#000000 1px, transparent 1px), linear-gradient(90deg, #000000 1px, transparent 1px)`,
-          backgroundSize: "32px 32px",
-        }}
-      />
+    <div className="min-h-screen bg-[#FAFAFC] text-neutral-900 font-sans antialiased selection:bg-blue-600 selection:text-white relative flex flex-col justify-between overflow-x-hidden">
+      {/* TOP HEADER (Umbra-style minimalist navigation) */}
+      <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/90 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-all">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-7 h-7 rounded-lg bg-neutral-950 flex items-center justify-center p-1.5 shadow-2xs group-hover:bg-[#0033FF] transition-colors">
+              <Image
+                src="/arcnano-icon-white.png"
+                alt="ArcNano Logo"
+                width={20}
+                height={20}
+                className="w-4 h-4 object-contain"
+              />
+            </div>
+            <span className="font-semibold text-base tracking-tight text-neutral-900">
+              ArcNano
+            </span>
+          </Link>
 
-      {/* TOP HEADER / CONTROLS BAR */}
-      <header className="sticky top-0 z-40 border-b border-neutral-200/90 bg-white/95 backdrop-blur-xl px-4 sm:px-6 py-3 transition-all shadow-2xs">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          {/* Brand + Breadcrumb */}
-          <div className="flex items-center gap-3">
+          {/* Center Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs text-neutral-600 font-medium">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-xs font-mono text-neutral-600 hover:text-neutral-950 transition-colors bg-neutral-100 hover:bg-neutral-200/70 border border-neutral-200 px-2.5 py-1.5 rounded-md"
+              className="hover:text-neutral-950 transition-colors"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              <span>Protocol</span>
+              Protocol
             </Link>
-
-            <div className="h-4 w-[1px] bg-neutral-200 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-neutral-950 flex items-center justify-center p-1 shadow-xs">
-                <Image
-                  src="/arcnano-icon-white.png"
-                  alt="ArcNano Logo"
-                  width={20}
-                  height={20}
-                  className="w-3.5 h-3.5 object-contain"
-                />
-              </div>
-              <span className="font-semibold text-sm tracking-tight text-neutral-900">
-                ArcNano
-              </span>
-              <span className="text-neutral-400 font-mono text-xs">/</span>
-              <span className="text-xs font-mono uppercase text-sky-800 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                Playground
-              </span>
-            </div>
-          </div>
-
-          {/* Quick Nav to other pages */}
-          <div className="flex items-center gap-3 text-xs font-mono">
+            <Link
+              href="/#blueprint"
+              className="hover:text-neutral-950 transition-colors"
+            >
+              A2A Architecture
+            </Link>
             <a
               href="https://docs.arcnano.xyz/"
               target="_blank"
               rel="noreferrer"
-              className="text-neutral-600 hover:text-neutral-950 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50"
+              className="hover:text-neutral-950 transition-colors flex items-center gap-1"
             >
-              <BookOpen className="w-3.5 h-3.5 text-neutral-600" />
-              <span>Docs</span>
+              <span>Documentation</span>
               <ExternalLink className="w-3 h-3 text-neutral-400" />
             </a>
-            <Link
-              href="/#blueprint"
-              className="text-neutral-600 hover:text-neutral-950 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50"
-            >
-              <CircuitBoard className="w-3.5 h-3.5 text-amber-600" />
-              <span>Autonomous A2A Flow</span>
-            </Link>
             <a
               href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
               target="_blank"
               rel="noreferrer"
-              className="hidden md:flex items-center gap-1.5 text-neutral-500 hover:text-neutral-800 transition-colors"
+              className="hover:text-neutral-950 transition-colors flex items-center gap-1"
             >
               <span>Arcscan Contract</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3 h-3 text-neutral-400" />
             </a>
+          </nav>
+
+          {/* Right Action Button (Royal Blue pill like screenshot) */}
+          <div className="flex items-center gap-2.5">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Arc Testnet
+            </span>
+            <Link
+              href="/#blueprint"
+              className="bg-[#0033FF] hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Get Started</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -91,9 +85,9 @@ export default function PlaygroundPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-neutral-200/80 bg-white py-6 px-4 sm:px-8 text-center text-xs font-mono text-neutral-500 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>ArcNano Protocol • Stage 03 Shielded Micropayments Playground</p>
+      <footer className="border-t border-neutral-200/70 bg-white/60 py-6 px-4 sm:px-8 text-center text-xs font-mono text-neutral-500 relative z-10">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>ArcNano Protocol • Stage 03 Confidential Micropayments Layer</p>
           <div className="flex items-center gap-4">
             <a
               href="https://github.com/Trymbakmahant/arcnano"
@@ -101,7 +95,7 @@ export default function PlaygroundPage() {
               rel="noreferrer"
               className="hover:text-neutral-900 transition-colors"
             >
-              GitHub Repository
+              GitHub
             </a>
             <span>•</span>
             <a
@@ -110,7 +104,7 @@ export default function PlaygroundPage() {
               rel="noreferrer"
               className="hover:text-neutral-900 transition-colors"
             >
-              Arc Testnet Explorer (5042002)
+              Arcscan Explorer
             </a>
           </div>
         </div>
