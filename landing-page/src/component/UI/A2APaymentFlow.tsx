@@ -148,9 +148,9 @@ export default function A2APaymentFlow() {
     };
 
     // Calculate Anchor Points
-    const pA = getPt(portA_Ref.current, stage.width * 0.22, stage.height * 0.12);
-    const pB = getPt(portB_Ref.current, stage.width * 0.78, stage.height * 0.12);
-    const pB_rej = getPt(portB_RejectRef.current, stage.width * 0.78, stage.height * 0.18);
+    const pA = getPt(portA_Ref.current, stage.width * 0.22, stage.height * 0.16);
+    const pB = getPt(portB_Ref.current, stage.width * 0.78, stage.height * 0.16);
+    const pB_rej = getPt(portB_RejectRef.current, stage.width * 0.78, stage.height * 0.22);
     const pProv_top = getPt(portProver_TopRef.current, stage.width * 0.22, stage.height * 0.38);
     const pProv_out = getPt(portProver_OutRef.current, stage.width * 0.26, stage.height * 0.46);
     const pVerif_in = getPt(portVerifier_InRef.current, stage.width * 0.74, stage.height * 0.46);
@@ -572,8 +572,25 @@ export default function A2APaymentFlow() {
           {/* ================= FLOW STAGE (DYNAMIC PIXEL-LOCKED SYSTEM) ================= */}
           <div
             ref={stageRef}
-            className="relative w-full h-[370px] sm:h-[400px] md:h-[420px] select-none"
+            className="relative w-full h-[380px] sm:h-[410px] md:h-[430px] select-none"
           >
+            {/* ================= ARCHITECTURAL ZONE LABELS ================= */}
+            {/* Top-Left: Buyer Side */}
+            <div className="absolute left-2 sm:left-4 md:left-6 top-1.5 z-20 flex items-center pointer-events-none">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/25 text-[10px] sm:text-[11px] font-mono text-amber-900 shadow-2xs backdrop-blur-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="font-semibold uppercase tracking-wider">Buyer Side</span>
+              </div>
+            </div>
+
+            {/* Top-Right: Seller Side */}
+            <div className="absolute right-2 sm:right-4 md:right-6 top-1.5 z-20 flex items-center pointer-events-none">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/25 text-[10px] sm:text-[11px] font-mono text-sky-900 shadow-2xs backdrop-blur-xs">
+                <span className="font-semibold uppercase tracking-wider">Seller Side</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+              </div>
+            </div>
+
             {/* SVG CONNECTION BEAMS (DYNAMICALLY TIED TO CARD DOM PORTS) */}
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible"
@@ -679,7 +696,7 @@ export default function A2APaymentFlow() {
             {/* 1. AGENT A (BUYER / CONSUMER SWARM) - ANCHORED LEFT */}
             <div
               id="card-agent-a"
-              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[4%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[9%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Output Connection Port */}
               <div ref={portA_Ref} className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
@@ -716,7 +733,7 @@ export default function A2APaymentFlow() {
             {/* 2. AGENT B (SELLER / MCP TOOL GATEWAY) - ANCHORED RIGHT */}
             <div
               id="card-agent-b"
-              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[4%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[9%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Input Connection Port */}
               <div ref={portB_Ref} className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
