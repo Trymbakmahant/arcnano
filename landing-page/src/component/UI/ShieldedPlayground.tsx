@@ -61,6 +61,43 @@ const erc20Abi = parseAbi([
   "function approve(address spender, uint256 amount) external returns (bool)",
 ]);
 
+interface EIP6963ProviderDetail {
+  info: {
+    uuid: string;
+    name: string;
+    icon: string;
+    rdns: string;
+  };
+  provider: any;
+}
+
+function MetaMaskFox({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 318.6 318.6" fill="none">
+      <path fill="#E2761B" stroke="#E2761B" strokeLinecap="round" strokeLinejoin="round" d="M274.1 35.5l-99.5 73.9L194 65.4z"/>
+      <path fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round" d="M44.4 35.5l98.7 74.6-18.4-44.7z"/>
+      <path fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round" d="M238.3 206.8l-30.8 45.4 68.3 18.8 19.5-63.5z"/>
+      <path fill="#E4761B" stroke="#E4761B" strokeLinecap="round" strokeLinejoin="round" d="M22.6 207.5l19.4 63.5 68.3-18.8-30.7-45.4z"/>
+      <path fill="#D7C1B3" stroke="#D7C1B3" strokeLinecap="round" strokeLinejoin="round" d="M198.3 179.6l30.4-14.7-27.1-21.3-42.3 32.7z"/>
+      <path fill="#D7C1B3" stroke="#D7C1B3" strokeLinecap="round" strokeLinejoin="round" d="M120.3 179.6l38.9-3.3-42.3-32.7-27.1 21.3z"/>
+      <path fill="#233447" stroke="#233447" strokeLinecap="round" strokeLinejoin="round" d="M106.8 247.4l33.8-16.5-29.3-22.8z"/>
+      <path fill="#233447" stroke="#233447" strokeLinecap="round" strokeLinejoin="round" d="M178 230.9l33.8 16.5-4.5-39.3z"/>
+      <path fill="#CD6116" stroke="#CD6116" strokeLinecap="round" strokeLinejoin="round" d="M111.3 208.1l29.3 22.8 1.1-39.6z"/>
+      <path fill="#CD6116" stroke="#CD6116" strokeLinecap="round" strokeLinejoin="round" d="M176.9 191.3l1.1 39.6 29.3-22.8z"/>
+      <path fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round" d="M141.7 230.9l-34.9 16.5 28.5 22.7 7.2-22.7z"/>
+      <path fill="#E4751F" stroke="#E4751F" strokeLinecap="round" strokeLinejoin="round" d="M176.9 230.9l-.8 16.5 7.2 22.7 28.5-22.7z"/>
+      <path fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round" d="M176.1 247.4l.8-16.5-35.2 0 .8 16.5-3.3 23.3 3.3.6 16.7.2 16.7-.2 3.3-.6z"/>
+      <path fill="#C0AD9E" stroke="#C0AD9E" strokeLinecap="round" strokeLinejoin="round" d="M159.3 176.3l-39 3.3 14.8 28.5 24.2.3 24.2-.3 14.8-28.5z"/>
+      <path fill="#161616" stroke="#161616" strokeLinecap="round" strokeLinejoin="round" d="M174.5 109.4l99.6-73.9-92.4 12.6z"/>
+      <path fill="#161616" stroke="#161616" strokeLinecap="round" strokeLinejoin="round" d="M44.4 35.5l99.6 73.9-7.2-61.3z"/>
+      <path fill="#763D16" stroke="#763D16" strokeLinecap="round" strokeLinejoin="round" d="M280.8 144l-6.7-108.5-99.6 73.9 66.8 45.4z"/>
+      <path fill="#763D16" stroke="#763D16" strokeLinecap="round" strokeLinejoin="round" d="M44.4 35.5l-6.7 108.5 39.5 10.8 66.8-45.4z"/>
+      <path fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round" d="M241.3 154.8l-66.8-45.4 27.1 21.3 27.1 21.3z"/>
+      <path fill="#F6851B" stroke="#F6851B" strokeLinecap="round" strokeLinejoin="round" d="M116.8 130.7l27.1-21.3-66.8 45.4 12.6 2.8z"/>
+    </svg>
+  );
+}
+
 interface TokenInfo {
   symbol: string;
   name: string;
@@ -134,14 +171,18 @@ export default function ShieldedPlayground() {
   const [tokenSelectorOpen, setTokenSelectorOpen] = useState<boolean>(false);
   const [tokenSearchQuery, setTokenSearchQuery] = useState<string>("");
 
-  // Browser Wallet Connection State (window.ethereum ONLY)
+  // Browser Wallet Connection State
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
-  const [walletBalance, setWalletBalance] = useState<number>(100.0);
+  const [walletBalance, setWalletBalance] = useState<number>(0.0);
   const [walletChainId, setWalletChainId] = useState<string>("");
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState<boolean>(false);
   const [noWalletModalOpen, setNoWalletModalOpen] = useState<boolean>(false);
+  const [walletSelectModalOpen, setWalletSelectModalOpen] = useState<boolean>(false);
+  const [phantomOverrideWarning, setPhantomOverrideWarning] = useState<boolean>(false);
+  const [injectedWallets, setInjectedWallets] = useState<EIP6963ProviderDetail[]>([]);
+  const [activeProvider, setActiveProvider] = useState<any>(null);
 
   // Shielded Notes Vault
   const [notes, setNotes] = useState<ShieldedNote[]>([]);
@@ -166,6 +207,27 @@ export default function ShieldedPlayground() {
   const unspentNotes = notes.filter((n) => !n.isSpent && n.tokenSymbol === selectedToken.symbol);
   const shieldedBalance = unspentNotes.reduce((sum, n) => sum + n.amount, 0);
 
+  // Discover all EIP-6963 compliant wallet providers (MetaMask, Rabby, etc.)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleAnnounce = (event: any) => {
+      const detail = event.detail as EIP6963ProviderDetail;
+      if (!detail || !detail.info) return;
+      setInjectedWallets((prev) => {
+        if (prev.some((w) => w.info.rdns === detail.info.rdns)) return prev;
+        return [...prev, detail];
+      });
+    };
+
+    window.addEventListener("eip6963:announceProvider", handleAnnounce);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+    return () => {
+      window.removeEventListener("eip6963:announceProvider", handleAnnounce);
+    };
+  }, []);
+
   // Fetch real on-chain balance for connected browser wallet
   const updateWalletBalances = useCallback(async (addr: string) => {
     if (!addr || !addr.startsWith("0x")) return;
@@ -187,10 +249,40 @@ export default function ShieldedPlayground() {
     }
   }, []);
 
+  // Find dedicated MetaMask provider, bypassing Phantom or other extensions
+  const findMetaMaskProvider = useCallback(() => {
+    if (typeof window === "undefined") return null;
+
+    // 1. Check EIP-6963 discovered providers for MetaMask
+    const mmFrom6963 = injectedWallets.find(
+      (w) => w.info.rdns === "io.metamask" || w.info.name.toLowerCase().includes("metamask")
+    );
+    if (mmFrom6963?.provider) {
+      return mmFrom6963.provider;
+    }
+
+    const eth = (window as any).ethereum;
+    if (!eth) return null;
+
+    // 2. Check window.ethereum.providers array (when multiple wallets inject)
+    if (eth.providers && Array.isArray(eth.providers)) {
+      const mm = eth.providers.find((p: any) => p.isMetaMask && !p.isPhantom);
+      if (mm) return mm;
+    }
+
+    // 3. Check if window.ethereum itself is MetaMask and NOT Phantom
+    if (eth.isMetaMask && !eth.isPhantom) {
+      return eth;
+    }
+
+    return null;
+  }, [injectedWallets]);
+
   // Synchronize browser wallet events (MetaMask, Rabby, Brave, etc.)
   useEffect(() => {
-    if (typeof window === "undefined" || !(window as any).ethereum) return;
-    const eth = (window as any).ethereum;
+    if (typeof window === "undefined") return;
+    const provider = activeProvider || findMetaMaskProvider() || (window as any).ethereum;
+    if (!provider) return;
 
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts && accounts.length > 0) {
@@ -207,23 +299,24 @@ export default function ShieldedPlayground() {
       setWalletChainId(chainIdHex);
     };
 
-    eth.on?.("accountsChanged", handleAccountsChanged);
-    eth.on?.("chainChanged", handleChainChanged);
+    provider.on?.("accountsChanged", handleAccountsChanged);
+    provider.on?.("chainChanged", handleChainChanged);
 
     // Check if already connected
-    eth.request?.({ method: "eth_accounts" }).then((accounts: string[]) => {
+    provider.request?.({ method: "eth_accounts" }).then((accounts: string[]) => {
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
+        setActiveProvider(provider);
         updateWalletBalances(accounts[0]);
       }
     }).catch(() => {});
 
     return () => {
-      eth.removeListener?.("accountsChanged", handleAccountsChanged);
-      eth.removeListener?.("chainChanged", handleChainChanged);
+      provider.removeListener?.("accountsChanged", handleAccountsChanged);
+      provider.removeListener?.("chainChanged", handleChainChanged);
     };
-  }, [updateWalletBalances]);
+  }, [activeProvider, findMetaMaskProvider, updateWalletBalances]);
 
   // Sync default withdraw recipient with connected wallet
   useEffect(() => {
@@ -232,14 +325,75 @@ export default function ShieldedPlayground() {
     }
   }, [walletAddress, withdrawRecipient]);
 
-  // CONNECT TO BROWSER WALLET (window.ethereum)
-  const handleConnectBrowserWallet = async () => {
+  // CONNECT SPECIFICALLY TO METAMASK (bypasses Phantom)
+  const handleConnectMetaMask = async () => {
+    const mmProvider = findMetaMaskProvider();
+
+    if (!mmProvider) {
+      // Check if Phantom has hijacked window.ethereum
+      const eth = (window as any).ethereum;
+      if (eth?.isPhantom) {
+        setPhantomOverrideWarning(true);
+      } else {
+        setNoWalletModalOpen(true);
+      }
+      return;
+    }
+
+    setIsConnecting(true);
+    setWalletSelectModalOpen(false);
+    setPhantomOverrideWarning(false);
+
+    try {
+      const accounts = await mmProvider.request({
+        method: "eth_requestAccounts",
+      });
+
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setIsWalletConnected(true);
+        setActiveProvider(mmProvider);
+        updateWalletBalances(accounts[0]);
+
+        // Switch MetaMask to Arc Testnet
+        try {
+          await mmProvider.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: ARC_CHAIN_HEX }],
+          });
+        } catch (switchError: any) {
+          if (switchError.code === 4902) {
+            await mmProvider.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: ARC_CHAIN_HEX,
+                  chainName: "Arc Testnet",
+                  nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
+                  rpcUrls: ["https://rpc.testnet.arc.network"],
+                  blockExplorerUrls: ["https://testnet.arcscan.io"],
+                },
+              ],
+            });
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn("User rejected or failed MetaMask connection:", err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  // Fallback: connect generic window.ethereum
+  const handleConnectGenericBrowserWallet = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
       setNoWalletModalOpen(true);
       return;
     }
 
     setIsConnecting(true);
+    setWalletSelectModalOpen(false);
     try {
       const ethereum = (window as any).ethereum;
       const accounts = await ethereum.request({
@@ -249,9 +403,9 @@ export default function ShieldedPlayground() {
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
+        setActiveProvider(ethereum);
         updateWalletBalances(accounts[0]);
 
-        // Switch to Arc Testnet if needed
         try {
           await ethereum.request({
             method: "wallet_switchEthereumChain",
@@ -281,6 +435,10 @@ export default function ShieldedPlayground() {
     }
   };
 
+  const handleConnectBrowserWallet = () => {
+    handleConnectMetaMask();
+  };
+
   const handleDisconnectWallet = () => {
     setIsWalletConnected(false);
     setWalletAddress("");
@@ -289,15 +447,16 @@ export default function ShieldedPlayground() {
 
   // EXECUTE ON-CHAIN DEPOSIT VIA BROWSER WALLET
   const handleDeposit = async () => {
-    if (typeof window === "undefined" || !(window as any).ethereum) {
+    if (typeof window === "undefined") return;
+
+    const providerToUse = activeProvider || findMetaMaskProvider() || (window as any).ethereum;
+    if (!providerToUse) {
       setNoWalletModalOpen(true);
       return;
     }
 
-    const ethereum = (window as any).ethereum;
-
     if (!isWalletConnected || !walletAddress) {
-      await handleConnectBrowserWallet();
+      await handleConnectMetaMask();
       return;
     }
 
@@ -313,13 +472,13 @@ export default function ShieldedPlayground() {
     try {
       // 1. Ensure user is on Arc Testnet
       try {
-        await ethereum.request({
+        await providerToUse.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: ARC_CHAIN_HEX }],
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          await ethereum.request({
+          await providerToUse.request({
             method: "wallet_addEthereumChain",
             params: [
               {
@@ -342,7 +501,7 @@ export default function ShieldedPlayground() {
       const walletClient = createWalletClient({
         account: walletAddress as `0x${string}`,
         chain: arcChain,
-        transport: custom(ethereum),
+        transport: custom(providerToUse),
       });
 
       const tokenContractAddress = (selectedToken.contract || USDC_CONTRACT) as `0x${string}`;
@@ -711,24 +870,34 @@ export default function ShieldedPlayground() {
       {/* MAIN CONTAINER */}
       <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center">
         
-        {/* WALLET STATUS BAR (Browser Wallet only) */}
+        {/* WALLET STATUS BAR (MetaMask / Browser Wallet) */}
         <div className="mb-4 relative">
           {!isWalletConnected ? (
-            <button
-              type="button"
-              onClick={handleConnectBrowserWallet}
-              disabled={isConnecting}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-neutral-50 active:bg-neutral-100 border border-neutral-200/90 shadow-xs text-xs font-medium text-neutral-800 transition-all cursor-pointer hover:border-neutral-300"
-            >
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <Wallet className="w-3.5 h-3.5 text-[#0033FF]" />
-              <span className="font-semibold">
-                {isConnecting ? "Connecting..." : "Connect Browser Wallet"}
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full border border-neutral-200/60">
-                MetaMask / Browser
-              </span>
-            </button>
+            <div className="inline-flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleConnectMetaMask}
+                disabled={isConnecting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-neutral-50 active:bg-neutral-100 border border-neutral-200/90 shadow-xs text-xs font-medium text-neutral-800 transition-all cursor-pointer hover:border-neutral-300"
+              >
+                <MetaMaskFox className="w-4 h-4" />
+                <span className="font-semibold">
+                  {isConnecting ? "Connecting..." : "Connect MetaMask"}
+                </span>
+                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                  Arc Testnet
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setWalletSelectModalOpen(true)}
+                title="Select other wallet"
+                className="p-2 rounded-full bg-white hover:bg-neutral-50 border border-neutral-200/90 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer shadow-2xs"
+              >
+                <ChevronDown className="w-3 h-3" />
+              </button>
+            </div>
           ) : (
             <div className="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 shadow-2xs text-[11px] font-mono text-neutral-600">
               <button
@@ -920,15 +1089,14 @@ export default function ShieldedPlayground() {
                 </div>
               </div>
 
-              {/* PRIMARY CTA BUTTON */}
               {!isWalletConnected ? (
                 <button
                   type="button"
-                  onClick={handleConnectBrowserWallet}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={handleConnectMetaMask}
+                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 cursor-pointer"
                 >
-                  <Wallet className="w-4 h-4" />
-                  <span>Connect Browser Wallet</span>
+                  <MetaMaskFox className="w-4.5 h-4.5" />
+                  <span>Connect MetaMask</span>
                 </button>
               ) : (
                 <button
@@ -1096,15 +1264,14 @@ export default function ShieldedPlayground() {
                 </div>
               </div>
 
-              {/* PRIMARY CTA BUTTON */}
               {!isWalletConnected ? (
                 <button
                   type="button"
-                  onClick={handleConnectBrowserWallet}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={handleConnectMetaMask}
+                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 cursor-pointer"
                 >
-                  <Wallet className="w-4 h-4" />
-                  <span>Connect Browser Wallet</span>
+                  <MetaMaskFox className="w-4.5 h-4.5" />
+                  <span>Connect MetaMask</span>
                 </button>
               ) : (
                 <button
@@ -1221,15 +1388,14 @@ export default function ShieldedPlayground() {
                 </div>
               </div>
 
-              {/* PRIMARY CTA BUTTON */}
               {!isWalletConnected ? (
                 <button
                   type="button"
-                  onClick={handleConnectBrowserWallet}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={handleConnectMetaMask}
+                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 cursor-pointer"
                 >
-                  <Wallet className="w-4 h-4" />
-                  <span>Connect Browser Wallet</span>
+                  <MetaMaskFox className="w-4.5 h-4.5" />
+                  <span>Connect MetaMask</span>
                 </button>
               ) : (
                 <button
@@ -1377,6 +1543,129 @@ export default function ShieldedPlayground() {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* WALLET SELECTION MODAL */}
+      {walletSelectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-sm w-full p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-neutral-900">
+                Select Wallet
+              </h3>
+              <button
+                type="button"
+                onClick={() => setWalletSelectModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-500 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-500">
+              Connect your EVM wallet to interact with Arc Testnet.
+            </p>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleConnectMetaMask}
+                className="w-full p-3.5 rounded-2xl border-2 border-amber-200/90 hover:border-amber-400 bg-amber-50/50 hover:bg-amber-50 flex items-center justify-between transition-all cursor-pointer group shadow-2xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white border border-amber-200/80 flex items-center justify-center p-1.5 shadow-2xs">
+                    <MetaMaskFox className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-semibold text-xs text-neutral-900 block group-hover:text-amber-950">
+                      MetaMask
+                    </span>
+                    <span className="text-[10px] text-neutral-500 block">
+                      Direct connection (bypasses Phantom)
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-medium text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Primary
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConnectGenericBrowserWallet}
+                className="w-full p-3.5 rounded-2xl border border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50 flex items-center justify-between transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-700">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-semibold text-xs text-neutral-900 block">
+                      Default Injected Wallet
+                    </span>
+                    <span className="text-[10px] text-neutral-500 block">
+                      Rabby, Brave, or window.ethereum
+                    </span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PHANTOM OVERRIDE GUIDANCE MODAL */}
+      {phantomOverrideWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 text-left">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-semibold text-base text-neutral-900">
+                Phantom is Overriding MetaMask
+              </h3>
+              <p className="text-xs text-neutral-600 leading-relaxed">
+                Phantom is currently configured as your browser&apos;s default wallet for all EVM connections, blocking MetaMask and rejecting custom networks like Arc Testnet.
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200/80 space-y-2 text-xs font-mono">
+              <span className="font-semibold text-neutral-800 block text-[11px] uppercase tracking-wider">
+                Quick 10-Second Fix in Phantom:
+              </span>
+              <ol className="list-decimal list-inside space-y-1.5 text-neutral-600 text-[11px]">
+                <li>Open the <strong>Phantom extension</strong></li>
+                <li>Click <strong>Settings (⚙️)</strong> in the top-left</li>
+                <li>Click <strong>Preferences → Default App Wallet</strong></li>
+                <li>Choose <strong>Always Ask</strong> (or turn off default)</li>
+                <li>Refresh this page and click <strong>Connect MetaMask</strong></li>
+              </ol>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-blue-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh Page to Re-detect MetaMask</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPhantomOverrideWarning(false)}
+                className="w-full py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium text-xs transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
