@@ -200,22 +200,22 @@ export default function A2APaymentFlow() {
     setD(path6ActiveRef.current, d6);
 
     // Position Label Pills directly above or on the generated paths without ANY overlap
-    // Step 1: 30% along Line 1
-    setPill(pill1Ref.current, pA.x + (pB.x - pA.x) * 0.30, pA.y - 22);
-    // Step 2: 70% along Line 1
-    setPill(pill2Ref.current, pA.x + (pB.x - pA.x) * 0.70, pA.y - 22);
+    // Step 1: 28% along Line 1
+    setPill(pill1Ref.current, pA.x + (pB.x - pA.x) * 0.28, pA.y - 22);
+    // Step 2: 72% along Line 1
+    setPill(pill2Ref.current, pA.x + (pB.x - pA.x) * 0.72, pA.y - 22);
 
-    // Step 3 (402 Challenge): Positioned on the RIGHT side near Agent B (t ≈ 0.28)
-    const pill3X = pB_rej.x - (pB_rej.x - pProv_top.x) * 0.28;
-    const pill3Y = pB_rej.y + (pProv_top.y - pB_rej.y) * 0.24 - 14;
+    // Step 3 (402 Challenge): Positioned cleanly on the RIGHT side near Agent B along Path 2
+    const pill3X = pB_rej.x - (pB_rej.x - pProv_top.x) * 0.32;
+    const pill3Y = pB_rej.y + (pProv_top.y - pB_rej.y) * 0.24 - 18;
     setPill(pill3Ref.current, pill3X, pill3Y);
 
     // Step 4 (ZK Proof in RAM): Midpoint of Line 3
-    setPill(pill4Ref.current, (pProv_out.x + pVerif_in.x) / 2, pProv_out.y - 20);
+    setPill(pill4Ref.current, (pProv_out.x + pVerif_in.x) / 2, pProv_out.y - 22);
 
-    // Step 5 (HTTP 200 Stream): Positioned on the LEFT side near Agent A (t ≈ 0.28 from Agent A)
-    const pill5X = pA.x + (pVerif_stream.x - pA.x) * 0.28;
-    const pill5Y = pA.y + (pVerif_stream.y - pA.y) * 0.30 - 14;
+    // Step 5 (HTTP 200 Stream): Positioned cleanly on the LEFT side near Agent A with ample breathing room
+    const pill5X = pA.x + (pVerif_stream.x - pA.x) * 0.26;
+    const pill5Y = pA.y + (pVerif_stream.y - pA.y) * 0.34 + 16;
     setPill(pill5Ref.current, pill5X, pill5Y);
 
     // Step 6a (Webhook): Midpoint of Curve 5
@@ -655,7 +655,7 @@ export default function A2APaymentFlow() {
           {/* ================= FLOW STAGE (DYNAMIC PIXEL-LOCKED SYSTEM) ================= */}
           <div
             ref={stageRef}
-            className="relative w-full h-[380px] sm:h-[410px] md:h-[430px] select-none"
+            className="relative w-full h-[430px] sm:h-[460px] md:h-[480px] select-none"
           >
             {/* ================= ARCHITECTURAL ZONE LABELS ================= */}
             {/* Top-Left: Buyer Side */}
@@ -825,7 +825,7 @@ export default function A2APaymentFlow() {
             {/* 1. AGENT A (BUYER / CONSUMER SWARM) - ANCHORED LEFT */}
             <div
               id="card-agent-a"
-              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[9%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[6%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Output Connection Port */}
               <div ref={portA_Ref} className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
@@ -884,7 +884,7 @@ export default function A2APaymentFlow() {
             {/* 2. AGENT B (SELLER / MCP TOOL GATEWAY) - ANCHORED RIGHT */}
             <div
               id="card-agent-b"
-              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[9%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[6%] w-[24%] min-w-[170px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Input Connection Port */}
               <div ref={portB_Ref} className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
@@ -951,7 +951,7 @@ export default function A2APaymentFlow() {
             {/* 3. OFF-CHAIN GROTH16 PROVER IN RAM - ANCHORED LEFT */}
             <div
               id="card-prover"
-              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[38%] w-[26%] min-w-[190px] max-w-[230px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute left-2 sm:left-4 md:left-6 top-[41%] w-[26%] min-w-[190px] max-w-[230px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Challenge Input Port */}
               <div ref={portProver_TopRef} className="absolute right-4 -top-1 w-2 h-2 pointer-events-none opacity-0" />
@@ -991,7 +991,7 @@ export default function A2APaymentFlow() {
             {/* 4. IN-MEMORY VERIFICATION GATE (<8ms) - ANCHORED RIGHT */}
             <div
               id="card-verifier"
-              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[38%] w-[26%] min-w-[190px] max-w-[230px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[41%] w-[26%] min-w-[190px] max-w-[230px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Proof Input Port */}
               <div ref={portVerifier_InRef} className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
@@ -1041,7 +1041,7 @@ export default function A2APaymentFlow() {
             {/* 5. ARCNANO RELAYER (SETTLEMENT BUFFER) - CENTER-LEFT */}
             <div
               id="card-relayer"
-              className="actor-card absolute left-[34%] sm:left-[36%] md:left-[38%] top-[72%] w-[24%] min-w-[180px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute left-[34%] sm:left-[36%] md:left-[38%] top-[75%] w-[24%] min-w-[180px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Inbound Webhook Port */}
               <div ref={portRelayer_InRef} className="absolute left-1/2 -top-1 -translate-x-1/2 w-2 h-2 pointer-events-none opacity-0" />
@@ -1077,7 +1077,7 @@ export default function A2APaymentFlow() {
             {/* 6. ARC LAYER 1 & CIRCLE GAS STATION - ANCHORED RIGHT */}
             <div
               id="card-layer1"
-              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[72%] w-[24%] min-w-[180px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
+              className="actor-card absolute right-2 sm:right-4 md:right-6 top-[75%] w-[24%] min-w-[180px] max-w-[210px] rounded-xl p-2.5 sm:p-3 border transition-all duration-300 z-30"
             >
               {/* Inbound Batch Port */}
               <div ref={portL1_InRef} className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 pointer-events-none opacity-0" />
