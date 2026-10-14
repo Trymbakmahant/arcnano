@@ -100,6 +100,15 @@ export default function A2APaymentFlow() {
   const path6BaseRef = useRef<SVGPathElement>(null);
   const path6ActiveRef = useRef<SVGPathElement>(null);
 
+  // Dynamic Traveling Arrowhead Refs (Ride at leading tip of line drawing)
+  const arrow1Ref = useRef<SVGGElement>(null);
+  const arrow2Ref = useRef<SVGGElement>(null);
+  const arrow3Ref = useRef<SVGGElement>(null);
+  const arrow4Ref = useRef<SVGGElement>(null);
+  const arrow5Ref = useRef<SVGGElement>(null);
+  const arrow6Ref = useRef<SVGGElement>(null);
+  const updateAllArrowsRef = useRef<() => void>(() => {});
+
   // Pill Element Refs for Dynamic Centering
   const pill1Ref = useRef<HTMLDivElement>(null);
   const pill2Ref = useRef<HTMLDivElement>(null);
@@ -213,6 +222,9 @@ export default function A2APaymentFlow() {
     setPill(pill6aRef.current, (pVerif_bot.x + pRel_in.x) / 2 + 10, (pVerif_bot.y + pRel_in.y) / 2 - 8);
     // Step 6b (Settlement): Midpoint of Line 6
     setPill(pill6bRef.current, (pRel_out.x + pL1.x) / 2, pRel_out.y - 20);
+
+    // Sync active arrowhead positions along updated paths
+    updateAllArrowsRef.current();
   }, []);
 
   // Jump to a specific step
@@ -293,6 +305,52 @@ export default function A2APaymentFlow() {
       });
       gsap.set("#active-zk-pulse", { scale: 0, opacity: 0 });
 
+      // Function to dynamically update a traveling arrowhead to ride at the front tip of its drawing stroke
+      const updateArrowForPath = (
+        arrowEl: SVGGElement | null,
+        pathEl: SVGPathElement | null
+      ) => {
+        if (!arrowEl || !pathEl) return;
+        const total = pathEl.getTotalLength?.() || 0;
+        if (total <= 0) {
+          arrowEl.style.display = "none";
+          return;
+        }
+
+        const rawOffset = gsap.getProperty(pathEl, "strokeDashoffset");
+        const offset = typeof rawOffset === "number" ? rawOffset : parseFloat(String(rawOffset ?? total));
+        const rawOpacity = gsap.getProperty(pathEl, "opacity");
+        const opacity = typeof rawOpacity === "number" ? rawOpacity : parseFloat(String(rawOpacity ?? 0));
+
+        const drawn = Math.max(0, Math.min(total, total - offset));
+
+        if (opacity <= 0.02 || drawn < 2) {
+          arrowEl.style.display = "none";
+          return;
+        }
+
+        arrowEl.style.display = "block";
+        const pt = pathEl.getPointAtLength(drawn);
+        const delta = 2;
+        const ptPrev = pathEl.getPointAtLength(Math.max(0, drawn - delta));
+        const ptNext = pathEl.getPointAtLength(Math.min(total, drawn + delta));
+        const angle = Math.atan2(ptNext.y - ptPrev.y, ptNext.x - ptPrev.x) * (180 / Math.PI);
+
+        arrowEl.setAttribute("transform", `translate(${pt.x}, ${pt.y}) rotate(${angle})`);
+        arrowEl.setAttribute("opacity", String(Math.min(1, opacity)));
+      };
+
+      const updateAllArrows = () => {
+        updateArrowForPath(arrow1Ref.current, path1ActiveRef.current);
+        updateArrowForPath(arrow2Ref.current, path2ActiveRef.current);
+        updateArrowForPath(arrow3Ref.current, path3ActiveRef.current);
+        updateArrowForPath(arrow4Ref.current, path4ActiveRef.current);
+        updateArrowForPath(arrow5Ref.current, path5ActiveRef.current);
+        updateArrowForPath(arrow6Ref.current, path6ActiveRef.current);
+      };
+
+      updateAllArrowsRef.current = updateAllArrows;
+
       // Master Timeline driven by Scroll (pinned for 2800px of smooth, slow scrub)
       const tl = gsap.timeline({
         paused: true,
@@ -329,9 +387,15 @@ export default function A2APaymentFlow() {
               isPlayingRef.current = false;
               setIsPlaying(false);
             }
+
+            // Continuously sync traveling arrowheads with stroke tips on every scroll frame
+            updateAllArrows();
           },
         },
       });
+
+      // Hook timeline onUpdate for auto-play and tween transitions
+      tl.eventCallback("onUpdate", updateAllArrows);
 
       timelineRef.current = tl;
 
@@ -611,6 +675,49 @@ export default function A2APaymentFlow() {
               <path ref={path4ActiveRef} className="flow-path-active" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" />
               <path ref={path5ActiveRef} className="flow-path-active" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" />
               <path ref={path6ActiveRef} className="flow-path-active" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
+
+              {/* ================= DYNAMIC TRAVELING ARROWHEADS (RIDE AT STROKE TIP) ================= */}
+              {/* Arrow 1: Amber (Steps 1 & 2: Agent A -> Agent B) */}
+              <g ref={arrow1Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#D97706" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#D97706" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
+
+              {/* Arrow 2: Red (Step 3: Agent B -> Prover RAM) */}
+              <g ref={arrow2Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#EF4444" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#EF4444" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
+
+              {/* Arrow 3: Purple (Step 4: Prover -> Verifier RAM) */}
+              <g ref={arrow3Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#8B5CF6" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#8B5CF6" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
+
+              {/* Arrow 4: Emerald (Step 5: Verifier -> Agent A HTTP 200 Stream) */}
+              <g ref={arrow4Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#10B981" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
+
+              {/* Arrow 5: Purple (Step 6a: Verifier -> Relayer Buffer) */}
+              <g ref={arrow5Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#8B5CF6" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#8B5CF6" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
+
+              {/* Arrow 6: Emerald (Step 6b: Relayer -> Arc L1 Settlement) */}
+              <g ref={arrow6Ref} className="arrow-head-marker pointer-events-none" style={{ display: "none" }}>
+                <circle cx="0" cy="0" r="7" fill="#10B981" opacity="0.25" />
+                <polygon points="-7,-5 5.5,0 -7,5 -4,0" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.2" strokeLinejoin="round" />
+                <circle cx="-1" cy="0" r="1.5" fill="#FFFFFF" />
+              </g>
             </svg>
 
             {/* ================= STEP LABEL PILLS (DYNAMICALLY PLACED BY RESIZEOBSERVER) ================= */}
