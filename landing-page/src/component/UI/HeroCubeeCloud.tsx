@@ -5,7 +5,7 @@ import { Avatar } from "@bible-strong/avatar-react";
 import "@bible-strong/avatar-react/styles.css";
 import type { AvatarDefinition } from "@bible-strong/avatar-core";
 import agentAvatarsData from "@/data/agentAvatars.json";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, ChevronDown } from "lucide-react";
 import gsap from "gsap";
 
 interface AgentAvatarItem {
@@ -63,13 +63,17 @@ export default function HeroCubeeCloud({
   const [isClient, setIsClient] = useState<boolean>(false);
   const [userAsked, setUserAsked] = useState<boolean>(false);
   const [isInView, setIsInView] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isPinned, setIsPinned] = useState<boolean>(false);
+  const [canScrollMore, setCanScrollMore] = useState<boolean>(false);
 
-  // DOM Refs for high-performance GSAP hardware-accelerated animations
+  // DOM Refs for high-performance GSAP hardware-accelerated animations & scrolling
   const containerRef = useRef<HTMLDivElement>(null);
   const portalRing1Ref = useRef<HTMLDivElement>(null);
   const portalRing2Ref = useRef<HTMLDivElement>(null);
   const cloudWrapperRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const dot1Ref = useRef<HTMLDivElement>(null);
   const dot2Ref = useRef<HTMLDivElement>(null);
@@ -77,6 +81,69 @@ export default function HeroCubeeCloud({
   const avatarWrapperRef = useRef<HTMLDivElement>(null);
   const avatarFloatRef = useRef<HTMLDivElement>(null);
   const shadowRef = useRef<HTMLDivElement>(null);
+
+  // Determine if cloud holds a response/answer or long explanation
+  const hasResponse = userAsked || speechText.length > 95;
+  const isExpanded = hasResponse || isHovered || isPinned;
+
+  // Responsive dimension calculations with upward expansion math (y_bottom remains fixed at 122px)
+  const cloudDimensions = useMemo(() => {
+    if (hasResponse) {
+      if (isHovered || isPinned) {
+        return {
+          cloud: "w-[330px] sm:w-[370px] md:w-[400px] h-[175px] sm:h-[188px] -mt-[40px] sm:-mt-[50px]",
+          form: "w-[260px] sm:w-[290px]",
+          textMaxH: "max-h-[105px] sm:max-h-[118px]",
+        };
+      }
+      return {
+        cloud: "w-[305px] sm:w-[345px] md:w-[375px] h-[155px] sm:h-[168px] -mt-[25px] sm:-mt-[35px]",
+        form: "w-[245px] sm:w-[275px]",
+        textMaxH: "max-h-[90px] sm:max-h-[102px]",
+      };
+    }
+    if (isHovered || isPinned) {
+      return {
+        cloud: "w-[260px] sm:w-[285px] h-[138px] -mt-[14px]",
+        form: "w-[220px] sm:w-[240px]",
+        textMaxH: "max-h-[82px]",
+      };
+    }
+    return {
+      cloud: "w-[225px] sm:w-[235px] h-[122px] mt-0",
+      form: "w-[205px] sm:w-[218px]",
+      textMaxH: "max-h-[76px]",
+    };
+  }, [hasResponse, isHovered, isPinned]);
+
+  // Check if content overflows vertically to toggle scroll indicator
+  const checkScrollOverflow = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    setCanScrollMore(scrollHeight - scrollTop - clientHeight > 8);
+  };
+
+  // Reset thought to initial rotating stream
+  const handleResetThought = () => {
+    setUserAsked(false);
+    setIsPinned(false);
+    setThoughtIndex(0);
+    setSpeechText(activeThoughts[0]);
+  };
+
+  // Reset scroll position and re-check overflow on speech change
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    checkScrollOverflow();
+  }, [speechText]);
+
+  // Re-check overflow when expanded state or hover changes
+  useEffect(() => {
+    const t = setTimeout(checkScrollOverflow, 120);
+    return () => clearTimeout(t);
+  }, [speechText, isExpanded, isHovered, isPinned]);
 
   // Sync initial thought when thoughts array changes
   useEffect(() => {
@@ -414,7 +481,7 @@ export default function HeroCubeeCloud({
       ref={containerRef}
       className={`relative flex flex-col select-none min-h-[190px] ${
         cloudPosition === "left" ? "items-end" : "items-start"
-      } ${className}`}
+      } ${isExpanded ? "z-40" : "z-20"} ${className}`}
     >
       {/* TELEPORTATION PORTAL GLOW & WARP AURA */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-0 overflow-visible">
@@ -434,17 +501,27 @@ export default function HeroCubeeCloud({
 
       {/* TOP: IDEA CLOUD + OUTSIDE INPUT BOX */}
       <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={`relative ${
           cloudPosition === "left" ? "pr-3 sm:pr-4" : "pl-3 sm:pl-4"
-        } flex flex-col items-center`}
+        } flex flex-col items-center z-30`}
       >
         {/* 1. SCALLOPED THOUGHT CLOUD */}
         <div
           ref={cloudWrapperRef}
+          onClick={() => {
+            if (hasResponse) {
+              setIsPinned((prev) => !prev);
+            }
+          }}
           style={{
             transformOrigin: cloudPosition === "left" ? "bottom right" : "bottom left",
           }}
-          className="relative w-[225px] sm:w-[235px] h-[122px] drop-shadow-md opacity-0 will-change-transform"
+          className={`relative ${cloudDimensions.cloud} max-w-[calc(100vw-32px)] drop-shadow-md opacity-0 will-change-transform transition-all duration-300 ease-out ${
+            hasResponse ? "cursor-pointer" : ""
+          }`}
+          title={hasResponse ? (isPinned ? "Click to unpin cloud view" : "Click to pin expanded view") : undefined}
         >
           <div className="w-full h-full relative">
             {/* Scalloped Cartoon Cloud SVG Outline */}
@@ -465,18 +542,60 @@ export default function HeroCubeeCloud({
               />
             </svg>
 
-            {/* ALL TEXT IS 100% INSIDE THE CLOUD (Centered with ample padding) */}
+            {/* ALL TEXT IS 100% INSIDE THE CLOUD */}
             <div
               ref={textRef}
-              className="relative z-10 w-full h-full flex items-center justify-center px-6 py-4 text-center opacity-0 will-change-transform"
+              className={`relative z-10 w-full h-full flex flex-col items-center opacity-0 will-change-transform ${
+                isExpanded ? "justify-start pt-6 sm:pt-7 pb-4 px-6 sm:px-8" : "justify-center px-6 py-4"
+              }`}
             >
-              <p className="text-[10.5px] sm:text-[11px] font-medium text-neutral-900 leading-snug font-sans select-text line-clamp-3">
-                {speechText}
-              </p>
+              {/* Optional Reset Button when userAsked */}
+              {userAsked && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleResetThought();
+                  }}
+                  className="absolute top-3 right-5 sm:right-6 z-20 w-4 h-4 rounded-full bg-neutral-200/90 hover:bg-neutral-900 hover:text-white text-neutral-600 flex items-center justify-center text-[10px] leading-none transition-colors cursor-pointer shadow-xs"
+                  title="Reset to automated hints"
+                  aria-label="Reset thought"
+                >
+                  ×
+                </button>
+              )}
 
+              {/* Scrollable Response Container */}
+              <div
+                ref={scrollContainerRef}
+                onScroll={checkScrollOverflow}
+                className={`cubee-cloud-scroll w-full overflow-y-auto overscroll-contain transition-all duration-200 select-text text-center px-1.5 py-0.5 ${cloudDimensions.textMaxH}`}
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "rgba(23, 23, 23, 0.25) transparent",
+                }}
+              >
+                <p
+                  className={`text-[10.5px] sm:text-[11px] md:text-[11.5px] font-medium text-neutral-900 leading-relaxed font-sans select-text whitespace-pre-wrap ${
+                    isExpanded ? "" : "line-clamp-3"
+                  }`}
+                >
+                  {speechText}
+                </p>
+              </div>
+
+              {/* Subtle Scroll Hint When Overflowing */}
+              {canScrollMore && !isLoading && (
+                <div className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-950/8 backdrop-blur-xs text-[8px] sm:text-[8.5px] font-mono font-medium text-neutral-700 tracking-tight shadow-xs animate-pulse">
+                  <span>Scroll for more</span>
+                  <ChevronDown className="w-2.5 h-2.5 text-neutral-600" />
+                </div>
+              )}
+
+              {/* Loading State with GLM-4 */}
               {isLoading && (
-                <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[9px] text-amber-600 font-mono">
-                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-700 font-mono shadow-xs backdrop-blur-xs">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin text-amber-600" />
                   <span>Proving with GLM-4...</span>
                 </div>
               )}
@@ -491,7 +610,7 @@ export default function HeroCubeeCloud({
             e.preventDefault();
             handleAsk();
           }}
-          className="mt-1.5 w-[205px] sm:w-[218px] flex items-center gap-1 bg-white border border-neutral-300 hover:border-neutral-900 focus-within:border-neutral-950 focus-within:ring-1 focus-within:ring-neutral-900/15 px-2.5 py-1 rounded-full shadow-sm transition-all opacity-0 will-change-transform"
+          className={`mt-1.5 ${cloudDimensions.form} max-w-[calc(100vw-48px)] flex items-center gap-1 bg-white border border-neutral-300 hover:border-neutral-900 focus-within:border-neutral-950 focus-within:ring-1 focus-within:ring-neutral-900/15 px-2.5 py-1 rounded-full shadow-sm transition-all duration-300 ease-out opacity-0 will-change-transform`}
         >
           <input
             type="text"
