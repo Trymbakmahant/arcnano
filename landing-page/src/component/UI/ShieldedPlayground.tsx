@@ -946,10 +946,11 @@ export default function ShieldedPlayground() {
       const receipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
 
       // 7. Store minted note into Shielded Notes Vault
+      const noteAmount = Number(poolDenom) / 10 ** selectedToken.decimals;
       const newNote: ShieldedNote = {
         id: `note-${Date.now()}`,
         tokenSymbol: selectedToken.symbol,
-        amount: amt,
+        amount: noteAmount,
         commitment,
         nullifierHash,
         secret,
@@ -964,7 +965,7 @@ export default function ShieldedPlayground() {
 
       setLastReceipt({
         type: "deposit",
-        amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
+        amount: `${noteAmount.toFixed(2)} ${selectedToken.symbol}`,
         commitment: newNote.commitment,
         noteId: newNote.id,
         pool: cfg.poolContract,
@@ -976,7 +977,7 @@ export default function ShieldedPlayground() {
       });
 
       setDepositAmount("");
-      showToast("success", "Shielded Note Minted", `Successfully deposited ${amt.toFixed(2)} ${selectedToken.symbol} into ArcNano pool.`);
+      showToast("success", "Shielded Note Minted", `Minted 1 shielded note (${noteAmount.toFixed(2)} ${selectedToken.symbol}) on-chain into ArcNano pool.`);
     } catch (err: any) {
       console.error("Deposit error:", err);
       if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
@@ -1595,10 +1596,15 @@ export default function ShieldedPlayground() {
           {activeTab === "deposit" && (
             <div className="space-y-3.5 animate-in fade-in duration-200">
               {/* Box 1: You're depositing */}
-              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300">
-                <span className="text-[11px] text-neutral-500 font-medium block mb-1">
-                  You&apos;re depositing
-                </span>
+              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-neutral-500 font-medium block">
+                    You&apos;re depositing
+                  </span>
+                  <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/80 font-medium">
+                    Fixed Note Tier: 0.01 {selectedToken.symbol}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <input
@@ -1606,12 +1612,19 @@ export default function ShieldedPlayground() {
                       step="any"
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
-                      placeholder="0"
+                      placeholder="0.01"
                       className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
                     />
-                    <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
-                      ${depositAmount ? ((parseFloat(depositAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.00"}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-neutral-400 font-mono">
+                        ${depositAmount ? ((parseFloat(depositAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.01"}
+                      </span>
+                      {depositAmount && parseFloat(depositAmount) !== 0.01 && (
+                        <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                          Contract mints 1 note (0.01 {selectedToken.symbol})
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Clean Token selector button */}
@@ -1626,6 +1639,11 @@ export default function ShieldedPlayground() {
                     <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
                   </button>
+                </div>
+
+                {/* Privacy Pool Explanation Notice */}
+                <div className="pt-2 border-t border-neutral-200/60 text-[10.5px] text-neutral-500 leading-relaxed font-sans">
+                  🛡️ <strong>Why 0.01 {selectedToken.symbol}?</strong> Privacy pools require standardized note denominations so public blockchain observers cannot match deposits and withdrawals by amount.
                 </div>
               </div>
 
@@ -1661,8 +1679,8 @@ export default function ShieldedPlayground() {
                 </div>
                 <div className="flex items-center justify-between text-neutral-500 text-[11px]">
                   <span>Shielded minted</span>
-                  <span className="text-neutral-900 font-semibold">
-                    {depositAmount ? parseFloat(depositAmount).toFixed(2) : "0.00"} {selectedToken.symbol}
+                  <span className="text-neutral-900 font-semibold font-mono">
+                    0.01 {selectedToken.symbol} (1 Note)
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-neutral-500 text-[11px]">
