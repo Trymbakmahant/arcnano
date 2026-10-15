@@ -48,9 +48,10 @@ const DEFAULT_GREETING =
 function getSuggestedQuestions(pretext?: PretextContext | null): string[] {
   if (!pretext) {
     return [
+      "How does the Playground work?",
+      "Why is Arc best for AI agents?",
       "How does ArcNano hide msg.sender?",
-      "Who pays gas fees on Arc?",
-      "How fast is off-chain verification?",
+      "Where are Docs & Marketplace?",
     ];
   }
 

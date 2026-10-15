@@ -59,6 +59,7 @@ export interface ArcChainConfig {
   explorerName: string;
   explorerUrl: string;
   poolContract: `0x${string}`;
+  batchDepositContract?: `0x${string}`;
   usdcContract: `0x${string}`;
   isMainnet: boolean;
 }
@@ -74,6 +75,7 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
     explorerName: "Arcscan",
     explorerUrl: "https://testnet.arcscan.io",
     poolContract: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+    batchDepositContract: "0xD20E2c9aa6C291c15571440DAc7a6e773EC386e4",
     usdcContract: "0x3600000000000000000000000000000000000000",
     isMainnet: false,
   },
@@ -146,6 +148,12 @@ const poolAbi = parseAbi([
   "function token() external view returns (address)",
   "function getLastRoot() external view returns (bytes32)",
   "function isSpent(bytes32 nullifierHash) external view returns (bool)",
+]);
+
+const batchDepositAbi = parseAbi([
+  "function batchDeposit(bytes32[] commitments) external",
+  "function pool() external view returns (address)",
+  "function token() external view returns (address)",
 ]);
 
 const erc20Abi = parseAbi([
@@ -242,6 +250,8 @@ const SUPPORTED_TOKENS: TokenInfo[] = [
   },
 ];
 
+const PRESET_DEPOSIT_AMOUNTS = [0.01, 0.10, 1.00, 5.00, 10.00];
+
 interface ToastNotification {
   id: string;
   type: "success" | "error" | "warning" | "info";
@@ -325,39 +335,50 @@ export default function ShieldedPlayground() {
   // INSUFFICIENT TESTNET BALANCE / SIMULATION PROMPT MODAL
   const [simulateModalData, setSimulateModalData] = useState<{
     amt: number;
+    noteCount?: number;
     tokenSymbol: string;
     currentBal: string;
     commitment: string;
     nullifierHash: string;
     secret: string;
     nullifierSeed: string;
+    batchNotes?: ShieldedNote[];
   } | null>(null);
 
   const confirmSimulatedDeposit = async () => {
     if (!simulateModalData) return;
-    const { amt, tokenSymbol, commitment, nullifierHash, secret, nullifierSeed } = simulateModalData;
-    const newNote: ShieldedNote = {
-      id: `note-${Date.now()}`,
-      tokenSymbol,
-      amount: amt,
-      commitment,
-      nullifierHash,
-      secret,
-      nullifierSeed,
-      isSpent: false,
-      createdAt: "Just now",
-    };
+    const { amt, tokenSymbol, commitment, nullifierHash, secret, nullifierSeed, batchNotes } = simulateModalData;
+    
+    let notesToAdd: ShieldedNote[] = [];
+    if (batchNotes && batchNotes.length > 0) {
+      notesToAdd = batchNotes;
+    } else {
+      notesToAdd = [
+        {
+          id: `note-${Date.now()}`,
+          tokenSymbol,
+          amount: amt,
+          commitment,
+          nullifierHash,
+          secret,
+          nullifierSeed,
+          isSpent: false,
+          createdAt: "Just now",
+        },
+      ];
+    }
 
-    const updatedNotes = [newNote, ...notes];
+    const updatedNotes = [...notesToAdd, ...notes];
     setNotes(updatedNotes);
     await saveVaultNotes(updatedNotes, walletAddress);
 
+    const count = notesToAdd.length;
     const rcpt: ProofReceipt = {
       id: `rcpt-${Date.now()}`,
       type: "deposit",
-      amount: `${amt.toFixed(2)} ${tokenSymbol}`,
-      commitment: newNote.commitment,
-      sponsor: `Simulated Test Note (Zero ${activeChainConfig.shortName} Token Required)`,
+      amount: `${amt.toFixed(2)} ${tokenSymbol}${count > 1 ? ` (${count} notes)` : ""}`,
+      commitment: notesToAdd[0].commitment,
+      sponsor: `Simulated ${count > 1 ? `Batch (${count} Notes)` : "Test Note"} (Zero ${activeChainConfig.shortName} Token Required)`,
       timestamp: Date.now(),
       dateFormatted: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
@@ -368,7 +389,11 @@ export default function ShieldedPlayground() {
 
     setDepositAmount("");
     setSimulateModalData(null);
-    showToast("success", "Simulated Note Minted", `Saved ${amt.toFixed(2)} ${tokenSymbol} to encrypted local vault.`);
+    showToast(
+      "success",
+      count > 1 ? "Simulated Notes Minted" : "Simulated Note Minted",
+      `Saved ${count} note${count > 1 ? "s" : ""} totaling ${amt.toFixed(2)} ${tokenSymbol} to encrypted local vault.`
+    );
   };
 
   const cancelSimulatedDeposit = () => {
@@ -1018,22 +1043,49 @@ export default function ShieldedPlayground() {
         console.warn("Using default pool denomination:", denomErr);
       }
 
-      // 3. Generate cryptographic 256-bit note secrets
-      setProcessingStatus("Generating random 256-bit scalar & Poseidon commitment in RAM...");
-      const secretBytes = new Uint8Array(32);
-      const nullifierBytes = new Uint8Array(32);
-      window.crypto.getRandomValues(secretBytes);
-      window.crypto.getRandomValues(nullifierBytes);
+      // 3. Compute note count & generate cryptographic 256-bit note secrets
+      const noteCount = Math.max(1, Math.round(amt / 0.01));
+      const totalRequired = poolDenom * BigInt(noteCount);
+      const totalAmountFormatted = (noteCount * 0.01).toFixed(2);
+
+      setProcessingStatus(
+        noteCount > 1
+          ? `Generating ${noteCount} random 256-bit scalars & commitments in RAM...`
+          : "Generating random 256-bit scalar & Poseidon commitment in RAM..."
+      );
 
       const toHexStr = (bytes: Uint8Array) =>
         `0x${Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("")}` as `0x${string}`;
-      const secret = toHexStr(secretBytes);
-      const nullifierSeed = toHexStr(nullifierBytes);
 
-      const commitment = keccak256(
-        encodePacked(["uint256", "bytes32", "bytes32"], [poolDenom, secret, nullifierSeed])
-      );
-      const nullifierHash = keccak256(encodePacked(["bytes32"], [nullifierSeed]));
+      const newNotes: ShieldedNote[] = [];
+      const commitments: `0x${string}`[] = [];
+      const baseTime = Date.now();
+      const singleNoteAmount = Number(poolDenom) / 10 ** selectedToken.decimals;
+
+      for (let i = 0; i < noteCount; i++) {
+        const secretBytes = new Uint8Array(32);
+        const nullifierBytes = new Uint8Array(32);
+        window.crypto.getRandomValues(secretBytes);
+        window.crypto.getRandomValues(nullifierBytes);
+        const secret = toHexStr(secretBytes);
+        const nullifierSeed = toHexStr(nullifierBytes);
+        const commitment = keccak256(
+          encodePacked(["uint256", "bytes32", "bytes32"], [poolDenom, secret, nullifierSeed])
+        );
+        const nullifierHash = keccak256(encodePacked(["bytes32"], [nullifierSeed]));
+        commitments.push(commitment);
+        newNotes.push({
+          id: `note-${baseTime}-${i}`,
+          tokenSymbol: selectedToken.symbol,
+          amount: singleNoteAmount,
+          commitment,
+          nullifierHash,
+          secret,
+          nullifierSeed,
+          isSpent: false,
+          createdAt: "Just now",
+        });
+      }
 
       // 4. Check token balance on Arc network
       setProcessingStatus(`Checking ${cfg.name} token balance...`);
@@ -1049,77 +1101,114 @@ export default function ShieldedPlayground() {
         console.warn("Could not check token balance:", balErr);
       }
 
-      // If user has insufficient tokens, offer playground simulation modal
-      if (tokenBal < poolDenom) {
+      // If user has insufficient tokens, offer playground simulation modal with batch notes
+      if (tokenBal < totalRequired) {
         setSimulateModalData({
-          amt,
+          amt: noteCount * 0.01,
+          noteCount,
           tokenSymbol: selectedToken.symbol,
           currentBal: (Number(tokenBal) / (10 ** cfg.nativeCurrency.decimals)).toFixed(4),
-          commitment,
-          nullifierHash,
-          secret,
-          nullifierSeed,
+          commitment: commitments[0],
+          nullifierHash: newNotes[0].nullifierHash,
+          secret: newNotes[0].secret,
+          nullifierSeed: newNotes[0].nullifierSeed,
+          batchNotes: newNotes,
         });
         setIsProcessing(false);
         setProcessingStatus("");
         return;
       }
 
-      // 5. Check allowance & prompt approval in browser wallet if required
-      setProcessingStatus(`Checking token allowance on ${cfg.name}...`);
-      let allowance = 0n;
-      try {
-        allowance = await publicClient.readContract({
-          address: tokenContractAddress,
-          abi: erc20Abi,
-          functionName: "allowance",
-          args: [walletAddress as `0x${string}`, cfg.poolContract],
+      // 5. Execute On-Chain Deposit (Batch vs Single)
+      let depositTxHash: `0x${string}`;
+      let receiptBlockNumber: number = 0;
+
+      if (noteCount > 1 && cfg.batchDepositContract) {
+        const batchContract = cfg.batchDepositContract;
+        setProcessingStatus(`Checking batch spender allowance on ${cfg.name}...`);
+        let allowance = 0n;
+        try {
+          allowance = await publicClient.readContract({
+            address: tokenContractAddress,
+            abi: erc20Abi,
+            functionName: "allowance",
+            args: [walletAddress as `0x${string}`, batchContract],
+          });
+        } catch (allowanceErr) {
+          console.warn("Could not check batch allowance:", allowanceErr);
+        }
+
+        if (allowance < totalRequired) {
+          setProcessingStatus(`Opening wallet: Approve ${totalAmountFormatted} ${selectedToken.symbol} in MetaMask...`);
+          const approveTx = await walletClient.writeContract({
+            address: tokenContractAddress,
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [batchContract, totalRequired * 10n],
+          });
+          setProcessingStatus(`Confirming approval transaction on ${cfg.name}...`);
+          await publicClient.waitForTransactionReceipt({ hash: approveTx });
+        }
+
+        setProcessingStatus(`Opening wallet: Confirm batch deposit (${noteCount} notes) in MetaMask...`);
+        depositTxHash = await walletClient.writeContract({
+          address: batchContract,
+          abi: batchDepositAbi,
+          functionName: "batchDeposit",
+          args: [commitments],
         });
-      } catch (allowanceErr) {
-        console.warn("Could not check allowance:", allowanceErr);
+
+        setProcessingStatus(`Broadcasting batch deposit (${noteCount} notes) to ${cfg.name}...`);
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
+        receiptBlockNumber = Number(receipt.blockNumber);
+      } else {
+        // Single note direct pool deposit
+        setProcessingStatus(`Checking token allowance on ${cfg.name}...`);
+        let allowance = 0n;
+        try {
+          allowance = await publicClient.readContract({
+            address: tokenContractAddress,
+            abi: erc20Abi,
+            functionName: "allowance",
+            args: [walletAddress as `0x${string}`, cfg.poolContract],
+          });
+        } catch (allowanceErr) {
+          console.warn("Could not check allowance:", allowanceErr);
+        }
+
+        if (allowance < totalRequired) {
+          setProcessingStatus("Opening wallet: Approve USDC spending limit in MetaMask...");
+          const approveTx = await walletClient.writeContract({
+            address: tokenContractAddress,
+            abi: erc20Abi,
+            functionName: "approve",
+            args: [cfg.poolContract, totalRequired * 10n],
+          });
+          setProcessingStatus(`Confirming approval transaction on ${cfg.name}...`);
+          await publicClient.waitForTransactionReceipt({ hash: approveTx });
+        }
+
+        setProcessingStatus("Opening wallet: Confirm deposit in MetaMask...");
+        depositTxHash = await walletClient.writeContract({
+          address: cfg.poolContract,
+          abi: poolAbi,
+          functionName: "deposit",
+          args: [commitments[0]],
+        });
+
+        setProcessingStatus(`Broadcasting deposit to ${cfg.name} & mining block...`);
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
+        receiptBlockNumber = Number(receipt.blockNumber);
       }
 
-      if (allowance < poolDenom) {
-        setProcessingStatus("Opening wallet: Approve USDC spending limit in MetaMask...");
-        const approveTx = await walletClient.writeContract({
-          address: tokenContractAddress,
-          abi: erc20Abi,
-          functionName: "approve",
-          args: [cfg.poolContract, poolDenom * 100n],
-        });
-
-        setProcessingStatus(`Confirming approval transaction on ${cfg.name}...`);
-        await publicClient.waitForTransactionReceipt({ hash: approveTx });
-      }
-
-      // 6. Trigger pool.deposit(commitment) - OPENS METAMASK POPUP!
-      setProcessingStatus("Opening wallet: Confirm deposit in MetaMask...");
-      const depositTxHash = await walletClient.writeContract({
-        address: cfg.poolContract,
-        abi: poolAbi,
-        functionName: "deposit",
-        args: [commitment],
-      });
-
-      setProcessingStatus(`Broadcasting deposit to ${cfg.name} & mining block...`);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
-
-      // 7. Store minted note into Shielded Notes Vault
-      const noteAmount = Number(poolDenom) / 10 ** selectedToken.decimals;
-      const newNote: ShieldedNote = {
-        id: `note-${Date.now()}`,
-        tokenSymbol: selectedToken.symbol,
-        amount: noteAmount,
-        commitment,
-        nullifierHash,
-        secret,
-        nullifierSeed,
-        isSpent: false,
-        createdAt: "Just now",
+      // 6. Store minted notes into Shielded Notes Vault
+      const finalizedNotes = newNotes.map((n) => ({
+        ...n,
         txHash: depositTxHash,
-      };
+        blockNumber: receiptBlockNumber,
+      }));
 
-      const updatedNotes = [newNote, ...notes];
+      const updatedNotes = [...finalizedNotes, ...notes];
       setNotes(updatedNotes);
       await saveVaultNotes(updatedNotes, walletAddress);
       await updateWalletBalances(walletAddress);
@@ -1127,11 +1216,11 @@ export default function ShieldedPlayground() {
       const rcpt: ProofReceipt = {
         id: `rcpt-${Date.now()}`,
         type: "deposit",
-        amount: `${noteAmount.toFixed(2)} ${selectedToken.symbol}`,
-        commitment: newNote.commitment,
+        amount: `${totalAmountFormatted} ${selectedToken.symbol} (${noteCount} note${noteCount > 1 ? "s" : ""})`,
+        commitment: commitments[0],
         txHash: depositTxHash,
-        blockNumber: Number(receipt.blockNumber),
-        sponsor: "Circle Gas Station ($0.00 Gas)",
+        blockNumber: receiptBlockNumber,
+        sponsor: noteCount > 1 ? "Arc Testnet • Circle Gas Station ($0.00 Gas) [Batch Deposit]" : "Circle Gas Station ($0.00 Gas)",
         explorerUrl: `${cfg.explorerUrl}/tx/${depositTxHash}`,
         explorerName: cfg.explorerName,
         timestamp: Date.now(),
@@ -1143,7 +1232,11 @@ export default function ShieldedPlayground() {
       setProofHistory(updatedHistory);
 
       setDepositAmount("");
-      showToast("success", "Shielded Note Minted", `Minted 1 shielded note (${noteAmount.toFixed(2)} ${selectedToken.symbol}) on-chain into ArcNano pool.`);
+      showToast(
+        "success",
+        noteCount > 1 ? "Batch Deposit Complete" : "Shielded Note Minted",
+        `Successfully minted ${noteCount} shielded note${noteCount > 1 ? "s" : ""} (${totalAmountFormatted} ${selectedToken.symbol}) on Arc Testnet in 1 transaction!`
+      );
     } catch (err: any) {
       console.error("Deposit error:", err);
       if (err?.code === 4001 || err?.message?.includes("User rejected") || err?.message?.includes("rejected")) {
@@ -1807,154 +1900,196 @@ export default function ShieldedPlayground() {
           </div>
 
           {/* TAB 1: DEPOSIT (DEFAULT) */}
-          {activeTab === "deposit" && (
-            <div className="space-y-3.5 animate-in fade-in duration-200">
-              {/* Box 1: You're depositing */}
-              <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-500 font-medium block">
-                    You&apos;re depositing
-                  </span>
-                  <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/80 font-medium">
-                    Fixed Note Tier: 0.01 {selectedToken.symbol}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <input
-                      type="number"
-                      step="any"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      placeholder="0.01"
-                      className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
-                    />
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-neutral-400 font-mono">
-                        ${depositAmount ? ((parseFloat(depositAmount) || 0) * selectedToken.priceUsd).toFixed(2) : "0.01"}
-                      </span>
-                      {depositAmount && parseFloat(depositAmount) !== 0.01 && (
-                        <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                          Contract mints 1 note (0.01 {selectedToken.symbol})
+          {activeTab === "deposit" && (() => {
+            const parsedAmt = parseFloat(depositAmount);
+            const activeAmt = isNaN(parsedAmt) || parsedAmt <= 0 ? 0.01 : parsedAmt;
+            const currentNoteCount = Math.max(1, Math.round(activeAmt / 0.01));
+            const currentTotalUsd = (currentNoteCount * 0.01).toFixed(2);
+
+            return (
+              <div className="space-y-3.5 animate-in fade-in duration-200">
+                {/* Box 1: You're depositing */}
+                <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-neutral-500 font-medium block">
+                      You&apos;re depositing
+                    </span>
+                    <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/80 font-medium">
+                      {currentNoteCount > 1
+                        ? `⚡ Batch Mode: ${currentNoteCount} × 0.01 ${selectedToken.symbol}`
+                        : `Fixed Note Tier: 0.01 ${selectedToken.symbol}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="number"
+                        step="any"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        placeholder="0.01"
+                        className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
+                      />
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-neutral-400 font-mono">
+                          ≈ ${currentTotalUsd}
                         </span>
-                      )}
+                        {currentNoteCount > 1 ? (
+                          <span className="text-[10px] font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                            Batch mints {currentNoteCount} notes (1 on-chain tx)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">
+                            Mints 1 note (0.01 {selectedToken.symbol})
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Clean Token selector button */}
+                    <button
+                      type="button"
+                      onClick={() => setTokenSelectorOpen(true)}
+                      className="flex items-center gap-2 bg-white hover:bg-neutral-50 border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0 cursor-pointer transition-colors"
+                    >
+                      <div className={`w-5 h-5 rounded-full ${selectedToken.iconBg} ${selectedToken.iconColor} flex items-center justify-center text-[10px] font-bold`}>
+                        {selectedToken.iconText}
+                      </div>
+                      <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                    </button>
                   </div>
 
-                  {/* Clean Token selector button */}
+                  {/* Preset Quick Select Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-neutral-200/60">
+                    <span className="text-[10px] text-neutral-400 font-medium">Quick Amount:</span>
+                    {PRESET_DEPOSIT_AMOUNTS.map((pAmt) => {
+                      const pNotes = Math.max(1, Math.round(pAmt / 0.01));
+                      const isSelected =
+                        depositAmount === pAmt.toString() ||
+                        (pAmt === 0.01 && (!depositAmount || depositAmount === "0.01"));
+                      return (
+                        <button
+                          key={pAmt}
+                          type="button"
+                          onClick={() => setDepositAmount(pAmt.toString())}
+                          className={`text-[10.5px] font-mono px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-[#0033FF] text-white border-[#0033FF] font-semibold shadow-2xs"
+                              : "bg-white hover:bg-neutral-100 text-neutral-700 border-neutral-200"
+                          }`}
+                        >
+                          ${pAmt < 1 ? pAmt.toFixed(2) : pAmt.toFixed(0)} ({pNotes === 1 ? "1 Note" : `${pNotes} Notes`})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Privacy Pool Explanation Notice */}
+                  <div className="pt-2 border-t border-neutral-200/60 text-[10.5px] text-neutral-500 leading-relaxed font-sans">
+                    🛡️ <strong>Why standardized 0.01 {selectedToken.symbol} notes?</strong> Entering ${depositAmount || "0.01"} batch-mints {currentNoteCount} uniform notes in <strong>1 single transaction</strong> with 1 approval. Standardized denominations guarantee maximum anonymity set mixing against chain analysis.
+                  </div>
+                </div>
+
+                {/* Box 2: Shielded Deposit Destination */}
+                <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white border border-blue-200/80 flex items-center justify-center text-[#0033FF] shadow-2xs">
+                      <ShieldCheck className="w-4 h-4 text-[#0033FF]" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-semibold text-neutral-900">
+                        ArcNano Shielded Pool
+                      </h4>
+                      <p className="text-[10.5px] text-neutral-500">
+                        Zero msg.sender linkage via local zk commitments.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
+                      Gasless ($0.00)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Box 3: Fee & Summary */}
+                <div className="bg-neutral-50/70 border border-neutral-200/70 rounded-2xl p-3.5 space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                    <span>Protocol fee</span>
+                    <span className="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
+                      $0.00 (Circle Gas Station)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                    <span>Shielded minted</span>
+                    <span className="text-neutral-900 font-semibold font-mono">
+                      {currentTotalUsd} {selectedToken.symbol} ({currentNoteCount} Note{currentNoteCount > 1 ? "s" : ""})
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-neutral-500 text-[11px]">
+                    <span>Batch execution</span>
+                    <span className="text-blue-700 font-medium">
+                      {currentNoteCount > 1 ? "1 Atomic Tx (100% Client-Side ZK)" : "1 Note (100% Client-Side ZK)"}
+                    </span>
+                  </div>
+                </div>
+
+                {!isWalletConnected ? (
                   <button
                     type="button"
-                    onClick={() => setTokenSelectorOpen(true)}
-                    className="flex items-center gap-2 bg-white hover:bg-neutral-50 border border-neutral-200/90 px-3 py-1.5 rounded-full shadow-2xs shrink-0 cursor-pointer transition-colors"
+                    onClick={handleConnectMetaMask}
+                    className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 cursor-pointer"
                   >
-                    <div className={`w-5 h-5 rounded-full ${selectedToken.iconBg} ${selectedToken.iconColor} flex items-center justify-center text-[10px] font-bold`}>
-                      {selectedToken.iconText}
-                    </div>
-                    <span className="text-xs font-semibold text-neutral-900">{selectedToken.symbol}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                    <MetaMaskFox className="w-4.5 h-4.5" />
+                    <span>Connect MetaMask</span>
                   </button>
-                </div>
-
-                {/* Privacy Pool Explanation Notice */}
-                <div className="pt-2 border-t border-neutral-200/60 text-[10.5px] text-neutral-500 leading-relaxed font-sans">
-                  🛡️ <strong>Why 0.01 {selectedToken.symbol}?</strong> Privacy pools require standardized note denominations so public blockchain observers cannot match deposits and withdrawals by amount.
-                </div>
+                ) : isWrongChain ? (
+                  <button
+                    type="button"
+                    onClick={() => switchOrAddChain(selectedChainId)}
+                    disabled={isSwitchingChain}
+                    className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSwitchingChain ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Switching to {activeChainConfig.name}...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="w-4 h-4" />
+                        <span>Switch to {activeChainConfig.name} to Deposit</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDeposit}
+                    disabled={isProcessing}
+                    className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>{processingStatus || "Depositing..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowDownToLine className="w-4 h-4" />
+                        <span>
+                          {currentNoteCount > 1
+                            ? `Deposit $${currentTotalUsd} (${currentNoteCount} Notes in 1 Tx)`
+                            : `Deposit 0.01 ${selectedToken.symbol} (1 Note)`}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-
-              {/* Box 2: Shielded Deposit Destination */}
-              <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-3.5 flex items-center justify-between transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-white border border-blue-200/80 flex items-center justify-center text-[#0033FF] shadow-2xs">
-                    <ShieldCheck className="w-4 h-4 text-[#0033FF]" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-semibold text-neutral-900">
-                      ArcNano Shielded Pool
-                    </h4>
-                    <p className="text-[10.5px] text-neutral-500">
-                      Zero msg.sender linkage via local zk commitments.
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-mono font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
-                    Gasless ($0.00)
-                  </span>
-                </div>
-              </div>
-
-              {/* Box 3: Fee & Summary */}
-              <div className="bg-neutral-50/70 border border-neutral-200/70 rounded-2xl p-3.5 space-y-2 text-xs font-mono">
-                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                  <span>Protocol fee</span>
-                  <span className="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">
-                    $0.00 (Circle Gas Station)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                  <span>Shielded minted</span>
-                  <span className="text-neutral-900 font-semibold font-mono">
-                    0.01 {selectedToken.symbol} (1 Note)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                  <span>Privacy guarantee</span>
-                  <span className="text-blue-700 font-medium">
-                    100% Client-Side ZK Synthesis
-                  </span>
-                </div>
-              </div>
-
-              {!isWalletConnected ? (
-                <button
-                  type="button"
-                  onClick={handleConnectMetaMask}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 cursor-pointer"
-                >
-                  <MetaMaskFox className="w-4.5 h-4.5" />
-                  <span>Connect MetaMask</span>
-                </button>
-              ) : isWrongChain ? (
-                <button
-                  type="button"
-                  onClick={() => switchOrAddChain(selectedChainId)}
-                  disabled={isSwitchingChain}
-                  className="w-full py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isSwitchingChain ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Switching to {activeChainConfig.name}...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Globe className="w-4 h-4" />
-                      <span>Switch to {activeChainConfig.name} to Deposit</span>
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleDeposit}
-                  disabled={isProcessing}
-                  className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{processingStatus || "Depositing..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ArrowDownToLine className="w-4 h-4" />
-                      <span>Deposit into Shielded Pool</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB 2: SEND */}
           {activeTab === "send" && (
@@ -3050,7 +3185,9 @@ export default function ShieldedPlayground() {
                     Arc Testnet Balance Notice
                   </h3>
                   <span className="text-[10px] font-mono text-amber-600 font-semibold block">
-                    Pool Denomination: 0.01 {simulateModalData.tokenSymbol}
+                    {simulateModalData.noteCount && simulateModalData.noteCount > 1
+                      ? `Batch Mint: ${simulateModalData.noteCount} Notes × 0.01 ${simulateModalData.tokenSymbol}`
+                      : `Pool Denomination: 0.01 ${simulateModalData.tokenSymbol}`}
                   </span>
                 </div>
               </div>
@@ -3073,11 +3210,11 @@ export default function ShieldedPlayground() {
               <div className="flex justify-between items-center font-mono">
                 <span className="text-neutral-500">Required on Arc:</span>
                 <span className="font-bold text-neutral-900">
-                  0.0100 {simulateModalData.tokenSymbol}
+                  {simulateModalData.amt.toFixed(2)} {simulateModalData.tokenSymbol}
                 </span>
               </div>
               <p className="text-[11px] text-neutral-500 pt-2 border-t border-neutral-200 leading-relaxed font-sans">
-                Your wallet currently has insufficient testnet tokens for an on-chain deposit. You can simulate the shielded note locally to test zero-knowledge transfers and withdrawals in the playground!
+                Your wallet currently has insufficient testnet tokens ({simulateModalData.currentBal} vs {simulateModalData.amt.toFixed(2)} {simulateModalData.tokenSymbol}). You can simulate all {simulateModalData.noteCount || 1} shielded note{simulateModalData.noteCount && simulateModalData.noteCount > 1 ? "s" : ""} locally into your hardware-encrypted vault to test zero-knowledge transfers and withdrawals immediately!
               </p>
             </div>
 
@@ -3088,7 +3225,11 @@ export default function ShieldedPlayground() {
                 className="flex-1 py-3 px-4 rounded-xl bg-[#0033FF] hover:bg-blue-700 text-white font-medium flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Simulate Note</span>
+                <span>
+                  {simulateModalData.noteCount && simulateModalData.noteCount > 1
+                    ? `Simulate ${simulateModalData.noteCount} Notes ($${simulateModalData.amt.toFixed(2)})`
+                    : "Simulate Note"}
+                </span>
               </button>
               <button
                 type="button"
