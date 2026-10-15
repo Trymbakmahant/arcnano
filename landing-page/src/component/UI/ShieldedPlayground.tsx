@@ -22,6 +22,12 @@ import {
   AlertCircle,
   Info,
   Globe,
+  Download,
+  Trash2,
+  History,
+  Database,
+  KeyRound,
+  Sparkles,
 } from "lucide-react";
 import {
   createWalletClient,
@@ -32,6 +38,16 @@ import {
   keccak256,
   encodePacked,
 } from "viem";
+import {
+  ShieldedNote,
+  ProofReceipt,
+  saveVaultNotes,
+  loadVaultNotes,
+  loadReceiptsHistory,
+  addReceiptToHistory,
+  clearVaultStorage,
+  exportEncryptedVault,
+} from "@/lib/vaultStorage";
 
 export interface ArcChainConfig {
   id: number;
@@ -226,19 +242,6 @@ const SUPPORTED_TOKENS: TokenInfo[] = [
   },
 ];
 
-interface ShieldedNote {
-  id: string;
-  tokenSymbol: string;
-  amount: number;
-  commitment: string;
-  nullifierHash: string;
-  secret: string;
-  nullifierSeed: string;
-  isSpent: boolean;
-  createdAt: string;
-  txHash?: string;
-}
-
 interface ToastNotification {
   id: string;
   type: "success" | "error" | "warning" | "info";
@@ -277,8 +280,13 @@ export default function ShieldedPlayground() {
   const isSupportedArcChain = currentNumericChainId === 5042002 || currentNumericChainId === 5042;
   const isWrongChain = isWalletConnected && currentNumericChainId !== 0 && !isSupportedArcChain;
 
-  // Shielded Notes Vault
+  // Shielded Notes Vault & Encrypted Persistence State
   const [notes, setNotes] = useState<ShieldedNote[]>([]);
+  const [proofHistory, setProofHistory] = useState<ProofReceipt[]>([]);
+  const [isSyncingVault, setIsSyncingVault] = useState<boolean>(false);
+  const [vaultModalOpen, setVaultModalOpen] = useState<boolean>(false);
+  const [vaultTab, setVaultTab] = useState<"notes" | "receipts">("notes");
+  const [isClearingVault, setIsClearingVault] = useState<boolean>(false);
 
   // TAB AMOUNTS (clean inputs, no fake chips)
   const [depositAmount, setDepositAmount] = useState<string>("");
@@ -325,7 +333,7 @@ export default function ShieldedPlayground() {
     nullifierSeed: string;
   } | null>(null);
 
-  const confirmSimulatedDeposit = () => {
+  const confirmSimulatedDeposit = async () => {
     if (!simulateModalData) return;
     const { amt, tokenSymbol, commitment, nullifierHash, secret, nullifierSeed } = simulateModalData;
     const newNote: ShieldedNote = {
@@ -340,18 +348,27 @@ export default function ShieldedPlayground() {
       createdAt: "Just now",
     };
 
-    setNotes((prev) => [newNote, ...prev]);
-    setLastReceipt({
+    const updatedNotes = [newNote, ...notes];
+    setNotes(updatedNotes);
+    await saveVaultNotes(updatedNotes, walletAddress);
+
+    const rcpt: ProofReceipt = {
+      id: `rcpt-${Date.now()}`,
       type: "deposit",
       amount: `${amt.toFixed(2)} ${tokenSymbol}`,
       commitment: newNote.commitment,
-      noteId: newNote.id,
-      pool: activeChainConfig.poolContract,
       sponsor: `Simulated Test Note (Zero ${activeChainConfig.shortName} Token Required)`,
-    });
+      timestamp: Date.now(),
+      dateFormatted: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setLastReceipt(rcpt);
+    const updatedHistory = await addReceiptToHistory(rcpt, walletAddress);
+    setProofHistory(updatedHistory);
+
     setDepositAmount("");
     setSimulateModalData(null);
-    showToast("success", "Simulated Note Minted", `Added ${amt.toFixed(2)} ${tokenSymbol} to your shielded pool.`);
+    showToast("success", "Simulated Note Minted", `Saved ${amt.toFixed(2)} ${tokenSymbol} to encrypted local vault.`);
   };
 
   const cancelSimulatedDeposit = () => {
@@ -411,6 +428,148 @@ export default function ShieldedPlayground() {
       console.warn(`Could not fetch ${cfg.name} balance:`, err);
     }
   }, [selectedChainId]);
+
+  // Reconcile loaded notes against on-chain status (isSpent verification)
+  const reconcileNotesOnChain = useCallback(
+    async (notesToReconcile: ShieldedNote[], chainIdToUse?: number, addrToUse?: string) => {
+      if (!notesToReconcile || notesToReconcile.length === 0) return notesToReconcile;
+      const cid = chainIdToUse || selectedChainId || 5042002;
+      const cfg = SUPPORTED_ARC_CHAINS[cid] || SUPPORTED_ARC_CHAINS[5042002];
+
+      try {
+        const publicClient = createPublicClient({
+          chain: {
+            id: cfg.id,
+            name: cfg.name,
+            nativeCurrency: cfg.nativeCurrency,
+            rpcUrls: { default: { http: [cfg.rpcUrl] } },
+          },
+          transport: http(cfg.rpcUrl),
+        });
+
+        let hasChanges = false;
+        const updatedNotes = await Promise.all(
+          notesToReconcile.map(async (note) => {
+            if (!note.isSpent && note.nullifierHash && note.nullifierHash.startsWith("0x")) {
+              try {
+                const isSpentOnChain = await publicClient.readContract({
+                  address: cfg.poolContract,
+                  abi: poolAbi,
+                  functionName: "isSpent",
+                  args: [note.nullifierHash as `0x${string}`],
+                });
+                if (isSpentOnChain) {
+                  hasChanges = true;
+                  return { ...note, isSpent: true };
+                }
+              } catch (err) {
+                // Ignore single read contract failure
+              }
+            }
+            return note;
+          })
+        );
+
+        if (hasChanges) {
+          await saveVaultNotes(updatedNotes, addrToUse || walletAddress);
+        }
+        return updatedNotes;
+      } catch (err) {
+        console.warn("Could not reconcile notes on-chain:", err);
+        return notesToReconcile;
+      }
+    },
+    [selectedChainId, walletAddress]
+  );
+
+  // Load encrypted vault notes and proof history on mount and when wallet address changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const initVault = async () => {
+      setIsSyncingVault(true);
+      try {
+        const loadedNotes = await loadVaultNotes(walletAddress);
+        const loadedReceipts = await loadReceiptsHistory(walletAddress);
+
+        if (!isMounted) return;
+
+        if (loadedNotes && loadedNotes.length > 0) {
+          setNotes(loadedNotes);
+          // Verify on-chain spend status asynchronously
+          const reconciled = await reconcileNotesOnChain(loadedNotes, selectedChainId, walletAddress);
+          if (isMounted) {
+            setNotes(reconciled);
+          }
+        } else {
+          setNotes([]);
+        }
+
+        if (loadedReceipts && loadedReceipts.length > 0) {
+          setProofHistory(loadedReceipts);
+        } else {
+          setProofHistory([]);
+        }
+      } catch (err) {
+        console.warn("Failed to initialize encrypted vault:", err);
+      } finally {
+        if (isMounted) {
+          setIsSyncingVault(false);
+        }
+      }
+    };
+
+    initVault();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [walletAddress, reconcileNotesOnChain, selectedChainId]);
+
+  // Manual trigger to re-sync vault with Arc blockchain
+  const handleManualSyncVault = async () => {
+    setIsSyncingVault(true);
+    try {
+      const currentNotes = await loadVaultNotes(walletAddress);
+      const reconciled = await reconcileNotesOnChain(currentNotes, selectedChainId, walletAddress);
+      setNotes(reconciled);
+      const hist = await loadReceiptsHistory(walletAddress);
+      setProofHistory(hist);
+      showToast("success", "Vault Synchronized", `Checked ${reconciled.length} notes against Arc blockchain.`);
+    } catch (err: any) {
+      showToast("error", "Sync Failed", err?.message || "Failed to sync with Arc blockchain.");
+    } finally {
+      setIsSyncingVault(false);
+    }
+  };
+
+  // Clear local encrypted vault
+  const handleClearVault = () => {
+    clearVaultStorage(walletAddress);
+    setNotes([]);
+    setProofHistory([]);
+    setIsClearingVault(false);
+    showToast("info", "Vault Cleared", "Local encrypted notes and proof history have been reset.");
+  };
+
+  // Export encrypted backup
+  const handleExportVault = async () => {
+    try {
+      const jsonBackup = await exportEncryptedVault(walletAddress);
+      const blob = new Blob([jsonBackup], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `arcnano-vault-backup-${walletAddress ? walletAddress.slice(0, 8) : "anon"}-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("success", "Vault Backup Exported", "Encrypted backup downloaded to your device.");
+    } catch (err: any) {
+      showToast("error", "Export Failed", err?.message || "Failed to export vault backup.");
+    }
+  };
 
   // Find dedicated MetaMask provider, bypassing Phantom or other extensions
   const findMetaMaskProvider = useCallback(() => {
@@ -960,21 +1119,28 @@ export default function ShieldedPlayground() {
         txHash: depositTxHash,
       };
 
-      setNotes((prev) => [newNote, ...prev]);
+      const updatedNotes = [newNote, ...notes];
+      setNotes(updatedNotes);
+      await saveVaultNotes(updatedNotes, walletAddress);
       await updateWalletBalances(walletAddress);
 
-      setLastReceipt({
+      const rcpt: ProofReceipt = {
+        id: `rcpt-${Date.now()}`,
         type: "deposit",
         amount: `${noteAmount.toFixed(2)} ${selectedToken.symbol}`,
         commitment: newNote.commitment,
-        noteId: newNote.id,
-        pool: cfg.poolContract,
         txHash: depositTxHash,
         blockNumber: Number(receipt.blockNumber),
         sponsor: "Circle Gas Station ($0.00 Gas)",
         explorerUrl: `${cfg.explorerUrl}/tx/${depositTxHash}`,
         explorerName: cfg.explorerName,
-      });
+        timestamp: Date.now(),
+        dateFormatted: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setLastReceipt(rcpt);
+      const updatedHistory = await addReceiptToHistory(rcpt, walletAddress);
+      setProofHistory(updatedHistory);
 
       setDepositAmount("");
       showToast("success", "Shielded Note Minted", `Minted 1 shielded note (${noteAmount.toFixed(2)} ${selectedToken.symbol}) on-chain into ArcNano pool.`);
@@ -1070,32 +1236,40 @@ export default function ShieldedPlayground() {
 
       // Deduct from notes
       let remainingToDeduct = amt;
-      setNotes((prev) =>
-        prev.map((n) => {
-          if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
-            if (n.amount <= remainingToDeduct) {
-              remainingToDeduct -= n.amount;
-              return { ...n, isSpent: true };
-            }
+      const updatedNotes = notes.map((n) => {
+        if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
+          if (n.amount <= remainingToDeduct) {
+            remainingToDeduct -= n.amount;
+            return { ...n, isSpent: true };
           }
-          return n;
-        })
-      );
-
+        }
+        return n;
+      });
+      setNotes(updatedNotes);
+      await saveVaultNotes(updatedNotes, walletAddress);
       await updateWalletBalances(walletAddress, activeChainConfig.id);
 
-      setLastReceipt({
+      const rcpt: ProofReceipt = {
+        id: `rcpt-${Date.now()}`,
         type: "send",
         amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
         recipient: targetRecip,
         latencyMs: data.verificationLatencyMs || 0.42,
         nullifierHash: spendNullifier,
         txHash: data.txHash,
+        explorerUrl: data.txHash ? `${activeChainConfig.explorerUrl}/tx/${data.txHash}` : undefined,
+        explorerName: activeChainConfig.explorerName,
         sponsor: data.txHash
           ? "Circle Gas Station ($0.00 Gas - Mined On-Chain)"
           : "Circle Gas Station ($0.00 Gas)",
         privacyAudit: data.settlement?.privacyAudit,
-      });
+        timestamp: Date.now(),
+        dateFormatted: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setLastReceipt(rcpt);
+      const updatedHistory = await addReceiptToHistory(rcpt, walletAddress);
+      setProofHistory(updatedHistory);
 
       setSendAmount("");
       setRecipientAddress("");
@@ -1263,29 +1437,38 @@ export default function ShieldedPlayground() {
 
       // Deduct from notes
       let remainingToDeduct = amt;
-      setNotes((prev) =>
-        prev.map((n) => {
-          if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
-            if (n.amount <= remainingToDeduct) {
-              remainingToDeduct -= n.amount;
-              return { ...n, isSpent: true };
-            }
+      const updatedNotes = notes.map((n) => {
+        if (!n.isSpent && n.tokenSymbol === selectedToken.symbol && remainingToDeduct > 0) {
+          if (n.amount <= remainingToDeduct) {
+            remainingToDeduct -= n.amount;
+            return { ...n, isSpent: true };
           }
-          return n;
-        })
-      );
+        }
+        return n;
+      });
+      setNotes(updatedNotes);
+      await saveVaultNotes(updatedNotes, walletAddress);
 
       // Refresh on-chain balances
       await updateWalletBalances(walletAddress, cfg.id);
 
-      setLastReceipt({
+      const rcpt: ProofReceipt = {
+        id: `rcpt-${Date.now()}`,
         type: "withdraw",
         amount: `${amt.toFixed(2)} ${selectedToken.symbol}`,
         recipient: targetRecip,
         txHash: withdrawTxHash,
+        explorerUrl: withdrawTxHash ? `${cfg.explorerUrl}/tx/${withdrawTxHash}` : undefined,
+        explorerName: cfg.explorerName,
         nullifierHash: spendNullifier,
         sponsor: "Arc Contract (Direct ZK Spend)",
-      });
+        timestamp: Date.now(),
+        dateFormatted: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setLastReceipt(rcpt);
+      const updatedHistory = await addReceiptToHistory(rcpt, walletAddress);
+      setProofHistory(updatedHistory);
 
       setWithdrawAmount("");
       showToast("success", "Withdrawal Confirmed", `Successfully withdrew ${amt.toFixed(2)} ${selectedToken.symbol} on-chain!`);
@@ -1365,6 +1548,21 @@ export default function ShieldedPlayground() {
                 <span className="font-mono text-[11px] font-medium">{activeChainConfig.name}</span>
                 <ChevronDown className="w-3 h-3 text-neutral-400" />
               </button>
+
+              {/* Vault & Proofs Pill */}
+              <button
+                type="button"
+                onClick={() => setVaultModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white hover:bg-neutral-50 border border-neutral-200/90 text-xs font-medium text-neutral-700 cursor-pointer shadow-xs transition-colors hover:border-neutral-300"
+                title="Open Encrypted Shielded Notes & ZK Proofs Vault"
+              >
+                <Lock className="w-3 h-3 text-emerald-600" />
+                <span className="font-mono text-[11px] font-medium">{notes.length} Note{notes.length === 1 ? "" : "s"}</span>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-sans font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Vault
+                </span>
+              </button>
             </div>
           ) : (
             <div className="inline-flex items-center gap-2 flex-wrap justify-center">
@@ -1384,6 +1582,22 @@ export default function ShieldedPlayground() {
                   Shielded: <strong className="text-neutral-900 font-semibold">{shieldedBalance.toFixed(2)} {selectedToken.symbol}</strong>
                 </span>
               </div>
+
+              {/* Vault Pill */}
+              <button
+                type="button"
+                onClick={() => setVaultModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-neutral-50 border border-neutral-200/90 text-[11px] font-mono text-neutral-700 cursor-pointer shadow-2xs hover:border-neutral-300 transition-colors"
+                title="Open Encrypted Shielded Notes & ZK Proofs Vault"
+              >
+                <Lock className="w-3 h-3 text-emerald-600" />
+                <span className="font-semibold text-neutral-800">{notes.length} Note{notes.length === 1 ? "" : "s"}</span>
+                <span className="text-neutral-300">|</span>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-sans font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Vault
+                </span>
+              </button>
 
               {/* Network Pill */}
               {isWrongChain ? (
@@ -2080,8 +2294,50 @@ export default function ShieldedPlayground() {
           )}
         </div>
 
+        {/* SECURE LOCAL STORAGE VAULT BAR */}
+        <div className="mt-4 w-full max-w-[480px] p-3 rounded-2xl bg-white/95 border border-neutral-200/90 shadow-sm flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-neutral-900 text-[11px] truncate">
+                  Encrypted Local Vault
+                </span>
+                <span className="text-[9.5px] bg-emerald-100/70 text-emerald-800 px-1.5 py-0.2 rounded font-sans font-medium">
+                  AES-256 GCM
+                </span>
+              </div>
+              <div className="text-[10px] text-neutral-500 truncate">
+                {notes.length} note{notes.length === 1 ? "" : "s"} saved • {shieldedBalance.toFixed(2)} {selectedToken.symbol} unspent
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleManualSyncVault}
+              disabled={isSyncingVault}
+              className="p-2 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-500 hover:text-neutral-800 transition-colors cursor-pointer"
+              title="Sync note statuses with Arc blockchain"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingVault ? "animate-spin text-blue-600" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setVaultModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-medium transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5"
+            >
+              <span>View Vault</span>
+              <ArrowRight className="w-3 h-3 text-neutral-400" />
+            </button>
+          </div>
+        </div>
+
         {/* BOTTOM HELPER BANNER */}
-        <div className="mt-6 flex items-center justify-center gap-2 text-xs font-mono text-neutral-400">
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs font-mono text-neutral-400">
           <Shield className="w-3.5 h-3.5 text-blue-600" />
           <span>ArcNano Protocol • Alt_bn128 Alt-Curve ZK Nanopayments</span>
         </div>
@@ -2439,6 +2695,12 @@ export default function ShieldedPlayground() {
               </p>
             </div>
 
+            {/* Encrypted Vault Notification */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/70 text-[10.5px] font-mono text-emerald-800">
+              <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Saved to encrypted local vault. Survives page reload &amp; browser restart.</span>
+            </div>
+
             <button
               type="button"
               onClick={() => setLastReceipt(null)}
@@ -2446,6 +2708,330 @@ export default function ShieldedPlayground() {
             >
               Done
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* SHIELDED VAULT & ENCRYPTED PROOFS MODAL */}
+      {vaultModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-lg w-full max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-neutral-100 flex items-center justify-between shrink-0 bg-neutral-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-2xs">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-sm text-neutral-900">
+                      Shielded Vault &amp; Proofs
+                    </h3>
+                    <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
+                      AES-256 GCM
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-neutral-500 font-mono block mt-0.5">
+                    {walletAddress ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-4)}` : "Anonymous Session"}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setVaultModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-500 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Stat Bar */}
+            <div className="grid grid-cols-3 gap-2 p-3 bg-neutral-100/60 border-b border-neutral-200/70 font-mono text-center text-xs shrink-0">
+              <div className="bg-white p-2.5 rounded-xl border border-neutral-200/80 shadow-2xs">
+                <span className="text-[10px] text-neutral-400 block uppercase">Notes</span>
+                <span className="font-bold text-neutral-900 text-sm">{notes.length}</span>
+                <span className="text-[9.5px] text-emerald-600 block">
+                  {notes.filter((n) => !n.isSpent).length} unspent
+                </span>
+              </div>
+              <div className="bg-white p-2.5 rounded-xl border border-neutral-200/80 shadow-2xs">
+                <span className="text-[10px] text-neutral-400 block uppercase">Shielded USDC</span>
+                <span className="font-bold text-neutral-900 text-sm">${shieldedBalance.toFixed(2)}</span>
+                <span className="text-[9.5px] text-neutral-500 block">Ready to Spend</span>
+              </div>
+              <div className="bg-white p-2.5 rounded-xl border border-neutral-200/80 shadow-2xs">
+                <span className="text-[10px] text-neutral-400 block uppercase">ZK Proofs</span>
+                <span className="font-bold text-neutral-900 text-sm">{proofHistory.length}</span>
+                <span className="text-[9.5px] text-blue-600 block">Logged</span>
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-neutral-200 px-5 pt-2 gap-4 shrink-0 bg-white">
+              <button
+                type="button"
+                onClick={() => setVaultTab("notes")}
+                className={`pb-2.5 text-xs font-semibold font-mono transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  vaultTab === "notes"
+                    ? "border-neutral-900 text-neutral-950"
+                    : "border-transparent text-neutral-400 hover:text-neutral-700"
+                }`}
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>Shielded Notes ({notes.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVaultTab("receipts")}
+                className={`pb-2.5 text-xs font-semibold font-mono transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  vaultTab === "receipts"
+                    ? "border-neutral-900 text-neutral-950"
+                    : "border-transparent text-neutral-400 hover:text-neutral-700"
+                }`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Proof Receipts ({proofHistory.length})</span>
+              </button>
+            </div>
+
+            {/* Tab Body (Scrollable) */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 min-h-[220px]">
+              {vaultTab === "notes" && (
+                <>
+                  {notes.length === 0 ? (
+                    <div className="text-center py-10 space-y-2">
+                      <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
+                        <Lock className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-xs font-semibold text-neutral-800">No Shielded Notes in Vault</h4>
+                      <p className="text-[11px] text-neutral-500 max-w-xs mx-auto">
+                        Deposit tokens on Arc Testnet to mint zero-knowledge notes into your hardware-encrypted vault.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {notes.map((note, index) => {
+                        const isUnspent = !note.isSpent;
+                        return (
+                          <div
+                            key={note.id || index}
+                            className={`p-3.5 rounded-2xl border transition-all ${
+                              isUnspent
+                                ? "bg-white border-neutral-200/90 shadow-2xs hover:border-neutral-300"
+                                : "bg-neutral-50/70 border-neutral-200/50 opacity-75"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${isUnspent ? "bg-emerald-500 animate-pulse" : "bg-neutral-400"}`} />
+                                <span className="font-bold text-xs text-neutral-900 font-mono">
+                                  {note.amount.toFixed(2)} {note.tokenSymbol}
+                                </span>
+                                <span className="text-[10px] text-neutral-400 font-mono">
+                                  {note.createdAt}
+                                </span>
+                              </div>
+
+                              <span
+                                className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${
+                                  isUnspent
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                    : "bg-neutral-200 text-neutral-600"
+                                }`}
+                              >
+                                {isUnspent ? "Unspent Note" : "Spent On-Chain"}
+                              </span>
+                            </div>
+
+                            <div className="space-y-1 font-mono text-[11px] text-neutral-500 bg-neutral-50/90 p-2.5 rounded-xl border border-neutral-100">
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-400 text-[10px]">Commitment:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(note.commitment, "Commitment")}
+                                  className="text-neutral-700 hover:text-neutral-950 flex items-center gap-1 cursor-pointer"
+                                  title="Click to copy commitment"
+                                >
+                                  <span>{note.commitment.slice(0, 10)}...{note.commitment.slice(-4)}</span>
+                                  <Copy className="w-3 h-3 text-neutral-400" />
+                                </button>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <span className="text-neutral-400 text-[10px]">Nullifier Hash:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(note.nullifierHash, "Nullifier")}
+                                  className="text-neutral-700 hover:text-neutral-950 flex items-center gap-1 cursor-pointer"
+                                  title="Click to copy nullifier hash"
+                                >
+                                  <span>{note.nullifierHash.slice(0, 10)}...{note.nullifierHash.slice(-4)}</span>
+                                  <Copy className="w-3 h-3 text-neutral-400" />
+                                </button>
+                              </div>
+
+                              {note.txHash && (
+                                <div className="flex items-center justify-between pt-1 border-t border-neutral-200/50">
+                                  <span className="text-neutral-400 text-[10px]">Deposit Tx:</span>
+                                  <a
+                                    href={`${activeChainConfig.explorerUrl}/tx/${note.txHash}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-[#0033FF] hover:underline flex items-center gap-1 font-semibold text-[10.5px]"
+                                  >
+                                    <span>{note.txHash.slice(0, 8)}...{note.txHash.slice(-4)}</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {vaultTab === "receipts" && (
+                <>
+                  {proofHistory.length === 0 ? (
+                    <div className="text-center py-10 space-y-2">
+                      <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
+                        <History className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-xs font-semibold text-neutral-800">No Proof Receipts Recorded</h4>
+                      <p className="text-[11px] text-neutral-500 max-w-xs mx-auto">
+                        Completed shielded transfers, deposits, and withdrawals generate Groth16 zk-SNARK verification records here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {proofHistory.map((receipt) => (
+                        <div
+                          key={receipt.id}
+                          className="p-3 rounded-2xl bg-neutral-50/90 border border-neutral-200 text-xs font-mono space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-neutral-900 text-[11px] uppercase tracking-wider">
+                              {receipt.type === "send"
+                                ? "💸 Shielded Transfer"
+                                : receipt.type === "deposit"
+                                ? "📥 Shielded Deposit"
+                                : "📤 Pool Withdrawal"}
+                            </span>
+                            <span className="text-[10px] text-neutral-400">
+                              {receipt.dateFormatted}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-neutral-500">Amount:</span>
+                            <span className="font-bold text-neutral-800">{receipt.amount}</span>
+                          </div>
+
+                          {receipt.recipient && (
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-neutral-500">Recipient:</span>
+                              <span className="text-neutral-700">
+                                {receipt.recipient.slice(0, 8)}...{receipt.recipient.slice(-4)}
+                              </span>
+                            </div>
+                          )}
+
+                          {receipt.latencyMs && (
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-neutral-500">ZK Latency:</span>
+                              <span className="text-emerald-700 font-semibold">{receipt.latencyMs.toFixed(3)} ms</span>
+                            </div>
+                          )}
+
+                          {receipt.txHash && (
+                            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-neutral-200/60">
+                              <span className="text-neutral-500">Explorer:</span>
+                              <a
+                                href={`${activeChainConfig.explorerUrl}/tx/${receipt.txHash}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#0033FF] hover:underline flex items-center gap-1 font-semibold text-[10.5px]"
+                              >
+                                <span>{receipt.txHash.slice(0, 10)}...</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 border-t border-neutral-100 bg-neutral-50/50 flex flex-wrap items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleManualSyncVault}
+                  disabled={isSyncingVault}
+                  className="px-3 py-2 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-100 text-neutral-700 text-xs font-mono font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                  title="Query on-chain isSpent nullifiers"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingVault ? "animate-spin text-blue-600" : ""}`} />
+                  <span>{isSyncingVault ? "Syncing..." : "Sync Chain"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportVault}
+                  className="px-3 py-2 rounded-xl bg-white border border-neutral-200 hover:bg-neutral-100 text-neutral-700 text-xs font-mono font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                  title="Export encrypted JSON backup file"
+                >
+                  <Download className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Export</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {isClearingVault ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={handleClearVault}
+                      className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-medium font-mono cursor-pointer transition-colors"
+                    >
+                      Confirm Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsClearingVault(false)}
+                      className="px-2 py-1.5 rounded-lg bg-neutral-200 text-neutral-700 text-[11px] font-mono cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsClearingVault(true)}
+                    className="p-2 rounded-xl text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    title="Clear local encrypted notes"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setVaultModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium font-mono cursor-pointer transition-colors shadow-2xs"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
