@@ -61,17 +61,31 @@ export async function POST(req: NextRequest) {
   const isP2P = body.mode === "p2p_transfer" || body.mode === "p2p_friend";
   const amountFormatted = body.amount || "0.01 USDC";
   const denominationUnits = amountFormatted.startsWith("1.00") ? "1000000" : amountFormatted.startsWith("0.10") ? "100000" : "10000";
+  const chainId = body.chainId ? Number(body.chainId) : 5042002;
+
+  const POOLS: Record<number, Record<string, string>> = {
+    5042002: {
+      "10000": "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+      "1000000": "0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB",
+    },
+    5042: {
+      "10000": "0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd",
+      "1000000": "0x385394d11a93e84452970acf958bDdAab34f208f",
+    },
+  };
+
+  const poolAddress = (body.poolAddress || POOLS[chainId]?.[denominationUnits] || POOL_ADDRESS) as `0x${string}`;
 
   // 1. If no payment header present -> return standard HTTP 402 Payment Required
   if (!rawPaymentHeader || (!rawPaymentHeader.includes("{") && !rawPaymentHeader.startsWith("X402"))) {
     const invoice = {
-      pool: POOL_ADDRESS,
+      pool: poolAddress,
       denomination: denominationUnits,
       denominationFormatted: amountFormatted,
       recipient: targetRecipient,
       root: DEFAULT_ROOT,
       aspRoot: DEFAULT_ASP_ROOT,
-      chainId: 5042002,
+      chainId,
       timestamp: Date.now(),
     };
 
@@ -91,12 +105,12 @@ export async function POST(req: NextRequest) {
         headers: {
           "Content-Type": "application/json",
           "WWW-Authenticate": `X402 realm="ArcNano", token="USDC", denomination="${amountFormatted}"`,
-          "X402-Pool": POOL_ADDRESS,
+          "X402-Pool": poolAddress,
           "X402-Denomination": denominationUnits,
           "X402-Recipient": targetRecipient,
           "X402-Root": DEFAULT_ROOT,
           "X402-Asp-Root": DEFAULT_ASP_ROOT,
-          "X402-Chain-Id": "5042002",
+          "X402-Chain-Id": String(chainId),
         },
       }
     );
@@ -148,17 +162,18 @@ export async function POST(req: NextRequest) {
   if (relayerKey && targetRecipient) {
     try {
       const accountB = privateKeyToAccount(relayerKey as `0x${string}`);
-      const arcTestnet = {
-        id: 5042002,
-        name: "Arc Testnet",
-        nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-        rpcUrls: { default: { http: [process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network"] } },
+      const isMainnet = chainId === 5042;
+      const targetChain = {
+        id: chainId,
+        name: isMainnet ? "Arc Mainnet" : "Arc Testnet",
+        nativeCurrency: { name: isMainnet ? "USDC" : "Arc", symbol: isMainnet ? "USDC" : "ARC", decimals: isMainnet ? 6 : 18 },
+        rpcUrls: { default: { http: [isMainnet ? (process.env.ARC_MAINNET_RPC || "https://rpc.mainnet.arc.io") : (process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network")] } },
       };
-      const publicClient = createPublicClient({ chain: arcTestnet, transport: http(arcTestnet.rpcUrls.default.http[0]) });
-      const walletClientB = createWalletClient({ account: accountB, chain: arcTestnet, transport: http(arcTestnet.rpcUrls.default.http[0]) });
+      const publicClient = createPublicClient({ chain: targetChain, transport: http(targetChain.rpcUrls.default.http[0]) });
+      const walletClientB = createWalletClient({ account: accountB, chain: targetChain, transport: http(targetChain.rpcUrls.default.http[0]) });
 
       const currentRoot = await publicClient.readContract({
-        address: POOL_ADDRESS as `0x${string}`,
+        address: poolAddress,
         abi: poolAbi,
         functionName: "getLastRoot",
       });
@@ -169,7 +184,7 @@ export async function POST(req: NextRequest) {
 
       // Check if already spent on-chain
       const alreadySpent = await publicClient.readContract({
-        address: POOL_ADDRESS as `0x${string}`,
+        address: poolAddress,
         abi: poolAbi,
         functionName: "isSpent",
         args: [cleanNullifier],
@@ -189,7 +204,7 @@ export async function POST(req: NextRequest) {
         };
 
         const txHash = await walletClientB.writeContract({
-          address: POOL_ADDRESS as `0x${string}`,
+          address: poolAddress,
           abi: poolAbi,
           functionName: "spend",
           args: [formattedProof, targetRecipient as `0x${string}`],
@@ -205,6 +220,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const explorerBase = chainId === 5042 ? "https://explorer.arc.io" : "https://explorer.testnet.arc.io";
+
   // 6. P2P Friend Anonymous Transfer Response
   if (isP2P) {
     return NextResponse.json({
@@ -218,11 +235,11 @@ export async function POST(req: NextRequest) {
       memo: body.memo || "Anonymous Shielded Transfer",
       friendName: body.friendName || "Friend",
       txHash: onchainTxHash,
-      explorerUrl: onchainTxHash ? `https://explorer.testnet.arc.io/tx/${onchainTxHash}` : undefined,
+      explorerUrl: onchainTxHash ? `${explorerBase}/tx/${onchainTxHash}` : undefined,
       settlement: {
         batchStatus: onchainTxHash ? "settled_onchain" : "queued",
         txHash: onchainTxHash,
-        targetContract: POOL_ADDRESS,
+        targetContract: poolAddress,
         method: "spend(SpendProof proof, address recipient)",
         sponsor: "Arc Circle Gas Station Paymaster ($0.00 Gas)",
         senderGasPaid: "$0.00 USDC",
