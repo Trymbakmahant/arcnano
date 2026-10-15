@@ -5,7 +5,7 @@ import { Avatar } from "@bible-strong/avatar-react";
 import "@bible-strong/avatar-react/styles.css";
 import type { AvatarDefinition } from "@bible-strong/avatar-core";
 import agentAvatarsData from "@/data/agentAvatars.json";
-import { Send, Loader2, ChevronDown } from "lucide-react";
+import { Send, Loader2, ChevronDown, RotateCcw } from "lucide-react";
 import gsap from "gsap";
 
 interface AgentAvatarItem {
@@ -91,28 +91,28 @@ export default function HeroCubeeCloud({
     if (hasResponse) {
       if (isHovered || isPinned) {
         return {
-          cloud: "w-[330px] sm:w-[370px] md:w-[400px] h-[175px] sm:h-[188px] -mt-[40px] sm:-mt-[50px]",
+          cloud: "w-[340px] sm:w-[380px] md:w-[410px] h-[184px] sm:h-[196px] -mt-[48px] sm:-mt-[60px]",
           form: "w-[260px] sm:w-[290px]",
-          textMaxH: "max-h-[105px] sm:max-h-[118px]",
+          textMaxH: "max-h-[106px] sm:max-h-[118px]",
         };
       }
       return {
-        cloud: "w-[305px] sm:w-[345px] md:w-[375px] h-[155px] sm:h-[168px] -mt-[25px] sm:-mt-[35px]",
-        form: "w-[245px] sm:w-[275px]",
-        textMaxH: "max-h-[90px] sm:max-h-[102px]",
+        cloud: "w-[315px] sm:w-[355px] md:w-[385px] h-[168px] sm:h-[180px] -mt-[32px] sm:-mt-[44px]",
+        form: "w-[250px] sm:w-[280px]",
+        textMaxH: "max-h-[92px] sm:max-h-[104px]",
       };
     }
     if (isHovered || isPinned) {
       return {
         cloud: "w-[260px] sm:w-[285px] h-[138px] -mt-[14px]",
         form: "w-[220px] sm:w-[240px]",
-        textMaxH: "max-h-[82px]",
+        textMaxH: "max-h-[78px]",
       };
     }
     return {
       cloud: "w-[225px] sm:w-[235px] h-[122px] mt-0",
       form: "w-[205px] sm:w-[218px]",
-      textMaxH: "max-h-[76px]",
+      textMaxH: "max-h-[70px]",
     };
   }, [hasResponse, isHovered, isPinned]);
 
@@ -542,41 +542,27 @@ export default function HeroCubeeCloud({
               />
             </svg>
 
-            {/* ALL TEXT IS 100% INSIDE THE CLOUD */}
+            {/* ALL TEXT IS 100% INSIDE THE CLOUD SAFE ZONE */}
             <div
               ref={textRef}
               className={`relative z-10 w-full h-full flex flex-col items-center opacity-0 will-change-transform ${
-                isExpanded ? "justify-start pt-6 sm:pt-7 pb-4 px-6 sm:px-8" : "justify-center px-6 py-4"
+                isExpanded
+                  ? "justify-start pt-[34px] sm:pt-[38px] pb-[28px] sm:pb-[32px] px-8 sm:px-10"
+                  : "justify-center px-7 sm:px-9 py-4"
               }`}
             >
-              {/* Optional Reset Button when userAsked */}
-              {userAsked && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleResetThought();
-                  }}
-                  className="absolute top-3 right-5 sm:right-6 z-20 w-4 h-4 rounded-full bg-neutral-200/90 hover:bg-neutral-900 hover:text-white text-neutral-600 flex items-center justify-center text-[10px] leading-none transition-colors cursor-pointer shadow-xs"
-                  title="Reset to automated hints"
-                  aria-label="Reset thought"
-                >
-                  ×
-                </button>
-              )}
-
-              {/* Scrollable Response Container */}
+              {/* Scrollable Response Container constrained to 78% central safe belly */}
               <div
                 ref={scrollContainerRef}
                 onScroll={checkScrollOverflow}
-                className={`cubee-cloud-scroll w-full overflow-y-auto overscroll-contain transition-all duration-200 select-text text-center px-1.5 py-0.5 ${cloudDimensions.textMaxH}`}
+                className={`cubee-cloud-scroll w-full max-w-[80%] sm:max-w-[78%] mx-auto overflow-y-auto overscroll-contain transition-all duration-200 select-text text-center px-1 py-0.5 ${cloudDimensions.textMaxH}`}
                 style={{
                   scrollbarWidth: "thin",
                   scrollbarColor: "rgba(23, 23, 23, 0.25) transparent",
                 }}
               >
                 <p
-                  className={`text-[10.5px] sm:text-[11px] md:text-[11.5px] font-medium text-neutral-900 leading-relaxed font-sans select-text whitespace-pre-wrap ${
+                  className={`text-[10px] sm:text-[10.5px] font-medium text-neutral-800 leading-[1.65] font-sans select-text whitespace-pre-wrap ${
                     isExpanded ? "" : "line-clamp-3"
                   }`}
                 >
@@ -586,7 +572,7 @@ export default function HeroCubeeCloud({
 
               {/* Subtle Scroll Hint When Overflowing */}
               {canScrollMore && !isLoading && (
-                <div className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-950/8 backdrop-blur-xs text-[8px] sm:text-[8.5px] font-mono font-medium text-neutral-700 tracking-tight shadow-xs animate-pulse">
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-950/8 backdrop-blur-xs text-[8px] sm:text-[8.5px] font-mono font-medium text-neutral-700 tracking-tight shadow-xs animate-pulse">
                   <span>Scroll for more</span>
                   <ChevronDown className="w-2.5 h-2.5 text-neutral-600" />
                 </div>
@@ -594,7 +580,7 @@ export default function HeroCubeeCloud({
 
               {/* Loading State with GLM-4 */}
               {isLoading && (
-                <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-700 font-mono shadow-xs backdrop-blur-xs">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-700 font-mono shadow-xs backdrop-blur-xs">
                   <Loader2 className="w-2.5 h-2.5 animate-spin text-amber-600" />
                   <span>Proving with GLM-4...</span>
                 </div>
@@ -627,6 +613,16 @@ export default function HeroCubeeCloud({
             placeholder={`Ask about ${sectionLabel}...`}
             className="flex-1 bg-transparent text-[10px] text-neutral-900 placeholder:text-neutral-400 outline-none font-sans"
           />
+          {userAsked && (
+            <button
+              type="button"
+              onClick={handleResetThought}
+              title="Reset to automated hints"
+              className="w-5 h-5 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 flex items-center justify-center shrink-0 transition-all cursor-pointer"
+            >
+              <RotateCcw className="w-2.5 h-2.5" />
+            </button>
+          )}
           <button
             type="submit"
             disabled={!inputQuery.trim() || isLoading}
