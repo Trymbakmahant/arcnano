@@ -13,12 +13,23 @@ const daemon = new ArcNanoRelayerDaemon({
 
 async function main() {
   console.log("==================================================================");
-  console.log("⚡ ArcNano Automated Batch Relayer Daemon (Stage 04)");
-  console.log("🌐 Network: Arc Testnet (Circle L1, Chain ID: 5042002)");
-  console.log("⛽ Gas Sponsor: Arc Circle Gas Station (ERC-4337 Paymaster)");
+  console.log("⚡ ArcNano Automated Batch Relayer Backend (Production-Grade)");
+  console.log("🌐 Networks: Arc Testnet (5042002) & Arc Mainnet (5042)");
+  console.log("💾 Storage: Persistent Disk Store (Atomically synced)");
+  console.log("⛽ Gas Sponsor: Arc Circle Gas Station & Funded Relayer Wallet");
   console.log("==================================================================");
 
   await daemon.start();
+
+  console.log(`\n📡 Available REST Endpoints:`);
+  console.log(`  • POST http://localhost:${port}/v1/proofs/submit    - Ingest proof for batch withdrawal`);
+  console.log(`  • GET  http://localhost:${port}/v1/queue            - Inspect pending withdrawal queues`);
+  console.log(`  • GET  http://localhost:${port}/v1/proofs           - List stored proofs (filter by status/recipient)`);
+  console.log(`  • GET  http://localhost:${port}/v1/proofs/:id       - Query specific proof settlement status`);
+  console.log(`  • POST http://localhost:${port}/v1/batch/withdraw   - Trigger on-demand on-chain batch withdrawal`);
+  console.log(`  • GET  http://localhost:${port}/v1/batches          - List historical settled batch transactions`);
+  console.log(`  • GET  http://localhost:${port}/v1/status           - Daemon health, metrics, & wallet stats`);
+  console.log("==================================================================\n");
 
   const shutdown = async () => {
     console.log("\n[RelayerDaemon] Gracefully terminating...");

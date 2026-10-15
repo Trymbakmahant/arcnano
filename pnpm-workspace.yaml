@@ -3,3 +3,4 @@ packages:
   - "arc-marketplace"
   - "landing-page"
   - "docs"
+  - "relayer"

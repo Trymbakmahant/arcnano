@@ -67,10 +67,12 @@ async function runDaemonTests() {
   console.log("=== Running ArcNano Relayer Daemon Tests ===\n");
 
   const port = 4049;
+  const testStoragePath = `./data/test_store_${Date.now()}.json`;
   const daemon = new ArcNanoRelayerDaemon({
     port,
     batchThreshold: 2,
     flushIntervalMs: 60_000,
+    storagePath: testStoragePath,
   });
 
   await daemon.start();
@@ -138,9 +140,72 @@ async function runDaemonTests() {
     console.log(`  • Batches Settled:       ${metricsRes.body.totalBatchesSettled}`);
     console.log(`  • Sponsored Gas Saved:   ${metricsRes.body.totalGasSponsoredUsd}\n`);
 
-    console.log("🎉 All ArcNano Relayer Daemon tests passed successfully!");
+    // 5. Query Stored Proofs & Individual Proof
+    console.log("Test 5: Querying stored proofs list and details...");
+    const proofsRes = await getJson(`http://localhost:${port}/v1/proofs`);
+    assert.strictEqual(proofsRes.status, 200);
+    assert.ok(proofsRes.body.proofs.length >= 2);
+    const proofId = submitRes.body.id;
+    const singleProofRes = await getJson(`http://localhost:${port}/v1/proofs/${proofId}`);
+    assert.strictEqual(singleProofRes.status, 200);
+    assert.strictEqual(singleProofRes.body.status, "settled");
+    assert.ok(singleProofRes.body.txHash);
+    console.log(`✔ Stored proof retrieval validated: Proof ${proofId} settled with tx ${singleProofRes.body.txHash.slice(0, 16)}...\n`);
+
+    // 6. Multi-Recipient Partitioning & Queue Inspection
+    console.log("Test 6: Ingesting notes for two distinct recipients (Alice & Bob)...");
+    const aliceAddress = "0x1111111111111111111111111111111111111111";
+    const bobAddress = "0x2222222222222222222222222222222222222222";
+
+    const alicePayload: SpendProofPayload = {
+      ...samplePayload,
+      nullifierHash: "111222333444555666777888999000",
+      recipient: aliceAddress,
+    };
+    const bobPayload: SpendProofPayload = {
+      ...samplePayload,
+      nullifierHash: "222333444555666777888999000111",
+      recipient: bobAddress,
+    };
+
+    await postJson(`http://localhost:${port}/v1/submit-proof`, {
+      payload: alicePayload,
+      recipient: aliceAddress,
+    });
+    await postJson(`http://localhost:${port}/v1/submit-proof`, {
+      payload: bobPayload,
+      recipient: bobAddress,
+    });
+
+    const queueRes = await getJson(`http://localhost:${port}/v1/queue`);
+    assert.strictEqual(queueRes.status, 200);
+    assert.strictEqual(queueRes.body.queues.length, 2);
+    console.log("✔ Queues successfully partitioned into 2 independent recipient batches:\n", queueRes.body.queues.map((q: any) => `  • Recipient: ${q.recipient} (Count: ${q.count})`).join("\n"));
+
+    // 7. On-Demand Batch Withdrawal Execution
+    console.log("\nTest 7: Executing on-demand batch withdrawal (/v1/batch/withdraw)...");
+    const withdrawRes = await postJson(`http://localhost:${port}/v1/batch/withdraw`, {});
+    assert.strictEqual(withdrawRes.status, 200);
+    assert.strictEqual(withdrawRes.body.flushed, true);
+    assert.strictEqual(withdrawRes.body.batchesCount, 2);
+    console.log(`✔ Successfully executed 2 independent on-chain batch settlements for Alice & Bob`);
+
+    // 8. Settled Batches History
+    console.log("\nTest 8: Querying settled batch transaction history (/v1/batches)...");
+    const batchesRes = await getJson(`http://localhost:${port}/v1/batches`);
+    assert.strictEqual(batchesRes.status, 200);
+    assert.ok(batchesRes.body.batches.length >= 3);
+    console.log(`✔ Total historical batches recorded: ${batchesRes.body.batches.length}`);
+
+    console.log("\n🎉 All ArcNano Relayer Daemon & Storage tests passed successfully!");
   } finally {
     await daemon.stop();
+    try {
+      const fs = await import("node:fs");
+      if (fs.existsSync(testStoragePath)) fs.unlinkSync(testStoragePath);
+    } catch {
+      // ignore
+    }
   }
 }
 

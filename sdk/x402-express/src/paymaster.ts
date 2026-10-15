@@ -195,24 +195,35 @@ export class CirclePaymasterClient {
    */
   public async executeSponsoredBatch(
     payloads: SpendProofPayload[],
-    recipient: string
+    recipient: string,
+    batchOptions?: {
+      poolAddress?: string;
+      rpcUrl?: string;
+      chainId?: number;
+      denomination?: string;
+    }
   ): Promise<SponsoredSettlementReceipt> {
     if (payloads.length === 0) {
       throw new Error("Cannot execute sponsored settlement on empty batch");
     }
 
+    const targetPool = batchOptions?.poolAddress || this.poolAddress;
+    const targetRpc = batchOptions?.rpcUrl || this.rpcUrl;
+    const denominationUnits = BigInt(batchOptions?.denomination || "10000");
+
     const formattedProofs = this.formatProofsForSolidity(payloads);
-    const totalUnits = (payloads.length * 10000).toString();
-    const formattedUsdc = (payloads.length * 0.01).toFixed(2) + " USDC";
+    const totalUnitsBig = denominationUnits * BigInt(payloads.length);
+    const totalUnits = totalUnitsBig.toString();
+    const formattedUsdc = (Number(totalUnitsBig) / 1e6).toFixed(2) + " USDC";
     const estimatedGasSavingsUsd = (payloads.length * 0.00085).toFixed(4);
 
     // If live relayer private key and RPC are provided, attempt live broadcast
     if (this.relayerPrivateKey) {
       try {
-        const provider = new ethers.JsonRpcProvider(this.rpcUrl);
+        const provider = new ethers.JsonRpcProvider(targetRpc);
         const wallet = new ethers.Wallet(this.relayerPrivateKey, provider);
         const contract = new ethers.Contract(
-          this.poolAddress,
+          targetPool,
           ARC_NANO_POOL_ABI,
           wallet
         );
