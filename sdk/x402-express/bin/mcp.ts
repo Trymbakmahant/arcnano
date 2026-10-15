@@ -12,14 +12,20 @@ import {
 const MCP_TOOLS = [
   {
     name: "create_shielded_note",
-    description: "Mint/create a new ArcNano zero-knowledge shielded note in the local vault with secret, nullifier seed, and Poseidon commitment. Returns the commitment hex for pool funding.",
+    description: "Mint/create a new ArcNano zero-knowledge shielded note in the local vault with secret, nullifier seed, and Poseidon commitment. Returns the commitment hex and deposit instructions for Arc Mainnet (Chain ID 5042) or Arc Testnet (Chain ID 5042002).",
     inputSchema: {
       type: "object",
       properties: {
         denomination: {
           type: "integer",
-          description: "Denomination in micro-USDC (default: 10000 = 0.01 USDC). Available: 1000 (0.001 USDC), 10000 (0.01 USDC), 100000 (0.1 USDC).",
+          description: "Denomination in micro-USDC (default: 10000 = 0.01 USDC). Available: 10000 (0.01 USDC), 1000000 (1.00 USDC).",
           default: 10000
+        },
+        network: {
+          type: "string",
+          enum: ["testnet", "mainnet"],
+          default: "testnet",
+          description: "Target Arc Network: 'mainnet' (Chain ID 5042) or 'testnet' (Chain ID 5042002). Default: 'testnet'."
         },
         vault_path: {
           type: "string",
@@ -30,10 +36,16 @@ const MCP_TOOLS = [
   },
   {
     name: "get_vault_status",
-    description: "Check the local ArcNano shielded vault balance, unspent note count, and list of unspent commitment hashes.",
+    description: "Check the local ArcNano shielded vault balance, unspent note count, and list of unspent commitment hashes across Arc Mainnet or Testnet.",
     inputSchema: {
       type: "object",
       properties: {
+        network: {
+          type: "string",
+          enum: ["testnet", "mainnet"],
+          default: "testnet",
+          description: "Target Arc Network: 'mainnet' or 'testnet'."
+        },
         vault_path: {
           type: "string",
           description: "Optional custom path to agent vault JSON file."
@@ -43,10 +55,16 @@ const MCP_TOOLS = [
   },
   {
     name: "get_burner_wallet",
-    description: "Inspects or auto-generates the agent's on-chain burner wallet on Arc Testnet, returning its address, native ARC balance, and USDC balance for automated deposits.",
+    description: "Inspects or auto-generates the agent's on-chain burner wallet on Arc Mainnet or Arc Testnet, returning its address, native ARC balance, and USDC balance for automated deposits.",
     inputSchema: {
       type: "object",
       properties: {
+        network: {
+          type: "string",
+          enum: ["testnet", "mainnet"],
+          default: "testnet",
+          description: "Target Arc Network: 'mainnet' (Chain ID 5042) or 'testnet' (Chain ID 5042002)."
+        },
         private_key: {
           type: "string",
           description: "Optional custom burner private key override."
@@ -56,14 +74,24 @@ const MCP_TOOLS = [
   },
   {
     name: "deposit_to_pool",
-    description: "Prepares or executes on-chain deposit of USDC into ArcNanoPool on Arc Testnet, generating the cryptographic commitment and deposit command, or signing automatically with the burner wallet.",
+    description: "Prepares and executes on-chain deposit of USDC into ArcNanoPool on Arc Mainnet (Chain ID 5042) or Arc Testnet (Chain ID 5042002), generating cryptographic commitment and executing with burner key or CLI.",
     inputSchema: {
       type: "object",
       properties: {
         denomination: {
           type: "integer",
-          description: "Denomination in micro-USDC (e.g. 10000 for 0.01 USDC).",
+          description: "Denomination in micro-USDC (10000 for 0.01 USDC, 1000000 for 1.00 USDC).",
           default: 10000
+        },
+        network: {
+          type: "string",
+          enum: ["testnet", "mainnet"],
+          default: "testnet",
+          description: "Target Arc Network: 'mainnet' (Chain ID 5042) or 'testnet' (Chain ID 5042002)."
+        },
+        pool_address: {
+          type: "string",
+          description: "Optional specific pool contract address override."
         },
         private_key: {
           type: "string",
@@ -78,7 +106,7 @@ const MCP_TOOLS = [
   },
   {
     name: "pay_x402_api",
-    description: "Calls an external API protected by ArcNano HTTP 402 Payment Required. Intercepts the challenge, computes a Groth16 zero-knowledge proof in memory (~74ms), and returns the unlocked data without leaking the agent's identity.",
+    description: "Calls an external API protected by ArcNano HTTP 402 Payment Required on Arc Mainnet or Testnet. Intercepts the challenge, computes a Groth16 zero-knowledge proof in memory (~74ms), and returns the unlocked data without leaking the agent's identity.",
     inputSchema: {
       type: "object",
       required: ["url"],
@@ -86,6 +114,11 @@ const MCP_TOOLS = [
         url: {
           type: "string",
           description: "The endpoint URL to query."
+        },
+        network: {
+          type: "string",
+          enum: ["testnet", "mainnet"],
+          description: "Optional target network ('mainnet' or 'testnet'). Defaults to challenge network."
         },
         method: {
           type: "string",
@@ -144,7 +177,7 @@ async function main() {
           capabilities: { tools: {} },
           serverInfo: {
             name: "arcnano-x402-mcp",
-            version: "0.1.3"
+            version: "0.2.0"
           }
         }
       };

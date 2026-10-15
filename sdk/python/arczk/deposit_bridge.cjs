@@ -2,7 +2,7 @@
 
 /**
  * ArcNano Deposit Bridge (.cjs)
- * Signs and submits on-chain deposits into ArcNanoPool on Arc Testnet
+ * Signs and submits on-chain deposits into ArcNanoPool on Arc Mainnet & Testnet
  * using a local burner wallet private key.
  */
 
@@ -32,15 +32,32 @@ const { viem, accounts } = loadViem();
 const { createPublicClient, createWalletClient, http, parseAbi } = viem;
 const { privateKeyToAccount } = accounts;
 
-const ARC_RPC = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network';
-const POOL_CONTRACT = process.env.ARCNANO_POOL || '0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca';
-const USDC_CONTRACT = process.env.USDC_CONTRACT || '0x3600000000000000000000000000000000000000';
-const ARC_CHAIN = {
-  id: 5042002,
-  name: 'Arc Testnet',
-  nativeCurrency: { name: 'Arc', symbol: 'ARC', decimals: 18 },
-  rpcUrls: { default: { http: [ARC_RPC] } }
+const NETWORKS = {
+  testnet: {
+    chainId: 5042002,
+    name: 'Arc Testnet (Circle L1)',
+    rpc: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network',
+    explorer: 'https://testnet.arcscan.io',
+    pools: {
+      10000: '0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca',
+      1000000: '0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB'
+    },
+    defaultPool: '0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca'
+  },
+  mainnet: {
+    chainId: 5042,
+    name: 'Arc Mainnet (Circle L1)',
+    rpc: process.env.ARC_MAINNET_RPC || 'https://rpc.mainnet.arc.io',
+    explorer: 'https://arcscan.io',
+    pools: {
+      10000: '0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd',
+      1000000: '0x385394d11a93e84452970acf958bDdAab34f208f'
+    },
+    defaultPool: '0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd'
+  }
 };
+
+const USDC_CONTRACT = process.env.USDC_CONTRACT || '0x3600000000000000000000000000000000000000';
 
 const ERC20_ABI = parseAbi([
   'function balanceOf(address owner) view returns (uint256)',
@@ -53,9 +70,19 @@ const POOL_ABI = parseAbi([
   'function denomination() view returns (uint256)'
 ]);
 
+function resolveNetwork(targetNet) {
+  const normalized = (targetNet || process.env.ARCNANO_NETWORK || 'testnet').toLowerCase().trim();
+  if (normalized === 'mainnet' || normalized === '5042') {
+    return NETWORKS.mainnet;
+  }
+  return NETWORKS.testnet;
+}
+
 async function main() {
   const action = process.argv[2] || 'status';
   const rawKey = process.env.ARCNANO_BURNER_PRIVATE_KEY || process.env.AGENT_PRIVATE_KEY || process.argv[3];
+  const networkArg = process.env.ARCNANO_NETWORK || process.argv[5];
+  const netConfig = resolveNetwork(networkArg);
 
   if (!rawKey) {
     console.log(JSON.stringify({
@@ -74,8 +101,15 @@ async function main() {
     process.exit(0);
   }
 
-  const publicClient = createPublicClient({ chain: ARC_CHAIN, transport: http(ARC_RPC) });
-  const walletClient = createWalletClient({ account, chain: ARC_CHAIN, transport: http(ARC_RPC) });
+  const ARC_CHAIN = {
+    id: netConfig.chainId,
+    name: netConfig.name,
+    nativeCurrency: { name: 'Arc', symbol: 'ARC', decimals: 18 },
+    rpcUrls: { default: { http: [netConfig.rpc] } }
+  };
+
+  const publicClient = createPublicClient({ chain: ARC_CHAIN, transport: http(netConfig.rpc) });
+  const walletClient = createWalletClient({ account, chain: ARC_CHAIN, transport: http(netConfig.rpc) });
 
   if (action === 'status') {
     try {
@@ -95,14 +129,19 @@ async function main() {
         native_balance_arc: (Number(nativeBal) / 1e18).toFixed(4),
         usdc_balance_raw: usdcBal.toString(),
         usdc_balance: (Number(usdcBal) / 1e6).toFixed(4),
-        network: 'Arc Testnet (Circle L1)',
-        pool_contract: POOL_CONTRACT
+        network: netConfig.name,
+        chain_id: netConfig.chainId,
+        default_pool: netConfig.defaultPool,
+        pools: netConfig.pools,
+        explorer_url: `${netConfig.explorer}/address/${account.address}`
       }));
       return;
     } catch (err) {
       console.log(JSON.stringify({
         success: true,
         address: account.address,
+        network: netConfig.name,
+        chain_id: netConfig.chainId,
         warning: `Could not reach RPC: ${err.message}`
       }));
       return;
@@ -111,7 +150,13 @@ async function main() {
 
   if (action === 'deposit') {
     const commitment = process.argv[3] || process.env.ARCNANO_COMMITMENT;
-    const denomination = BigInt(process.argv[4] || process.env.ARCNANO_DENOMINATION || '10000');
+    const denominationNum = parseInt(process.argv[4] || process.env.ARCNANO_DENOMINATION || '10000', 10);
+    const denomination = BigInt(denominationNum);
+
+    const poolContract = process.env.ARCNANO_POOL ||
+      process.argv[6] ||
+      netConfig.pools[denominationNum] ||
+      netConfig.defaultPool;
 
     if (!commitment) {
       console.log(JSON.stringify({ success: false, error: 'Missing commitment bytes32 parameter' }));
@@ -124,7 +169,7 @@ async function main() {
         address: USDC_CONTRACT,
         abi: ERC20_ABI,
         functionName: 'allowance',
-        args: [account.address, POOL_CONTRACT]
+        args: [account.address, poolContract]
       }).catch(() => 0n);
 
       if (allowance < denomination) {
@@ -133,14 +178,14 @@ async function main() {
           address: USDC_CONTRACT,
           abi: ERC20_ABI,
           functionName: 'approve',
-          args: [POOL_CONTRACT, 1000000000n]
+          args: [poolContract, 1000000000n]
         });
         await publicClient.waitForTransactionReceipt({ hash: approveHash });
       }
 
       // 2. Execute pool.deposit(commitment)
       const depositHash = await walletClient.writeContract({
-        address: POOL_CONTRACT,
+        address: poolContract,
         abi: POOL_ABI,
         functionName: 'deposit',
         args: [commitment]
@@ -151,15 +196,21 @@ async function main() {
       console.log(JSON.stringify({
         success: true,
         tx_hash: depositHash,
-        explorer_url: `https://testnet.arcscan.io/tx/${depositHash}`,
+        explorer_url: `${netConfig.explorer}/tx/${depositHash}`,
         block_number: Number(receipt.blockNumber),
         depositor_address: account.address,
+        pool_contract: poolContract,
+        chain_id: netConfig.chainId,
+        network: netConfig.name,
         commitment
       }));
     } catch (err) {
       console.log(JSON.stringify({
         success: false,
         depositor_address: account.address,
+        pool_contract: poolContract,
+        chain_id: netConfig.chainId,
+        network: netConfig.name,
         error: err.shortMessage || err.message || String(err)
       }));
     }

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "arcnano": {
-      "command": "python3",
-      "args": ["-m", "arczk.mcp_server"],
+      "command": "/Users/trymbakmahant/Projects/grant/arc/p2pzkpayment/sdk/python/.venv/bin/python",
+      "args": ["-W", "ignore", "-m", "arczk.mcp_server"],
       "env": {
         "PYTHONPATH": "sdk/python",
         "PYTHONUNBUFFERED": "1"

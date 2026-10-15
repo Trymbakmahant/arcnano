@@ -781,7 +781,10 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 
 | Contract | Address | Arc Explorer |
 | :--- | :--- | :--- |
-| **\`ArcNanoPool\`** | \`0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd\` | [View on Arc Explorer](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd) |
+| **\`ArcNanoPool\` (0.01 USDC Pool)** | \`0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd\` | [View on Arc Explorer](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd) |
+| **\`BatchDeposit\` (0.01 USDC Batcher)** | \`0x34e54d470E4D95B3cFD8d6089Ae742346C19Af50\` | [View on Arc Explorer](https://explorer.arc.io/address/0x34e54d470E4D95B3cFD8d6089Ae742346C19Af50) |
+| **\`ArcNanoPool\` (1.00 USDC Pool)** | \`0x385394d11a93e84452970acf958bDdAab34f208f\` | [View on Arc Explorer](https://explorer.arc.io/address/0x385394d11a93e84452970acf958bDdAab34f208f) |
+| **\`BatchDeposit\` (1.00 USDC Batcher)** | \`0x006B10444dd88e463E93a7f4769b6885C7fa7b3b\` | [View on Arc Explorer](https://explorer.arc.io/address/0x006B10444dd88e463E93a7f4769b6885C7fa7b3b) |
 | **\`Groth16Verifier\`** (BN254) | \`0x809199ab5AB49FbF69f13dc9F28BCD157494C607\` | [View on Arc Explorer](https://explorer.arc.io/address/0x809199ab5AB49FbF69f13dc9F28BCD157494C607) |
 | **\`KeccakHasher\`** | \`0xa7507BBED66D2a26331cF4C1f5A16C9462241954\` | [View on Arc Explorer](https://explorer.arc.io/address/0xa7507BBED66D2a26331cF4C1f5A16C9462241954) |
 | **Native USDC Token** | \`0x3600000000000000000000000000000000000000\` | [View on Arc Explorer](https://explorer.arc.io/token/0x3600000000000000000000000000000000000000) |
@@ -790,7 +793,10 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 
 ## On-Chain Verification & Deployment Hashes
 
-- **Pool Contract Tx:** [\`0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3\`](https://explorer.arc.io/tx/0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3)
+- **0.01 Pool Contract Tx:** [\`0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3\`](https://explorer.arc.io/tx/0x3086a382e9bafa1c1b9e804985bcc87b35e721dcc350d1319aa7a244390c0ef3)
+- **0.01 Batcher Contract Tx:** [\`0x8dd1a38735bf2963d494e1dd1a7480f550fee482f40ba082c257f19eb41b6223\`](https://explorer.arc.io/tx/0x8dd1a38735bf2963d494e1dd1a7480f550fee482f40ba082c257f19eb41b6223)
+- **1.00 Pool Contract Tx:** [\`0xe91d00146e485425484e742fa9c5975cf3e30b07296e58960e8a437fb3f5816e\`](https://explorer.arc.io/tx/0xe91d00146e485425484e742fa9c5975cf3e30b07296e58960e8a437fb3f5816e)
+- **1.00 Batcher Contract Tx:** [\`0x2ebe085d774851e63c83014115f9e7e46eb8d0fc3f9ff2b3ad5f046aab71e1ca\`](https://explorer.arc.io/tx/0x2ebe085d774851e63c83014115f9e7e46eb8d0fc3f9ff2b3ad5f046aab71e1ca)
 - **Verifier Contract Tx:** [\`0x1665be07712a4c63a82ceb2dca7c23df81d12045d67d69e49a16bc76411f348e\`](https://explorer.arc.io/tx/0x1665be07712a4c63a82ceb2dca7c23df81d12045d67d69e49a16bc76411f348e)
 - **Hasher Contract Tx:** [\`0x767ebafba6b4733ff0fa0fdc8ac01b095ad3f119cdd3b0fa4efb20d0fc3f4ef3\`](https://explorer.arc.io/tx/0x767ebafba6b4733ff0fa0fdc8ac01b095ad3f119cdd3b0fa4efb20d0fc3f4ef3)
 - **Deployer Wallet:** [\`0x0e3616146024A81aA6C31FdA02458a01Bc903315\`](https://explorer.arc.io/address/0x0e3616146024A81aA6C31FdA02458a01Bc903315)
@@ -810,7 +816,10 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 - **RPC Endpoint:** \`https://rpc.testnet.arc.network\`
 - **Block Explorer:** \`https://testnet.arcscan.io\`
 - **Native Gas Token:** USDC (6 decimals)
-- **ArcNanoPool:** \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`
+- **ArcNanoPool (0.01 USDC):** \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`
+- **BatchDeposit (0.01 USDC):** \`0xD20E2c9aa6C291c15571440DAc7a6e773EC386e4\`
+- **ArcNanoPool (1.00 USDC):** \`0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB\`
+- **BatchDeposit (1.00 USDC):** \`0x76f7EA532E8080211d9B6Dcc03976c2101c7Ab86\`
 - **KeccakHasher:** \`0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70\`
 - **MockVerifier:** \`0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82\`
 `,
