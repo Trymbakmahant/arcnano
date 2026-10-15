@@ -22,6 +22,7 @@ export interface ShieldedNote {
   createdAt: string;
   txHash?: string;
   blockNumber?: number;
+  poolContract?: string;
 }
 
 export interface ProofReceipt {

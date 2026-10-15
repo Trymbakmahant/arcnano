@@ -60,6 +60,8 @@ export interface ArcChainConfig {
   explorerUrl: string;
   poolContract: `0x${string}`;
   batchDepositContract?: `0x${string}`;
+  pool1UsdcContract?: `0x${string}`;
+  batchDeposit1UsdcContract?: `0x${string}`;
   usdcContract: `0x${string}`;
   isMainnet: boolean;
 }
@@ -76,6 +78,8 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
     explorerUrl: "https://testnet.arcscan.io",
     poolContract: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
     batchDepositContract: "0xD20E2c9aa6C291c15571440DAc7a6e773EC386e4",
+    pool1UsdcContract: "0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB",
+    batchDeposit1UsdcContract: "0x76f7EA532E8080211d9B6Dcc03976c2101c7Ab86",
     usdcContract: "0x3600000000000000000000000000000000000000",
     isMainnet: false,
   },
@@ -300,6 +304,7 @@ export default function ShieldedPlayground() {
 
   // TAB AMOUNTS (clean inputs, no fake chips)
   const [depositAmount, setDepositAmount] = useState<string>("");
+  const [noteDenomTier, setNoteDenomTier] = useState<"auto" | "0.01" | "1.00">("auto");
   const [sendAmount, setSendAmount] = useState<string>("");
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
@@ -1030,12 +1035,22 @@ export default function ShieldedPlayground() {
 
       const tokenContractAddress = (selectedToken.contract || cfg.usdcContract) as `0x${string}`;
 
-      // 2. Fetch contract denomination parameter
-      setProcessingStatus("Reading pool contract parameters...");
-      let poolDenom = 10000n;
+      // 2. Resolve Denomination Tier & Target Contracts
+      const isOneUsdcPool =
+        (noteDenomTier === "1.00" || (noteDenomTier === "auto" && amt >= 1.0)) &&
+        Boolean(cfg.pool1UsdcContract);
+
+      const targetPoolContract = (isOneUsdcPool && cfg.pool1UsdcContract ? cfg.pool1UsdcContract : cfg.poolContract) as `0x${string}`;
+      const targetBatchContract = (isOneUsdcPool && cfg.batchDeposit1UsdcContract ? cfg.batchDeposit1UsdcContract : cfg.batchDepositContract) as `0x${string}` | undefined;
+      const noteUnit = isOneUsdcPool ? 1.0 : 0.01;
+      const noteCount = Math.max(1, Math.round(amt / noteUnit));
+
+      // Fetch contract denomination parameter from target pool
+      setProcessingStatus(`Reading ${isOneUsdcPool ? "1.00 USDC Standard" : "0.01 USDC Nano"} pool parameters...`);
+      let poolDenom = isOneUsdcPool ? 1000000n : 10000n;
       try {
         poolDenom = await publicClient.readContract({
-          address: cfg.poolContract,
+          address: targetPoolContract,
           abi: poolAbi,
           functionName: "denomination",
         });
@@ -1043,10 +1058,8 @@ export default function ShieldedPlayground() {
         console.warn("Using default pool denomination:", denomErr);
       }
 
-      // 3. Compute note count & generate cryptographic 256-bit note secrets
-      const noteCount = Math.max(1, Math.round(amt / 0.01));
       const totalRequired = poolDenom * BigInt(noteCount);
-      const totalAmountFormatted = (noteCount * 0.01).toFixed(2);
+      const totalAmountFormatted = (noteCount * noteUnit).toFixed(2);
 
       setProcessingStatus(
         noteCount > 1
@@ -1084,6 +1097,7 @@ export default function ShieldedPlayground() {
           nullifierSeed,
           isSpent: false,
           createdAt: "Just now",
+          poolContract: targetPoolContract,
         });
       }
 
@@ -1104,7 +1118,7 @@ export default function ShieldedPlayground() {
       // If user has insufficient tokens, offer playground simulation modal with batch notes
       if (tokenBal < totalRequired) {
         setSimulateModalData({
-          amt: noteCount * 0.01,
+          amt: noteCount * noteUnit,
           noteCount,
           tokenSymbol: selectedToken.symbol,
           currentBal: (Number(tokenBal) / (10 ** cfg.nativeCurrency.decimals)).toFixed(4),
@@ -1123,8 +1137,8 @@ export default function ShieldedPlayground() {
       let depositTxHash: `0x${string}`;
       let receiptBlockNumber: number = 0;
 
-      if (noteCount > 1 && cfg.batchDepositContract) {
-        const batchContract = cfg.batchDepositContract;
+      if (noteCount > 1 && targetBatchContract) {
+        const batchContract = targetBatchContract;
         setProcessingStatus(`Checking batch spender allowance on ${cfg.name}...`);
         let allowance = 0n;
         try {
@@ -1150,7 +1164,7 @@ export default function ShieldedPlayground() {
           await publicClient.waitForTransactionReceipt({ hash: approveTx });
         }
 
-        setProcessingStatus(`Opening wallet: Confirm batch deposit (${noteCount} notes) in MetaMask...`);
+        setProcessingStatus(`Opening wallet: Confirm batch deposit (${noteCount} notes @ ${noteUnit.toFixed(2)}/note) in MetaMask...`);
         depositTxHash = await walletClient.writeContract({
           address: batchContract,
           abi: batchDepositAbi,
@@ -1170,19 +1184,19 @@ export default function ShieldedPlayground() {
             address: tokenContractAddress,
             abi: erc20Abi,
             functionName: "allowance",
-            args: [walletAddress as `0x${string}`, cfg.poolContract],
+            args: [walletAddress as `0x${string}`, targetPoolContract],
           });
         } catch (allowanceErr) {
           console.warn("Could not check allowance:", allowanceErr);
         }
 
         if (allowance < totalRequired) {
-          setProcessingStatus("Opening wallet: Approve USDC spending limit in MetaMask...");
+          setProcessingStatus(`Opening wallet: Approve ${totalAmountFormatted} ${selectedToken.symbol} in MetaMask...`);
           const approveTx = await walletClient.writeContract({
             address: tokenContractAddress,
             abi: erc20Abi,
             functionName: "approve",
-            args: [cfg.poolContract, totalRequired * 10n],
+            args: [targetPoolContract, totalRequired * 10n],
           });
           setProcessingStatus(`Confirming approval transaction on ${cfg.name}...`);
           await publicClient.waitForTransactionReceipt({ hash: approveTx });
@@ -1190,7 +1204,7 @@ export default function ShieldedPlayground() {
 
         setProcessingStatus("Opening wallet: Confirm deposit in MetaMask...");
         depositTxHash = await walletClient.writeContract({
-          address: cfg.poolContract,
+          address: targetPoolContract,
           abi: poolAbi,
           functionName: "deposit",
           args: [commitments[0]],
@@ -1446,14 +1460,16 @@ export default function ShieldedPlayground() {
         transport: custom(providerToUse),
       });
 
+      const noteToSpend = unspentNotes[0];
+      const targetPoolForSpend = (noteToSpend?.poolContract as `0x${string}`) || cfg.poolContract;
+
       setProcessingStatus(`Reading Merkle root from ${cfg.name}...`);
       const currentRoot = await publicClient.readContract({
-        address: cfg.poolContract,
+        address: targetPoolForSpend,
         abi: poolAbi,
         functionName: "getLastRoot",
       });
 
-      const noteToSpend = unspentNotes[0];
       const rawNullifier =
         noteToSpend?.nullifierHash ||
         keccak256(
@@ -1484,7 +1500,7 @@ export default function ShieldedPlayground() {
       try {
         setProcessingStatus("Opening wallet: Confirm withdrawal in MetaMask...");
         withdrawTxHash = await walletClient.writeContract({
-          address: cfg.poolContract,
+          address: targetPoolForSpend,
           abi: poolAbi,
           functionName: "spend",
           args: [spendProof, targetRecip as `0x${string}`],
@@ -1902,12 +1918,64 @@ export default function ShieldedPlayground() {
           {/* TAB 1: DEPOSIT (DEFAULT) */}
           {activeTab === "deposit" && (() => {
             const parsedAmt = parseFloat(depositAmount);
-            const activeAmt = isNaN(parsedAmt) || parsedAmt <= 0 ? 0.01 : parsedAmt;
-            const currentNoteCount = Math.max(1, Math.round(activeAmt / 0.01));
-            const currentTotalUsd = (currentNoteCount * 0.01).toFixed(2);
+            const activeAmt = isNaN(parsedAmt) || parsedAmt <= 0 ? (noteDenomTier === "0.01" ? 0.01 : 1.0) : parsedAmt;
+            
+            const isOneUsdcPool =
+              (noteDenomTier === "1.00" || (noteDenomTier === "auto" && activeAmt >= 1.0)) &&
+              Boolean(activeChainConfig.pool1UsdcContract);
+
+            const noteUnit = isOneUsdcPool ? 1.0 : 0.01;
+            const currentNoteCount = Math.max(1, Math.round(activeAmt / noteUnit));
+            const currentTotalUsd = (currentNoteCount * noteUnit).toFixed(2);
+            const isExceedingBlockLimit = !isOneUsdcPool && currentNoteCount > 100;
+            const estGasArc = (currentNoteCount * 100000 * 25) / 1e9;
+
+            const currentPresets = isOneUsdcPool
+              ? [1.0, 5.0, 10.0, 20.0]
+              : [0.01, 0.1, 0.5, 1.0];
 
             return (
               <div className="space-y-3.5 animate-in fade-in duration-200">
+                {/* Note Denomination Tier Selector */}
+                <div className="flex items-center justify-between gap-2 px-1">
+                  <span className="text-[11px] text-neutral-500 font-medium">Note Denomination:</span>
+                  <div className="bg-neutral-100 p-0.5 rounded-xl flex items-center gap-1 text-[10px] font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setNoteDenomTier("auto")}
+                      className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${
+                        noteDenomTier === "auto"
+                          ? "bg-white text-blue-700 font-semibold shadow-2xs"
+                          : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      Auto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNoteDenomTier("0.01")}
+                      className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${
+                        noteDenomTier === "0.01"
+                          ? "bg-white text-blue-700 font-semibold shadow-2xs"
+                          : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      0.01 {selectedToken.symbol}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNoteDenomTier("1.00")}
+                      className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${
+                        noteDenomTier === "1.00"
+                          ? "bg-white text-blue-700 font-semibold shadow-2xs"
+                          : "text-neutral-500 hover:text-neutral-800"
+                      }`}
+                    >
+                      1.00 {selectedToken.symbol}
+                    </button>
+                  </div>
+                </div>
+
                 {/* Box 1: You're depositing */}
                 <div className="bg-neutral-50/90 border border-neutral-200/70 rounded-2xl p-4 transition-colors focus-within:border-neutral-300 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1915,9 +1983,11 @@ export default function ShieldedPlayground() {
                       You&apos;re depositing
                     </span>
                     <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/80 font-medium">
-                      {currentNoteCount > 1
+                      {isOneUsdcPool
+                        ? `Standard Tier: ${currentNoteCount} × 1.00 ${selectedToken.symbol}`
+                        : currentNoteCount > 1
                         ? `⚡ Batch Mode: ${currentNoteCount} × 0.01 ${selectedToken.symbol}`
-                        : `Fixed Note Tier: 0.01 ${selectedToken.symbol}`}
+                        : `Nano Tier: 0.01 ${selectedToken.symbol}`}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
@@ -1927,14 +1997,18 @@ export default function ShieldedPlayground() {
                         step="any"
                         value={depositAmount}
                         onChange={(e) => setDepositAmount(e.target.value)}
-                        placeholder="0.01"
+                        placeholder={isOneUsdcPool ? "1.00" : "0.01"}
                         className="w-full text-3xl sm:text-4xl font-semibold text-neutral-900 bg-transparent focus:outline-none placeholder-neutral-300 tracking-tight"
                       />
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-neutral-400 font-mono">
                           ≈ ${currentTotalUsd}
                         </span>
-                        {currentNoteCount > 1 ? (
+                        {isOneUsdcPool ? (
+                          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            Low Gas ({currentNoteCount} note{currentNoteCount > 1 ? "s" : ""} • ~{estGasArc.toFixed(3)} ARC)
+                          </span>
+                        ) : currentNoteCount > 1 ? (
                           <span className="text-[10px] font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                             Batch mints {currentNoteCount} notes (1 on-chain tx)
                           </span>
@@ -1962,12 +2036,10 @@ export default function ShieldedPlayground() {
 
                   {/* Preset Quick Select Chips */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-neutral-200/60">
-                    <span className="text-[10px] text-neutral-400 font-medium">Quick Amount:</span>
-                    {PRESET_DEPOSIT_AMOUNTS.map((pAmt) => {
-                      const pNotes = Math.max(1, Math.round(pAmt / 0.01));
-                      const isSelected =
-                        depositAmount === pAmt.toString() ||
-                        (pAmt === 0.01 && (!depositAmount || depositAmount === "0.01"));
+                    <span className="text-[10px] text-neutral-400 font-medium">Quick Select:</span>
+                    {currentPresets.map((pAmt) => {
+                      const pNotes = Math.max(1, Math.round(pAmt / noteUnit));
+                      const isSelected = depositAmount === pAmt.toString();
                       return (
                         <button
                           key={pAmt}
@@ -1985,9 +2057,29 @@ export default function ShieldedPlayground() {
                     })}
                   </div>
 
+                  {/* Block Gas Limit Protection Alert */}
+                  {isExceedingBlockLimit && (
+                    <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 text-xs text-amber-800 space-y-1.5 animate-in fade-in">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>Arc Block Gas Limit Notice</span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-amber-700">
+                        Minting {currentNoteCount} notes of 0.01 {selectedToken.symbol} in 1 transaction requires ~{((currentNoteCount * 100000) / 1e6).toFixed(1)}M gas, which exceeds Arc&apos;s 30M block gas limit.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setNoteDenomTier("1.00")}
+                        className="text-xs font-semibold font-mono text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-xl cursor-pointer transition-colors shadow-2xs mt-1 inline-block"
+                      >
+                        Switch to 1.00 {selectedToken.symbol} Tier ({Math.max(1, Math.round(activeAmt))} notes • ~{((Math.max(1, Math.round(activeAmt)) * 100000 * 25) / 1e9).toFixed(3)} ARC Gas)
+                      </button>
+                    </div>
+                  )}
+
                   {/* Privacy Pool Explanation Notice */}
                   <div className="pt-2 border-t border-neutral-200/60 text-[10.5px] text-neutral-500 leading-relaxed font-sans">
-                    🛡️ <strong>Why standardized 0.01 {selectedToken.symbol} notes?</strong> Entering ${depositAmount || "0.01"} batch-mints {currentNoteCount} uniform notes in <strong>1 single transaction</strong> with 1 approval. Standardized denominations guarantee maximum anonymity set mixing against chain analysis.
+                    🛡️ <strong>Standardized Note Tiers:</strong> {isOneUsdcPool ? "Standard 1.00 USDC tier deposits cost ~0.012 ARC in gas because they require far fewer Merkle tree writes." : "0.01 USDC notes are ideal for micro-streaming. Max 100 notes per single transaction."}
                   </div>
                 </div>
 
@@ -1999,7 +2091,7 @@ export default function ShieldedPlayground() {
                     </div>
                     <div>
                       <h4 className="text-xs font-semibold text-neutral-900">
-                        ArcNano Shielded Pool
+                        ArcNano {isOneUsdcPool ? "Standard (1.00)" : "Nano (0.01)"} Pool
                       </h4>
                       <p className="text-[10.5px] text-neutral-500">
                         Zero msg.sender linkage via local zk commitments.
@@ -2028,9 +2120,9 @@ export default function ShieldedPlayground() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-neutral-500 text-[11px]">
-                    <span>Batch execution</span>
-                    <span className="text-blue-700 font-medium">
-                      {currentNoteCount > 1 ? "1 Atomic Tx (100% Client-Side ZK)" : "1 Note (100% Client-Side ZK)"}
+                    <span>Estimated gas</span>
+                    <span className="text-neutral-900 font-semibold font-mono">
+                      ≈ {estGasArc.toFixed(4)} ARC ({((currentNoteCount * 100000) / 1e6).toFixed(2)}M Gas)
                     </span>
                   </div>
                 </div>
@@ -2067,13 +2159,22 @@ export default function ShieldedPlayground() {
                   <button
                     type="button"
                     onClick={handleDeposit}
-                    disabled={isProcessing}
-                    className="w-full py-3.5 rounded-2xl bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    disabled={isProcessing || isExceedingBlockLimit}
+                    className={`w-full py-3.5 rounded-2xl text-white font-medium text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+                      isExceedingBlockLimit
+                        ? "bg-amber-600 hover:bg-amber-700 shadow-amber-500/20"
+                        : "bg-[#0033FF] hover:bg-blue-700 active:bg-blue-800 shadow-blue-500/20"
+                    }`}
                   >
                     {isProcessing ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
                         <span>{processingStatus || "Depositing..."}</span>
+                      </>
+                    ) : isExceedingBlockLimit ? (
+                      <>
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Exceeds Block Gas Limit — Switch to 1.00 Tier</span>
                       </>
                     ) : (
                       <>
@@ -2081,7 +2182,7 @@ export default function ShieldedPlayground() {
                         <span>
                           {currentNoteCount > 1
                             ? `Deposit $${currentTotalUsd} (${currentNoteCount} Notes in 1 Tx)`
-                            : `Deposit 0.01 ${selectedToken.symbol} (1 Note)`}
+                            : `Deposit ${currentTotalUsd} ${selectedToken.symbol} (1 Note)`}
                         </span>
                       </>
                     )}
