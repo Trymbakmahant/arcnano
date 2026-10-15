@@ -322,14 +322,7 @@ export default function ArcNanoHero() {
             >
               @0xarcnano ↗
             </a>
-            <a
-              href="https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition border border-emerald-200/60"
-            >
-              Arc Explorer Contract ↗
-            </a>
+          
           </div>
         </div>
 
