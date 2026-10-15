@@ -18,7 +18,7 @@ export const ARC_NETWORKS: Record<string, ArcNetworkConfig> = {
     name: "Arc Testnet (Circle L1)",
     chainId: 5042002,
     rpcUrl: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network",
-    explorerUrl: "https://testnet.arcscan.io",
+    explorerUrl: "https://explorer.testnet.arc.io",
     usdcContract: "0x3600000000000000000000000000000000000000",
     pools: {
       10000: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
@@ -34,7 +34,7 @@ export const ARC_NETWORKS: Record<string, ArcNetworkConfig> = {
     name: "Arc Mainnet (Circle L1)",
     chainId: 5042,
     rpcUrl: process.env.ARC_MAINNET_RPC || "https://rpc.mainnet.arc.io",
-    explorerUrl: "https://arcscan.io",
+    explorerUrl: "https://explorer.arc.io",
     usdcContract: "0x3600000000000000000000000000000000000000",
     pools: {
       10000: "0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd",

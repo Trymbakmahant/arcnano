@@ -106,12 +106,12 @@ export default function PlaygroundPage() {
             </a>
             <span>•</span>
             <a
-              href="https://testnet.arcscan.io"
+              href="https://explorer.testnet.arc.io"
               target="_blank"
               rel="noreferrer"
               className="hover:text-neutral-900 transition-colors"
             >
-              Arcscan Explorer
+              Arc Explorer
             </a>
           </div>
         </div>

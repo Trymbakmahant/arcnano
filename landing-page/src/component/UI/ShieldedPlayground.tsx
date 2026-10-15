@@ -74,8 +74,8 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
     shortName: "Testnet",
     nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
     rpcUrl: "https://rpc.testnet.arc.network",
-    explorerName: "Arcscan",
-    explorerUrl: "https://testnet.arcscan.io",
+    explorerName: "Arc Explorer",
+    explorerUrl: "https://explorer.testnet.arc.io",
     poolContract: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
     batchDepositContract: "0xD20E2c9aa6C291c15571440DAc7a6e773EC386e4",
     pool1UsdcContract: "0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB",
@@ -115,7 +115,7 @@ const arcChain = {
     default: { http: ["https://rpc.testnet.arc.network"] },
   },
   blockExplorers: {
-    default: { name: "Arcscan", url: "https://testnet.arcscan.io" },
+    default: { name: "Arc Explorer", url: "https://explorer.testnet.arc.io" },
   },
 } as const;
 

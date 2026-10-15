@@ -58,7 +58,7 @@ export async function GET() {
         chainId: 5042002,
         gasToken: "USDC",
         rpcUrl: ARC_RPC_URL,
-        explorerUrl: "https://testnet.arcscan.app",
+        explorerUrl: "https://explorer.testnet.arc.io",
         currentBlock: blockNumber,
       },
       contracts: {
@@ -69,12 +69,12 @@ export async function GET() {
           currentRoot,
           complianceEnforced: true,
           aspRoot: "0x0000000000000000000000000000000000000000000000000000000000001337",
-          explorerUrl: `https://testnet.arcscan.app/address/${POOL_ADDRESS}`,
+          explorerUrl: `https://explorer.testnet.arc.io/address/${POOL_ADDRESS}`,
         },
         usdc: {
           address: USDC_ADDRESS,
           name: "Arc Native USDC",
-          explorerUrl: `https://testnet.arcscan.app/address/${USDC_ADDRESS}`,
+          explorerUrl: `https://explorer.testnet.arc.io/address/${USDC_ADDRESS}`,
         },
       },
       agents: {
@@ -84,7 +84,7 @@ export async function GET() {
           address: AGENT_A_ADDRESS,
           usdcBalance: usdcA,
           gasBalance: gasA,
-          explorerUrl: `https://testnet.arcscan.app/address/${AGENT_A_ADDRESS}`,
+          explorerUrl: `https://explorer.testnet.arc.io/address/${AGENT_A_ADDRESS}`,
         },
         agentB: {
           name: "Agent B (Omega)",
@@ -92,7 +92,7 @@ export async function GET() {
           address: AGENT_B_ADDRESS,
           usdcBalance: usdcB,
           gasBalance: gasB,
-          explorerUrl: `https://testnet.arcscan.app/address/${AGENT_B_ADDRESS}`,
+          explorerUrl: `https://explorer.testnet.arc.io/address/${AGENT_B_ADDRESS}`,
         },
       },
       liveTransactions: {

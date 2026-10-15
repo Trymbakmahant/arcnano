@@ -453,7 +453,7 @@ For high-value queries (e.g. financial audits, database dumps), the provider act
     content: `
 # Smart Contract Solvency Invariants
 
-The core contract [ArcNanoPool.sol](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) has been tested using **Foundry Invariant Testing** with over **128,000 randomized state transitions**.
+The core contract [ArcNanoPool.sol](https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) has been tested using **Foundry Invariant Testing** with over **128,000 randomized state transitions**.
 
 ## Verified Formal Invariants
 
@@ -589,7 +589,7 @@ ArcNano organizes deposits into an incremental 20-level binary Merkle tree:
 
 [![npm version](https://img.shields.io/npm/v/arcnano-x402.svg?color=emerald)](https://www.npmjs.com/package/arcnano-x402)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://testnet.arcscan.io)
+[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://explorer.testnet.arc.io)
 
 The **\`arcnano-x402\`** package is officially published on npm: **[npmjs.com/package/arcnano-x402](https://www.npmjs.com/package/arcnano-x402)**.
 It allows API providers to monetize Express and Node.js endpoints with sub-8ms off-chain ZK verification and automated Arc Testnet batch settlement in 3 lines of code:
@@ -730,7 +730,7 @@ API providers can configure their risk profile in \`arcnano-x402\`:
 
 The contract is deployed and verified on:
 - **Arc Mainnet (Chain 5042):** [\`0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd\`](https://explorer.arc.io/address/0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd)
-- **Arc Testnet (Chain 5042002):** [\`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca)
+- **Arc Testnet (Chain 5042002):** [\`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`](https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca)
 
 ## Function Signatures
 
@@ -814,7 +814,7 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 - **Network Name:** Arc Testnet
 - **Chain ID:** \`5042002\` (\`0x4cef52\`)
 - **RPC Endpoint:** \`https://rpc.testnet.arc.network\`
-- **Block Explorer:** \`https://testnet.arcscan.io\`
+- **Block Explorer:** \`https://explorer.testnet.arc.io\`
 - **Native Gas Token:** USDC (6 decimals)
 - **ArcNanoPool (0.01 USDC):** \`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca\`
 - **BatchDeposit (0.01 USDC):** \`0xD20E2c9aa6C291c15571440DAc7a6e773EC386e4\`

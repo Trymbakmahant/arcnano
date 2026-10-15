@@ -25,7 +25,7 @@ const arcChain = {
     default: { http: [ARC_RPC_URL] },
   },
   blockExplorers: {
-    default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
+    default: { name: "Arc Explorer", url: "https://explorer.testnet.arc.io" },
   },
 } as const;
 
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
       gasUsed: depositReceipt.gasUsed.toString(),
       method: "deposit(bytes32 commitment)",
       commitment,
-      explorerUrl: `https://testnet.arcscan.app/tx/${depositTxHash}`,
+      explorerUrl: `https://explorer.testnet.arc.io/tx/${depositTxHash}`,
       timestamp: Date.now(),
     };
 
@@ -222,7 +222,7 @@ export async function POST(req: NextRequest) {
       nullifier: nullifierHash,
       recipient: accountB.address,
       amount: "0.01 USDC",
-      explorerUrl: `https://testnet.arcscan.app/tx/${spendTxHash}`,
+      explorerUrl: `https://explorer.testnet.arc.io/tx/${spendTxHash}`,
       timestamp: Date.now(),
     };
 

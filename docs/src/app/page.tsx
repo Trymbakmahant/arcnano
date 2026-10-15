@@ -159,7 +159,7 @@ export default function DocsPage() {
             </a>
             <span>•</span>
             <a
-              href="https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+              href="https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
               target="_blank"
               rel="noreferrer"
               className="hover:text-[var(--gh-text)] transition-colors"

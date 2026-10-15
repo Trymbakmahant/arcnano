@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
       memo: body.memo || "Anonymous Shielded Transfer",
       friendName: body.friendName || "Friend",
       txHash: onchainTxHash,
-      explorerUrl: onchainTxHash ? `https://testnet.arcscan.io/tx/${onchainTxHash}` : undefined,
+      explorerUrl: onchainTxHash ? `https://explorer.testnet.arc.io/tx/${onchainTxHash}` : undefined,
       settlement: {
         batchStatus: onchainTxHash ? "settled_onchain" : "queued",
         txHash: onchainTxHash,

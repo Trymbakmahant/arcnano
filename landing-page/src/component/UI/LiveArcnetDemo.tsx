@@ -439,12 +439,12 @@ export default function LiveArcnetDemo() {
             </button>
 
             <a
-              href="https://testnet.arcscan.app/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+              href="https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-mono font-medium shadow-xs transition-colors"
             >
-              <span>Arcscan Contract</span>
+              <span>Arc Explorer Contract</span>
               <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
             </a>
           </div>
@@ -516,11 +516,11 @@ export default function LiveArcnetDemo() {
                   {copiedKey === "agentA" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                 </button>
                 <a
-                  href={`https://testnet.arcscan.app/address/${agents?.agentA.address || ""}`}
+                  href={`https://explorer.testnet.arc.io/address/${agents?.agentA.address || ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1 hover:bg-neutral-200 rounded text-neutral-600 transition-colors"
-                  title="View on Arcscan"
+                  title="View on Arc Explorer"
                 >
                   <ExternalLink className="w-3 h-3 text-sky-600" />
                 </a>
@@ -584,11 +584,11 @@ export default function LiveArcnetDemo() {
                   {copiedKey === "agentB" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                 </button>
                 <a
-                  href={`https://testnet.arcscan.app/address/${agents?.agentB.address || ""}`}
+                  href={`https://explorer.testnet.arc.io/address/${agents?.agentB.address || ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1 hover:bg-neutral-200 rounded text-neutral-600 transition-colors"
-                  title="View on Arcscan"
+                  title="View on Arc Explorer"
                 >
                   <ExternalLink className="w-3 h-3 text-emerald-600" />
                 </a>
@@ -635,16 +635,16 @@ export default function LiveArcnetDemo() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href={`https://testnet.arcscan.app/tx/${latestSuccessTx.spendHash}`}
+              href={`https://explorer.testnet.arc.io/tx/${latestSuccessTx.spendHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-semibold transition-colors"
             >
-              <span>View Spend on Arcscan</span>
+              <span>View Spend on Arc Explorer</span>
               <ExternalLink className="w-3 h-3" />
             </a>
             <a
-              href={`https://testnet.arcscan.app/tx/${latestSuccessTx.depositHash}`}
+              href={`https://explorer.testnet.arc.io/tx/${latestSuccessTx.depositHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-3 py-1 bg-white hover:bg-neutral-100 text-emerald-900 border border-emerald-300 rounded text-[11px] font-semibold transition-colors"
@@ -783,7 +783,7 @@ export default function LiveArcnetDemo() {
                         NEW LIVE TX
                       </span>
                       <a
-                        href={`https://testnet.arcscan.app/tx/${st.txHash}`}
+                        href={`https://explorer.testnet.arc.io/tx/${st.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -793,7 +793,7 @@ export default function LiveArcnetDemo() {
                             : "bg-white text-emerald-700 hover:bg-emerald-100 border border-emerald-300"
                         }`}
                       >
-                        <span>Arcscan Block #{st.block}</span>
+                        <span>Arc Explorer Block #{st.block}</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -825,7 +825,7 @@ export default function LiveArcnetDemo() {
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-sky-600" />
               <h3 className="text-base font-bold text-neutral-950">
-                Official Arcscan Block Explorer Inspector
+                Official Arc Explorer Block Explorer Inspector
               </h3>
             </div>
             <p className="text-xs text-neutral-600">
@@ -857,7 +857,7 @@ export default function LiveArcnetDemo() {
           </div>
         </div>
 
-        {/* Arcscan Block Card */}
+        {/* Arc Explorer Block Card */}
         {selectedTxView === "spend" ? (
           liveTxs?.spend?.hash ? (
             <div className="border border-neutral-200 bg-neutral-50/70 p-4 font-mono text-xs space-y-3">
@@ -872,12 +872,12 @@ export default function LiveArcnetDemo() {
                   </span>
                 </div>
                 <a
-                  href={liveTxs.spend.explorerUrl || `https://testnet.arcscan.app/tx/${liveTxs.spend.hash}`}
+                  href={liveTxs.spend.explorerUrl || `https://explorer.testnet.arc.io/tx/${liveTxs.spend.hash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition-colors"
                 >
-                  <span>Open on Arcscan</span>
+                  <span>Open on Arc Explorer</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -917,7 +917,7 @@ export default function LiveArcnetDemo() {
               <div className="bg-white p-3 border border-emerald-200 text-[11px] text-neutral-800 rounded">
                 <div className="flex items-center gap-2 font-bold text-emerald-800 mb-1">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Cryptographic Privacy Audit on Arcscan</span>
+                  <span>Cryptographic Privacy Audit on Arc Explorer</span>
                 </div>
                 <p className="text-neutral-600 leading-relaxed">
                   Notice what is <strong>NOT</strong> present in this transaction:
@@ -938,12 +938,12 @@ export default function LiveArcnetDemo() {
               </div>
               <div className="pt-1">
                 <a
-                  href={`https://testnet.arcscan.app/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
+                  href={`https://explorer.testnet.arc.io/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 text-[11px] font-semibold transition-colors"
                 >
-                  <span>Inspect ArcNanoPool Contract on Arcscan</span>
+                  <span>Inspect ArcNanoPool Contract on Arc Explorer</span>
                   <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
                 </a>
               </div>
@@ -963,12 +963,12 @@ export default function LiveArcnetDemo() {
                   </span>
                 </div>
                 <a
-                  href={liveTxs.deposit.explorerUrl || `https://testnet.arcscan.app/tx/${liveTxs.deposit.hash}`}
+                  href={liveTxs.deposit.explorerUrl || `https://explorer.testnet.arc.io/tx/${liveTxs.deposit.hash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-semibold transition-colors"
                 >
-                  <span>Open on Arcscan</span>
+                  <span>Open on Arc Explorer</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -1008,7 +1008,7 @@ export default function LiveArcnetDemo() {
               <div className="bg-white p-3 border border-sky-200 text-[11px] text-neutral-800 rounded">
                 <div className="flex items-center gap-2 font-bold text-sky-800 mb-1">
                   <ShieldCheck className="w-4 h-4 text-sky-600" />
-                  <span>Shielded Note Commitment on Arcscan</span>
+                  <span>Shielded Note Commitment on Arc Explorer</span>
                 </div>
                 <p className="text-neutral-600 leading-relaxed font-mono break-all">
                   Commitment: {liveTxs.deposit.commitment || "0x..."} (Inserted into on-chain 20-level Merkle tree)
@@ -1028,12 +1028,12 @@ export default function LiveArcnetDemo() {
               </div>
               <div className="pt-1">
                 <a
-                  href={`https://testnet.arcscan.app/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
+                  href={`https://explorer.testnet.arc.io/address/${contracts?.pool?.address || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 text-[11px] font-semibold transition-colors"
                 >
-                  <span>Inspect ArcNanoPool Contract on Arcscan</span>
+                  <span>Inspect ArcNanoPool Contract on Arc Explorer</span>
                   <ExternalLink className="w-3.5 h-3.5 text-neutral-400" />
                 </a>
               </div>

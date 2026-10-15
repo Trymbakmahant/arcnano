@@ -29,7 +29,7 @@ NETWORKS: Dict[str, Dict[str, Any]] = {
         "name": "Arc Testnet (Circle L1)",
         "chain_id": 5042002,
         "rpc_url": os.getenv("ARC_TESTNET_RPC") or os.getenv("ARC_RPC_URL") or "https://rpc.testnet.arc.network",
-        "explorer_url": "https://testnet.arcscan.io",
+        "explorer_url": "https://explorer.testnet.arc.io",
         "usdc_contract": "0x3600000000000000000000000000000000000000",
         "pools": {
             10000: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
@@ -45,7 +45,7 @@ NETWORKS: Dict[str, Dict[str, Any]] = {
         "name": "Arc Mainnet (Circle L1)",
         "chain_id": 5042,
         "rpc_url": os.getenv("ARC_MAINNET_RPC") or "https://rpc.mainnet.arc.io",
-        "explorer_url": "https://arcscan.io",
+        "explorer_url": "https://explorer.arc.io",
         "usdc_contract": "0x3600000000000000000000000000000000000000",
         "pools": {
             10000: "0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd",

@@ -99,10 +99,10 @@ The smart contracts are live, verified, and operational on **Arc Network Mainnet
 
 | Contract | Address | Network | Explorer |
 | :--- | :--- | :--- | :--- |
-| **`ArcNanoPool`** | `0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
-| **`KeccakHasher`** | `0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/address/0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70) |
-| **`MockVerifier`** | `0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/address/0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82) |
-| **Native USDC** | `0x3600000000000000000000000000000000000000` | Arc Testnet (`5042002`) | [View on Arcscan](https://testnet.arcscan.io/token/0x3600000000000000000000000000000000000000) |
+| **`ArcNanoPool`** | `0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca` | Arc Testnet (`5042002`) | [View on Arc Explorer](https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
+| **`KeccakHasher`** | `0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70` | Arc Testnet (`5042002`) | [View on Arc Explorer](https://explorer.testnet.arc.io/address/0x55D7077905E7FFaFaeCF3B3F74AD8278822f5f70) |
+| **`MockVerifier`** | `0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82` | Arc Testnet (`5042002`) | [View on Arc Explorer](https://explorer.testnet.arc.io/address/0x6Cf1C6131ddFaAb2c965d2a8E04F20809e8d0d82) |
+| **Native USDC** | `0x3600000000000000000000000000000000000000` | Arc Testnet (`5042002`) | [View on Arc Explorer](https://explorer.testnet.arc.io/token/0x3600000000000000000000000000000000000000) |
 
 ---
 

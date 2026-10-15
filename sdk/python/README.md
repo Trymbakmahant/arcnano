@@ -5,7 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/arczk-agent.svg?color=emerald)](https://pypi.org/project/arczk-agent/)
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://pypi.org/project/arczk-agent/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://testnet.arcscan.io)
+[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://explorer.testnet.arc.io)
 [![Latency](https://img.shields.io/badge/ZK_Proof_Gen-<10ms-brightgreen.svg)](https://github.com/Trymbakmahant/arcnano)
 
 ---
@@ -264,8 +264,8 @@ RAM-based Groth16 spend proof generator:
 | **Chain ID** | `5042002` |
 | **Gas & Settlement Asset** | USDC (Native Gas & Denomination) |
 | **RPC Endpoint** | `https://rpc.testnet.arc.network` |
-| **Explorer** | [https://testnet.arcscan.io](https://testnet.arcscan.io) |
-| **ArcNanoPool Contract** | [`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca`](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
+| **Explorer** | [https://explorer.testnet.arc.io](https://explorer.testnet.arc.io) |
+| **ArcNanoPool Contract** | [`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca`](https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
 | **Standard Denominations** | `1000` (0.001 USDC), `10000` (0.01 USDC), `100000` (0.1 USDC) |
 
 ---

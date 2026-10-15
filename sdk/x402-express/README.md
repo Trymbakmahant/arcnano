@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/arcnano-x402.svg?color=emerald)](https://www.npmjs.com/package/arcnano-x402)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://testnet.arcscan.io)
+[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-5042002-blue.svg)](https://explorer.testnet.arc.io)
 [![Latency](https://img.shields.io/badge/Off--chain_Verify-<8ms-brightgreen.svg)](https://github.com/Trymbakmahant/arcnano)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 
@@ -321,8 +321,8 @@ npx arcnano-x402 relayer
 | **Chain ID** | `5042002` |
 | **Gas & Settlement Asset** | USDC (Native Gas & Denomination) |
 | **RPC Endpoint** | `https://rpc.testnet.arc.network` |
-| **Block Explorer** | [https://testnet.arcscan.io](https://testnet.arcscan.io) |
-| **ArcNanoPool Contract** | [`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca`](https://testnet.arcscan.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
+| **Block Explorer** | [https://explorer.testnet.arc.io](https://explorer.testnet.arc.io) |
+| **ArcNanoPool Contract** | [`0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca`](https://explorer.testnet.arc.io/address/0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca) |
 | **Standard Denominations** | 0.001 USDC (`1000`), 0.01 USDC (`10000`), 0.1 USDC (`100000`) |
 
 ---

@@ -37,7 +37,7 @@ const NETWORKS = {
     chainId: 5042002,
     name: 'Arc Testnet (Circle L1)',
     rpc: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network',
-    explorer: 'https://testnet.arcscan.io',
+    explorer: 'https://explorer.testnet.arc.io',
     pools: {
       10000: '0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca',
       1000000: '0x716F5ea75f0B2a27c7a50F25E8Bb343A3B3530CB'
@@ -48,7 +48,7 @@ const NETWORKS = {
     chainId: 5042,
     name: 'Arc Mainnet (Circle L1)',
     rpc: process.env.ARC_MAINNET_RPC || 'https://rpc.mainnet.arc.io',
-    explorer: 'https://arcscan.io',
+    explorer: 'https://explorer.arc.io',
     pools: {
       10000: '0x8D49FE6B8EfA2C10486374CaE243243e18D1b5Dd',
       1000000: '0x385394d11a93e84452970acf958bDdAab34f208f'
