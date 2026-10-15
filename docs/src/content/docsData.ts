@@ -768,7 +768,7 @@ struct SpendProof {
 ArcNano is officially deployed and live on **Arc Network Mainnet**. All transactions are validated using Circle's native USDC gas asset and real production BN254 Groth16 zk-SNARK pairing verifiers.
 
 - **Network Name:** Arc Mainnet
-- **Chain ID:** \`5042\` (\`0x13b6\`)
+- **Chain ID:** \`5042\` (\`0x13b2\`)
 - **RPC Endpoint:** \`https://rpc.mainnet.arc.io\`
 - **Block Explorer:** [https://explorer.arc.io](https://explorer.arc.io)
 - **Deployment Block:** \`25971813\`
@@ -806,7 +806,7 @@ ArcNano is officially deployed and live on **Arc Network Mainnet**. All transact
 # Arc Testnet (Circle L1) Configuration
 
 - **Network Name:** Arc Testnet
-- **Chain ID:** \`5042002\` (\`0x4cef12\`)
+- **Chain ID:** \`5042002\` (\`0x4cef52\`)
 - **RPC Endpoint:** \`https://rpc.testnet.arc.network\`
 - **Block Explorer:** \`https://testnet.arcscan.io\`
 - **Native Gas Token:** USDC (6 decimals)

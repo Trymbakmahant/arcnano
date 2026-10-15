@@ -50,7 +50,7 @@ export interface ArcChainConfig {
 export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
   5042002: {
     id: 5042002,
-    hexId: "0x4cef12",
+    hexId: "0x4cef52", // 5042002 in hex is 0x4cef52 (0x4cef12 is 5041938)
     name: "Arc Testnet",
     shortName: "Testnet",
     nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
@@ -63,7 +63,7 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
   },
   5042: {
     id: 5042,
-    hexId: "0x13b6",
+    hexId: "0x13b2", // 5042 in hex is 0x13b2 (0x13b6 is 5046)
     name: "Arc Mainnet",
     shortName: "Mainnet",
     nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
@@ -78,7 +78,7 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
 
 // Default constants for backward compatibility
 const ARC_CHAIN_ID = 5042002;
-const ARC_CHAIN_HEX = "0x4cef12";
+const ARC_CHAIN_HEX = "0x4cef52";
 const POOL_CONTRACT = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca" as `0x${string}`;
 const USDC_CONTRACT = "0x3600000000000000000000000000000000000000" as `0x${string}`;
 
@@ -513,6 +513,12 @@ export default function ShieldedPlayground() {
     }
 
     const target = SUPPORTED_ARC_CHAINS[targetChainId] || SUPPORTED_ARC_CHAINS[5042002];
+    if (getNumericChainId(walletChainId) === target.id) {
+      setSelectedChainId(target.id);
+      setNetworkSelectModalOpen(false);
+      return;
+    }
+
     setIsSwitchingChain(true);
 
     try {
@@ -768,32 +774,49 @@ export default function ShieldedPlayground() {
     setProcessingStatus(`Initializing ${cfg.name} connection...`);
 
     try {
-      // 1. Ensure user is on the active Arc chain
-      try {
-        await providerToUse.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: cfg.hexId }],
-        });
-        setWalletChainId(cfg.hexId);
-      } catch (switchError: any) {
-        if (
-          switchError.code === 4902 ||
-          switchError?.data?.originalError?.code === 4902 ||
-          switchError?.message?.includes("Unrecognized chain ID")
-        ) {
+      // 1. Ensure user is on the active Arc chain only if not already on it
+      const currentCid = getNumericChainId(walletChainId);
+      if (currentCid !== cfg.id) {
+        try {
           await providerToUse.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: cfg.hexId,
-                chainName: cfg.name,
-                nativeCurrency: cfg.nativeCurrency,
-                rpcUrls: [cfg.rpcUrl],
-                blockExplorerUrls: [cfg.explorerUrl],
-              },
-            ],
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: cfg.hexId }],
           });
           setWalletChainId(cfg.hexId);
+        } catch (switchError: any) {
+          if (switchError.code === 4001 || switchError?.message?.includes("User rejected")) {
+            showToast("info", "Switch Cancelled", `Please switch to ${cfg.name} to continue.`);
+            setIsProcessing(false);
+            setProcessingStatus("");
+            return;
+          }
+          if (
+            switchError.code === 4902 ||
+            switchError?.data?.originalError?.code === 4902 ||
+            switchError?.message?.includes("Unrecognized chain ID") ||
+            switchError?.message?.includes("Try adding the chain")
+          ) {
+            try {
+              await providerToUse.request({
+                method: "wallet_addEthereumChain",
+                params: [
+                  {
+                    chainId: cfg.hexId,
+                    chainName: cfg.name,
+                    nativeCurrency: cfg.nativeCurrency,
+                    rpcUrls: [cfg.rpcUrl],
+                    blockExplorerUrls: [cfg.explorerUrl],
+                  },
+                ],
+              });
+              setWalletChainId(cfg.hexId);
+            } catch (addError: any) {
+              showToast("error", "Network Add Failed", addError?.message || "Failed to add network.");
+              setIsProcessing(false);
+              setProcessingStatus("");
+              return;
+            }
+          }
         }
       }
 

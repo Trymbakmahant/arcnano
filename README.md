@@ -89,7 +89,7 @@ The smart contracts are live, verified, and operational on **Arc Network Mainnet
 | **`KeccakHasher`** | `0xa7507BBED66D2a26331cF4C1f5A16C9462241954` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/address/0xa7507BBED66D2a26331cF4C1f5A16C9462241954) |
 | **Native USDC** | `0x3600000000000000000000000000000000000000` | Arc Mainnet (`5042`) | [View on Arc Explorer](https://explorer.arc.io/token/0x3600000000000000000000000000000000000000) |
 
-- **Chain ID:** `5042` (`0x13b6`)
+- **Chain ID:** `5042` (`0x13b2`)
 - **RPC Endpoint:** `https://rpc.mainnet.arc.io`
 - **Block Explorer:** `https://explorer.arc.io`
 - **Deployment Block:** `25971813`
