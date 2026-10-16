@@ -70,6 +70,15 @@ export const DOC_CATEGORIES: DocCategory[] = [
       { id: "testnet-details", title: "Arc Testnet (Circle L1) Details" },
     ],
   },
+  {
+    id: "relayer",
+    name: "Automated Relayer Backend",
+    items: [
+      { id: "relayer-overview", title: "Batch Relayer Architecture", badge: "Live API" },
+      { id: "relayer-api", title: "Relayer REST API Reference", badge: "Endpoints" },
+      { id: "relayer-hono", title: "Standalone Hono.js Deployment", badge: "Open Source" },
+    ],
+  },
 ];
 
 export const DOC_SECTIONS: Record<string, DocSection> = {
@@ -864,4 +873,438 @@ Antigravity or any agent running the ArcNano MCP Server can automatically execut
 \`\`\`
 `,
   },
+
+  "relayer-overview": {
+    id: "relayer-overview",
+    title: "Batch Relayer Architecture",
+    badge: "Live API",
+    category: "Automated Relayer Backend",
+    summary:
+      "ArcNano's automated relayer backend ingests zero-knowledge spend proofs off-chain, deduplicates nullifiers, partitions queues by recipient, and executes gas-sponsored batchSpend settlements on Arc Network with sub-second finality.",
+    content: `
+# Batch Relayer Architecture
+
+The **ArcNano Batch Relayer** is a high-throughput, non-custodial middleware service that decouples AI agents from direct on-chain transaction execution.
+
+Instead of requiring autonomous agents to manage native gas balances and broadcast individual on-chain transactions for every single micropayment, agents generate zero-knowledge Groth16 spend proofs and transmit them to API gateways or the relayer backend via HTTP headers.
+
+> [!NOTE]
+> **Production Live Endpoint:** \`https://arcnano.onrender.com\`  
+> **Network:** Arc Testnet (\`5042002\`) & Arc Mainnet (\`5042\`)  
+> **Gas Sponsorship:** 100% covered by **Arc Circle Gas Station Paymaster** ($0.00 gas for agents)
+
+---
+
+## Why an Automated Relayer is Essential
+
+1. **Zero Signer Surveillance (0% \`msg.sender\`):**  
+   If an agent broadcasts a transaction directly from its wallet, its on-chain identity is permanently linked on the block explorer. With the relayer, the relayer's address is the on-chain \`msg.sender\`, preserving complete anonymity for the agent.
+2. **Sub-Cent Economic Viability:**  
+   Submitting an individual blockchain transaction for a $0.01 or $0.001 micropayment wastes gas and congests the network. The relayer aggregates dozens of unspent notes and settles them in a single \`batchSpend\` call.
+3. **No Native Gas Required for Agents:**  
+   AI agents only hold shielded USDC notes. They never need to acquire or manage native ARC tokens for gas.
+
+---
+
+## Relayer Lifecycle & Flow
+
+\`\`\`mermaid
+flowchart TD
+    subgraph Agents["Clients & AI Agents"]
+        AgentA["Autonomous Agent (Python / TypeScript)"]
+        User["User / Playground Interface"]
+    end
+
+    subgraph Relayer["ArcNano Batch Relayer (https://arcnano.onrender.com)"]
+        API["REST API Ingestion (/v1/proofs/submit)"]
+        Storage[("Persistent Proof Store (Disk JSON)")]
+        Dedupe{"Fast Nullifier Index"}
+        Partition["Multi-Recipient Queue Partitioning"]
+        Batcher["On-Chain Settlement Engine"]
+    end
+
+    subgraph Blockchain["Arc Network (Circle L1)"]
+        Pool["ArcNanoPool.sol (0xa40d... / 0x8D49...)"]
+        Paymaster["Circle Gas Station Paymaster"]
+        Recipient["Recipient Wallet Address"]
+    end
+
+    AgentA -->|POST /v1/proofs/submit| API
+    User -->|POST /v1/proofs/submit| API
+    API --> Dedupe
+    Dedupe -->|Duplicate| Reject["409 Conflict (Replay Blocked)"]
+    Dedupe -->|Novel| Storage
+    Storage --> Partition
+    Partition -->|Queue >= BATCH_THRESHOLD or Auto-Flush Timer| Batcher
+    Batcher -->|batchSpend(proofs, recipient)| Pool
+    Pool -->|ERC-20 Transfer totalAmount| Recipient
+    Pool -.->|100% Sponsored Gas| Paymaster
+    Batcher -->|Record txHash & blockNumber| Storage
+\`\`\`
+
+---
+
+## Multi-Recipient Queue Partitioning
+
+In the smart contract [\`ArcNanoPool.sol\`](file:///Users/trymbakmahant/Projects/grant/arc/p2pzkpayment/contracts/src/ArcNanoPool.sol), the batch settlement function signature is:
+
+\`\`\`solidity
+function batchSpend(SpendProof[] calldata proofs, address recipient) external nonReentrant
+\`\`\`
+
+> [!IMPORTANT]
+> Because \`batchSpend\` transfers the aggregated value (\`denomination * proofs.length\`) to a single \`recipient\`, all proofs inside an on-chain batch **must share the same recipient address**.
+
+The ArcNano Relayer automatically groups and partitions pending notes into separate queues:
+$$\\text{queueKey} = \\text{chainId} : \\text{poolAddress} : \\text{recipient}$$
+
+- Alice's notes are accumulated in Alice's queue and settled directly to Alice.
+- Bob's notes are accumulated in Bob's queue and settled directly to Bob.
+- **Frontrunning or hijacking is mathematically impossible:** Groth16 public input index 2 cryptographically binds the proof to that specific recipient address.
+
+---
+
+## Dual Settlement Triggers
+
+The relayer executes on-chain batch settlements through two triggers:
+
+1. **Threshold Auto-Flush:** Whenever a specific recipient's queue reaches \`BATCH_THRESHOLD\` (default: \`5\` notes), the relayer immediately triggers an on-chain \`batchSpend\` call.
+2. **Periodic Interval Flush:** A background timer runs every \`FLUSH_INTERVAL_MS\` (default: \`15,000 ms\` / 15 seconds) and settles any pending queues that have unspent notes.
+3. **On-Demand Manual Flush:** Users and API providers can hit \`POST /v1/batch/withdraw\` (or \`POST /v1/flush\`) with their address to trigger instant withdrawal at any time.
+`,
+  },
+
+  "relayer-api": {
+    id: "relayer-api",
+    title: "Relayer REST API Reference",
+    badge: "Endpoints",
+    category: "Automated Relayer Backend",
+    summary:
+      "Comprehensive REST API reference for the ArcNano Batch Relayer. Ingest proofs, inspect pending withdrawal queues, execute on-chain batch withdrawals, and track historical settled transactions.",
+    content: `
+# Relayer REST API Reference
+
+The ArcNano Batch Relayer exposes a clean, standardized HTTP REST API accessible by AI agents, frontend applications, and API gateways.
+
+> [!NOTE]
+> **Production Live Endpoint:** \`https://arcnano.onrender.com\`  
+> **Local Development Endpoint:** \`http://localhost:4040\` (or \`http://localhost:3000/api/relayer\`)
+
+---
+
+## Summary of Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| \`GET\` | \`/v1/status\` | Health check, relayer wallet address, and gas status |
+| \`GET\` | \`/v1/metrics\` | Live metrics (uptime, settled notes, gas sponsored) |
+| \`POST\` | \`/v1/proofs/submit\` | Ingest Groth16 spend proof into batch withdrawal queue |
+| \`GET\` | \`/v1/queue\` | Inspect all pending withdrawal queues grouped by recipient |
+| \`GET\` | \`/v1/proofs\` | List stored proofs with pagination and status filters |
+| \`GET\` | \`/v1/proofs/:id\` | Query specific proof status, \`txHash\`, and explorer link |
+| \`POST\` | \`/v1/batch/withdraw\` | Trigger on-demand on-chain \`batchSpend\` withdrawal |
+| \`GET\` | \`/v1/batches\` | List historical settled batch transactions with receipts |
+
+---
+
+## 1. System Status & Health
+
+### \`GET /v1/status\`
+Returns operational status, network configuration, and active Circle Paymaster sponsorship.
+
+#### Request
+\`\`\`bash
+curl -X GET "https://arcnano.onrender.com/v1/status"
+\`\`\`
+
+#### Response (\`200 OK\`)
+\`\`\`json
+{
+  "status": "running",
+  "metrics": {
+    "uptimeSeconds": 1420,
+    "totalIngested": 42,
+    "totalSettledNotes": 40,
+    "totalBatchesSettled": 8,
+    "totalGasSponsoredUsd": "$0.0340",
+    "currentQueueLength": 2
+  },
+  "config": {
+    "batchThreshold": 5,
+    "flushIntervalMs": 15000,
+    "poolAddress": "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+    "sponsor": "Arc Circle Gas Station Paymaster"
+  }
+}
+\`\`\`
+
+---
+
+## 2. Ingest Spend Proof
+
+### \`POST /v1/proofs/submit\`
+*(Aliases: \`POST /v1/submit-proof\` on Express daemon)*
+
+Submits a verified Groth16 zero-knowledge spend proof into persistent storage. If the recipient's queue reaches the batch threshold, it automatically triggers an on-chain batch settlement.
+
+#### Request
+\`\`\`bash
+curl -X POST "https://arcnano.onrender.com/v1/submit-proof" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "recipient": "0x8506a1aC60e574fEBc6f6301844b3DE910801020",
+    "poolAddress": "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+    "chainId": 5042002,
+    "denomination": "10000",
+    "amountFormatted": "0.01 USDC",
+    "payload": {
+      "proof": {
+        "a": ["101", "102"],
+        "b": [["103", "104"], ["105", "106"]],
+        "c": ["107", "108"]
+      },
+      "root": "15055926234077295509216400193975320613085685875483293700481590095656163448343",
+      "nullifierHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "aspRoot": "0x0000000000000000000000000000000000000000000000000000000000001337"
+    }
+  }'
+\`\`\`
+
+#### Response (\`200 OK\`)
+\`\`\`json
+{
+  "success": true,
+  "message": "Proof securely stored and queued for batch withdrawal (1/5 notes).",
+  "proofId": "proof_1729000000000_a46f14cb",
+  "queuedCount": 1,
+  "batchThreshold": 5,
+  "autoFlushed": false
+}
+\`\`\`
+
+#### Error Responses
+- **\`400 Bad Request\`**: Malformed payload, missing proof coordinates, or invalid recipient address.
+- **\`409 Conflict\`**: Double-spend attempt detected. The nullifier has already been recorded or spent.
+
+---
+
+## 3. Inspect Pending Queues
+
+### \`GET /v1/queue\`
+Returns all pending proofs grouped by recipient, displaying pending note counts and total USDC redeemable.
+
+#### Request
+\`\`\`bash
+curl -X GET "https://arcnano.onrender.com/v1/queue"
+\`\`\`
+
+#### Response (\`200 OK\`)
+\`\`\`json
+{
+  "success": true,
+  "totalQueues": 2,
+  "totalPendingNotes": 4,
+  "batchThreshold": 5,
+  "queues": [
+    {
+      "queueKey": "5042002:0xa40d68fdea3b6fb01c966a9d29a6fc341ae476ca:0x8506a1ac60e574febc6f6301844b3de910801020",
+      "chainId": 5042002,
+      "poolAddress": "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+      "recipient": "0x8506a1aC60e574fEBc6f6301844b3DE910801020",
+      "denomination": "10000",
+      "count": 3,
+      "totalUsdc": "0.03 USDC"
+    },
+    {
+      "queueKey": "5042002:0xa40d68fdea3b6fb01c966a9d29a6fc341ae476ca:0x063829800c7214c6aad38f57c72561641cd80333",
+      "chainId": 5042002,
+      "poolAddress": "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
+      "recipient": "0x063829800C7214C6AaD38f57C72561641cD80333",
+      "denomination": "10000",
+      "count": 1,
+      "totalUsdc": "0.01 USDC"
+    }
+  ]
+}
+\`\`\`
+
+---
+
+## 4. Trigger Batch Withdrawal (On-Demand)
+
+### \`POST /v1/batch/withdraw\`
+*(Alias: \`POST /v1/flush\`)*
+
+Forces the relayer to execute an on-chain \`batchSpend\` call immediately without waiting for threshold or timer.
+
+#### Request (Flush Specific Recipient)
+\`\`\`bash
+curl -X POST "https://arcnano.onrender.com/v1/batch/withdraw" \\
+  -H "Content-Type: application/json" \\
+  -d '{"recipient": "0x8506a1aC60e574fEBc6f6301844b3DE910801020"}'
+\`\`\`
+
+#### Response (\`200 OK\`)
+\`\`\`json
+{
+  "success": true,
+  "message": "Successfully executed batch withdrawal for 3 notes (0.03 USDC) to 0x8506a1aC60e574fEBc6f6301844b3DE910801020!",
+  "batch": {
+    "id": "batch_1792069750098_d6ad3c",
+    "recipient": "0x8506a1aC60e574fEBc6f6301844b3DE910801020",
+    "proofCount": 3,
+    "totalAmountFormatted": "0.03 USDC",
+    "status": "settled",
+    "txHash": "0xed5adea797da50402971ba29c18dda5dd209bb412e414c88574e57c6ca62b3f0",
+    "explorerUrl": "https://explorer.testnet.arc.io/tx/0xed5adea797da50402971ba29c18dda5dd209bb412e414c88574e57c6ca62b3f0",
+    "gasSponsoredUsd": "$0.0025",
+    "settledAt": 1792069750120
+  }
+}
+\`\`\`
+
+---
+
+## 5. Query Proof by ID or Nullifier
+
+### \`GET /v1/proofs/:id\`
+Retrieves the real-time settlement status of any note proof.
+
+#### Request
+\`\`\`bash
+curl -X GET "https://arcnano.onrender.com/v1/proofs/proof_1729000000000_a46f14cb"
+\`\`\`
+
+#### Response (\`200 OK\`)
+\`\`\`json
+{
+  "success": true,
+  "proof": {
+    "id": "proof_1729000000000_a46f14cb",
+    "nullifierHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "recipient": "0x8506a1aC60e574fEBc6f6301844b3DE910801020",
+    "denomination": "10000",
+    "amountFormatted": "0.01 USDC",
+    "status": "settled",
+    "txHash": "0xed5adea797da50402971ba29c18dda5dd209bb412e414c88574e57c6ca62b3f0",
+    "blockNumber": 26084920,
+    "explorerUrl": "https://explorer.testnet.arc.io/tx/0xed5adea797da50402971ba29c18dda5dd209bb412e414c88574e57c6ca62b3f0",
+    "createdAt": 1792069748000,
+    "updatedAt": 1792069750120
+  }
+}
+\`\`\`
+`,
+  },
+
+  "relayer-hono": {
+    id: "relayer-hono",
+    title: "Standalone Hono.js Deployment",
+    badge: "Open Source",
+    category: "Automated Relayer Backend",
+    summary:
+      "Guide to running and self-hosting the open-source ArcNano Hono.js TypeScript relayer backend locally or deploying to Render and Docker.",
+    content: `
+# Standalone Hono.js Deployment
+
+ArcNano provides a dedicated, lightweight relayer package located in the [\`/relayer\`](file:///Users/trymbakmahant/Projects/grant/arc/p2pzkpayment/relayer) directory.
+
+Built on **Hono.js** and **TypeScript**, it features sub-millisecond routing, zero heavy dependencies, atomic disk persistence, and native \`viem\` integration for Arc Network transaction broadcasts.
+
+---
+
+## Directory Structure
+
+\`\`\`
+relayer/
+├── src/
+│   ├── index.ts        # Server entry point & auto-flush interval runner
+│   ├── app.ts          # Hono application, CORS, logger & REST endpoints
+│   ├── storage.ts      # Atomic persistent disk store with nullifier indexing
+│   ├── settlement.ts   # On-chain batchSpend executor (Arc Testnet & Mainnet)
+│   └── types.ts        # TypeScript schemas & interfaces
+├── test/
+│   └── relayer.test.ts # Automated test suite (10/10 tests passing)
+├── package.json        # Hono, @hono/node-server, viem, tsx
+├── tsconfig.json       # ES2022 NodeNext strict configuration
+└── .env.example        # Environment variables template
+\`\`\`
+
+---
+
+## Local Setup & Running
+
+### 1. Install Dependencies & Build
+\`\`\`bash
+cd relayer
+pnpm install
+pnpm build
+\`\`\`
+
+### 2. Configure Environment (\`.env\`)
+\`\`\`env
+# Server Port
+PORT=4040
+
+# Batch Settlement Rules
+BATCH_THRESHOLD=5
+FLUSH_INTERVAL_MS=15000
+
+# Arc Network RPCs
+ARC_RPC_URL="https://rpc.testnet.arc.network"
+ARC_CHAIN_ID="5042002"
+ARC_MAINNET_RPC="https://rpc.mainnet.arc.io"
+
+# Relayer Account Private Key (Agent B or funded EOA)
+AGENT_B_PRIVATE_KEY="0xb6142aa2ee20cdc2d86b4d821362948c064363bbe09778559d11a14c9d24515e"
+
+# Protocol Pools
+POOL_ADDRESS="0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
+USDC_ADDRESS="0x3600000000000000000000000000000000000000"
+
+# Storage File Path
+RELAYER_STORE_PATH="./data/relayer_proofs.json"
+\`\`\`
+
+### 3. Start the Server
+\`\`\`bash
+# Development mode (live reload with tsx watch)
+pnpm dev
+
+# Production mode
+pnpm start
+\`\`\`
+
+---
+
+## Running the Automated Test Suite
+
+The Hono relayer includes 10 automated integration tests covering proof ingestion, double-spend rejection, threshold auto-flush, multi-recipient partitioning, and on-demand withdrawals:
+
+\`\`\`bash
+pnpm test
+\`\`\`
+
+Output:
+\`\`\`
+==================================================================
+🧪 Running ArcNano Hono.js TypeScript Relayer Test Suite
+==================================================================
+Test 1: GET / (Dashboard Index)... ✔
+Test 2: GET /v1/status... ✔
+Test 3: POST /v1/proofs/submit (Validation errors)... ✔
+Test 4: Ingesting verified spend proof into persistent store... ✔
+Test 5: Replaying same nullifier to test double-spend protection... ✔
+Test 6: Ingesting second proof to trigger automatic threshold batch settlement... ✔
+Test 7: Querying settled proof status (/v1/proofs/:id)... ✔
+Test 8: Partitioning multi-recipient queues (Alice & Bob)... ✔
+Test 9: Triggering on-demand batch withdrawal (/v1/batch/withdraw)... ✔
+Test 10: Querying batch transaction history (/v1/batches)... ✔
+==================================================================
+🎉 ALL 10 HONO.JS RELAYER BACKEND TESTS PASSED CLEANLY!
+==================================================================
+\`\`\`
+`,
+  },
 };
+

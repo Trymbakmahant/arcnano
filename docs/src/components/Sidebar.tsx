@@ -2,7 +2,7 @@
 
 import React from "react";
 import { DOC_CATEGORIES } from "@/content/docsData";
-import { ChevronDown, ChevronRight, Book, Shield, Lock, Cpu, Code2, Database } from "lucide-react";
+import { ChevronDown, ChevronRight, Book, Shield, Lock, Cpu, Code2, Database, Server } from "lucide-react";
 
 interface SidebarProps {
   activeId: string;
@@ -13,6 +13,7 @@ interface SidebarProps {
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   overview: Book,
+  relayer: Server,
   privacy: Lock,
   security: Shield,
   circuits: Cpu,
