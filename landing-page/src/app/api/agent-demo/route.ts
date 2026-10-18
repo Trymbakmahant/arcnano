@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDemoState } from "@/lib/demo-state";
 
-const ARC_RPC_URL = "https://rpc.testnet.arc.network";
+const ARC_RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const POOL_ADDRESS = "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 const AGENT_A_ADDRESS = "0xa2Dd9791627606472Fb235E03ba98b7e3b1C2400";

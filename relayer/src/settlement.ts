@@ -25,7 +25,7 @@ export class BatchSettlementService {
   constructor(options: SettlementOptions) {
     this.storage = options.storage;
     this.relayerPrivateKey = options.relayerPrivateKey || process.env.AGENT_B_PRIVATE_KEY || process.env.ARC_RELAYER_KEY;
-    this.defaultRpcUrl = options.defaultRpcUrl || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+    this.defaultRpcUrl = options.defaultRpcUrl || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
   }
 
   public getRelayerWalletInfo(): { configured: boolean; address: string | null } {

@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
         id: chainId,
         name: isMainnet ? "Arc Mainnet" : "Arc Testnet",
         nativeCurrency: { name: isMainnet ? "USDC" : "Arc", symbol: isMainnet ? "USDC" : "ARC", decimals: isMainnet ? 6 : 18 },
-        rpcUrls: { default: { http: [isMainnet ? (process.env.ARC_MAINNET_RPC || "https://rpc.mainnet.arc.io") : (process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network")] } },
+        rpcUrls: { default: { http: [isMainnet ? (process.env.ARC_MAINNET_RPC || "https://rpc.mainnet.arc.io") : (process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io")] } },
       };
       const publicClient = createPublicClient({ chain: targetChain, transport: http(targetChain.rpcUrls.default.http[0]) });
       const walletClientB = createWalletClient({ account: accountB, chain: targetChain, transport: http(targetChain.rpcUrls.default.http[0]) });

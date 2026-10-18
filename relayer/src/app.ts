@@ -72,7 +72,7 @@ export function createRelayerApp(config: Partial<RelayerConfig> = {}) {
         {
           name: "Arc Testnet",
           chainId: 5042002,
-          rpc: "https://rpc.testnet.arc.network",
+          rpc: "https://rpc.testnet.arc.io",
           explorer: "https://explorer.testnet.arc.io",
         },
         {

@@ -36,7 +36,7 @@ const NETWORKS = {
   testnet: {
     chainId: 5042002,
     name: 'Arc Testnet (Circle L1)',
-    rpc: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network',
+    rpc: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.io',
     explorer: 'https://explorer.testnet.arc.io',
     pools: {
       10000: '0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca',

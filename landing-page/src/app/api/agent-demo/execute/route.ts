@@ -12,7 +12,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import crypto from "crypto";
 import { recordLiveTransactions } from "@/lib/demo-state";
 
-const ARC_RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const ARC_RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const POOL_ADDRESS = (process.env.POOL_ADDRESS || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca") as `0x${string}`;
 const USDC_ADDRESS = (process.env.USDC_ADDRESS || "0x3600000000000000000000000000000000000000") as `0x${string}`;
 const ASP_ROOT = (process.env.ASP_ROOT || "0x0000000000000000000000000000000000000000000000000000000000001337") as `0x${string}`;

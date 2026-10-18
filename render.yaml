@@ -13,7 +13,7 @@ services:
       - key: ARC_POOL_ADDRESS
         value: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca"
       - key: ARC_RPC_URL
-        value: "https://rpc.testnet.arc.network"
+        value: "https://rpc.testnet.arc.io"
       - key: ARC_PAYMASTER_URL
         value: "https://gas-station.testnet.arc.network/v1"
       - key: BATCH_THRESHOLD
@@ -47,7 +47,7 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: ARC_RPC_URL
-        value: "https://rpc.testnet.arc.network"
+        value: "https://rpc.testnet.arc.io"
       - key: ARC_CHAIN_ID
         value: "5042002"
       - key: POOL_ADDRESS

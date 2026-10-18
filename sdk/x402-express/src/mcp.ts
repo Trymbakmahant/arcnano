@@ -17,7 +17,7 @@ export const ARC_NETWORKS: Record<string, ArcNetworkConfig> = {
   testnet: {
     name: "Arc Testnet (Circle L1)",
     chainId: 5042002,
-    rpcUrl: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network",
+    rpcUrl: process.env.ARC_TESTNET_RPC || process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io",
     explorerUrl: "https://explorer.testnet.arc.io",
     usdcContract: "0x3600000000000000000000000000000000000000",
     pools: {

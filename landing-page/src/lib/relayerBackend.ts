@@ -346,7 +346,7 @@ export class RelayerBackendEngine {
     const explorerBase = isMainnet ? "https://explorer.arc.io" : "https://explorer.testnet.arc.io";
     const rpcUrl = isMainnet
       ? (process.env.ARC_MAINNET_RPC || "https://rpc.mainnet.arc.io")
-      : (process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network");
+      : (process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io");
     const relayerKey = process.env.AGENT_B_PRIVATE_KEY || process.env.ARC_RELAYER_KEY;
 
     // Format proofs for Solidity batchSpend

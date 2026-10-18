@@ -73,7 +73,7 @@ export const SUPPORTED_ARC_CHAINS: Record<number, ArcChainConfig> = {
     name: "Arc Testnet",
     shortName: "Testnet",
     nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
-    rpcUrl: "https://rpc.testnet.arc.network",
+    rpcUrl: "https://rpc.testnet.arc.io",
     explorerName: "Arc Explorer",
     explorerUrl: "https://explorer.testnet.arc.io",
     poolContract: "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca",
@@ -112,7 +112,7 @@ const arcChain = {
   name: "Arc Testnet",
   nativeCurrency: { name: "Arc", symbol: "ARC", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://rpc.testnet.arc.network"] },
+    default: { http: ["https://rpc.testnet.arc.io"] },
   },
   blockExplorers: {
     default: { name: "Arc Explorer", url: "https://explorer.testnet.arc.io" },
@@ -458,7 +458,23 @@ export default function ShieldedPlayground() {
       });
       setWalletBalance(Number(rawBal) / 1e6);
     } catch (err) {
-      console.warn(`Could not fetch ${cfg.name} balance:`, err);
+      console.warn(`Could not fetch ${cfg.name} balance via public RPC:`, err);
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        try {
+          const providerClient = createPublicClient({
+            transport: custom((window as any).ethereum),
+          });
+          const rawBal = await providerClient.readContract({
+            address: cfg.usdcContract,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [addr as `0x${string}`],
+          });
+          setWalletBalance(Number(rawBal) / 1e6);
+        } catch (providerErr) {
+          console.warn(`Could not fetch ${cfg.name} balance via window.ethereum fallback:`, providerErr);
+        }
+      }
     }
   }, [selectedChainId]);
 
@@ -1107,6 +1123,7 @@ export default function ShieldedPlayground() {
       // 4. Check token balance on Arc network
       setProcessingStatus(`Checking ${cfg.name} token balance...`);
       let tokenBal = 0n;
+      let balanceCheckSuccess = false;
       try {
         tokenBal = await publicClient.readContract({
           address: tokenContractAddress,
@@ -1114,23 +1131,35 @@ export default function ShieldedPlayground() {
           functionName: "balanceOf",
           args: [walletAddress as `0x${string}`],
         });
+        balanceCheckSuccess = true;
       } catch (balErr) {
-        console.warn("Could not check token balance:", balErr);
+        console.warn("Could not check token balance via public RPC, attempting provider fallback:", balErr);
+        if (providerToUse) {
+          try {
+            const providerClient = createPublicClient({
+              transport: custom(providerToUse),
+            });
+            tokenBal = await providerClient.readContract({
+              address: tokenContractAddress,
+              abi: erc20Abi,
+              functionName: "balanceOf",
+              args: [walletAddress as `0x${string}`],
+            });
+            balanceCheckSuccess = true;
+          } catch (providerBalErr) {
+            console.warn("Could not check token balance via provider fallback:", providerBalErr);
+          }
+        }
       }
 
-      // If user has insufficient tokens, offer playground simulation modal with batch notes
-      if (tokenBal < totalRequired) {
-        setSimulateModalData({
-          amt: noteCount * noteUnit,
-          noteCount,
-          tokenSymbol: selectedToken.symbol,
-          currentBal: (Number(tokenBal) / (10 ** cfg.nativeCurrency.decimals)).toFixed(4),
-          commitment: commitments[0],
-          nullifierHash: newNotes[0].nullifierHash,
-          secret: newNotes[0].secret,
-          nullifierSeed: newNotes[0].nullifierSeed,
-          batchNotes: newNotes,
-        });
+      // If balance was successfully checked and user has insufficient tokens, notify user clearly
+      if (balanceCheckSuccess && tokenBal < totalRequired) {
+        const currentBalFormatted = (Number(tokenBal) / (10 ** selectedToken.decimals)).toFixed(2);
+        showToast(
+          "error",
+          "Insufficient Token Balance",
+          `Your wallet has ${currentBalFormatted} ${selectedToken.symbol} on ${cfg.name}, but this deposit requires ${totalAmountFormatted} ${selectedToken.symbol}. Please fund your wallet via the Arc faucet to continue.`
+        );
         setIsProcessing(false);
         setProcessingStatus("");
         return;

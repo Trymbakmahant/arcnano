@@ -48,7 +48,7 @@ export class BatchSettlementManager {
     this.poolAddress = options.poolAddress || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
     this.batchSize = options.batchSize || 10;
     this.flushIntervalMs = options.flushIntervalMs || 30_000;
-    this.rpcUrl = options.rpcUrl || "https://rpc.testnet.arc.network";
+    this.rpcUrl = options.rpcUrl || "https://rpc.testnet.arc.io";
     this.relayerPrivateKey = options.relayerPrivateKey;
     this.onSettledCallback = options.onSettled;
 

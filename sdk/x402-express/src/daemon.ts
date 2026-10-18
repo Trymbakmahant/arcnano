@@ -75,7 +75,7 @@ export class ArcNanoRelayerDaemon {
       rpcUrl:
         config.rpcUrl ??
         process.env.ARC_RPC_URL ??
-        "https://rpc.testnet.arc.network",
+        "https://rpc.testnet.arc.io",
       chainId: config.chainId ?? 5042002,
       relayerPrivateKey:
         config.relayerPrivateKey ?? process.env.ARC_RELAYER_KEY ?? process.env.AGENT_B_PRIVATE_KEY ?? "",

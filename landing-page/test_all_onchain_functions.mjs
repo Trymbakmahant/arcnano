@@ -27,7 +27,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const ARC_RPC_URL = envConfig.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const ARC_RPC_URL = envConfig.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const DEPLOYER_PK = envConfig.PRIVATE_KEY;
 const AGENT_A_PK = envConfig.AGENT_A_PRIVATE_KEY;
 const AGENT_B_PK = envConfig.AGENT_B_PRIVATE_KEY;

@@ -28,7 +28,7 @@ NETWORKS: Dict[str, Dict[str, Any]] = {
     "testnet": {
         "name": "Arc Testnet (Circle L1)",
         "chain_id": 5042002,
-        "rpc_url": os.getenv("ARC_TESTNET_RPC") or os.getenv("ARC_RPC_URL") or "https://rpc.testnet.arc.network",
+        "rpc_url": os.getenv("ARC_TESTNET_RPC") or os.getenv("ARC_RPC_URL") or "https://rpc.testnet.arc.io",
         "explorer_url": "https://explorer.testnet.arc.io",
         "usdc_contract": "0x3600000000000000000000000000000000000000",
         "pools": {

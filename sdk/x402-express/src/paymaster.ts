@@ -92,7 +92,7 @@ export class CirclePaymasterClient {
     this.rpcUrl =
       options.rpcUrl ||
       process.env.ARC_RPC_URL ||
-      "https://rpc.testnet.arc.network";
+      "https://rpc.testnet.arc.io";
     this.chainId = options.chainId || 5042002;
     this.poolAddress =
       options.poolAddress ||

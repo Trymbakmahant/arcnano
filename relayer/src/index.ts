@@ -22,7 +22,7 @@ for (const loc of envLocations) {
 const port = parseInt(process.env.PORT || "4040", 10);
 const batchThreshold = parseInt(process.env.BATCH_THRESHOLD || "5", 10);
 const flushIntervalMs = parseInt(process.env.FLUSH_INTERVAL_MS || "15000", 10);
-const rpcUrl = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const rpcUrl = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const chainId = parseInt(process.env.ARC_CHAIN_ID || "5042002", 10);
 const poolAddress = process.env.POOL_ADDRESS || "0xa40d68FDEa3B6fb01c966A9d29A6fc341AE476Ca";
 const relayerPrivateKey = process.env.AGENT_B_PRIVATE_KEY || process.env.ARC_RELAYER_KEY;

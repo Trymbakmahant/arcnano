@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
         relayerAddress = account.address;
 
         const publicClient = createPublicClient({
-          transport: http(process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network"),
+          transport: http(process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io"),
         });
         const balance = await publicClient.getBalance({ address: account.address });
         relayerBalanceArc = `${parseFloat(formatEther(balance)).toFixed(4)} ARC`;
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       status: "operational",
       role: "ArcNano Automated Batch Relayer Backend",
       supportedNetworks: [
-        { name: "Arc Testnet", chainId: 5042002, rpc: "https://rpc.testnet.arc.network", explorer: "https://explorer.testnet.arc.io" },
+        { name: "Arc Testnet", chainId: 5042002, rpc: "https://rpc.testnet.arc.io", explorer: "https://explorer.testnet.arc.io" },
         { name: "Arc Mainnet", chainId: 5042, rpc: "https://rpc.mainnet.arc.io", explorer: "https://explorer.arc.io" },
       ],
       relayerWallet: {
