@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Shield,
   ShieldCheck,
@@ -285,6 +285,8 @@ export default function ShieldedPlayground() {
   const [networkSelectModalOpen, setNetworkSelectModalOpen] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [walletDropdownOpen, setWalletDropdownOpen] = useState<boolean>(false);
+  const walletDropdownRef = useRef<HTMLDivElement>(null);
+  const walletDropdownTriggerRef = useRef<HTMLButtonElement>(null);
   const [noWalletModalOpen, setNoWalletModalOpen] = useState<boolean>(false);
   const [walletSelectModalOpen, setWalletSelectModalOpen] = useState<boolean>(false);
   const [phantomOverrideWarning, setPhantomOverrideWarning] = useState<boolean>(false);
@@ -792,6 +794,64 @@ export default function ShieldedPlayground() {
       setWithdrawRecipient(walletAddress);
     }
   }, [walletAddress, withdrawRecipient]);
+
+  // Close wallet dropdown on outside click
+  useEffect(() => {
+    if (!walletDropdownOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        walletDropdownRef.current &&
+        !walletDropdownRef.current.contains(target) &&
+        walletDropdownTriggerRef.current &&
+        !walletDropdownTriggerRef.current.contains(target)
+      ) {
+        setWalletDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [walletDropdownOpen]);
+
+  // Global Escape key handler to close all modals and dropdowns
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (walletDropdownOpen) setWalletDropdownOpen(false);
+        if (networkSelectModalOpen) setNetworkSelectModalOpen(false);
+        if (walletSelectModalOpen) setWalletSelectModalOpen(false);
+        if (tokenSelectorOpen) {
+          setTokenSelectorOpen(false);
+          setTokenSearchQuery("");
+        }
+        if (noWalletModalOpen) setNoWalletModalOpen(false);
+        if (phantomOverrideWarning) setPhantomOverrideWarning(false);
+        if (vaultModalOpen) setVaultModalOpen(false);
+        if (lastReceipt) setLastReceipt(null);
+        if (simulateModalData) cancelSimulatedDeposit();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    walletDropdownOpen,
+    networkSelectModalOpen,
+    walletSelectModalOpen,
+    tokenSelectorOpen,
+    noWalletModalOpen,
+    phantomOverrideWarning,
+    vaultModalOpen,
+    lastReceipt,
+    simulateModalData,
+    cancelSimulatedDeposit,
+  ]);
 
   // CONNECT SPECIFICALLY TO METAMASK (bypasses Phantom)
   const handleConnectMetaMask = async () => {
@@ -1710,6 +1770,7 @@ export default function ShieldedPlayground() {
               {/* Account Pill */}
               <div className="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/95 border border-neutral-200/90 shadow-2xs text-[11px] font-mono text-neutral-600">
                 <button
+                  ref={walletDropdownTriggerRef}
                   type="button"
                   onClick={() => setWalletDropdownOpen(!walletDropdownOpen)}
                   className="flex items-center gap-1.5 text-neutral-800 hover:text-neutral-950 font-medium cursor-pointer"
@@ -1768,103 +1829,115 @@ export default function ShieldedPlayground() {
 
               {/* Wallet Dropdown Menu */}
               {walletDropdownOpen && (
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-white rounded-2xl border border-neutral-200 shadow-xl p-3 z-30 space-y-2.5 text-xs font-sans">
-                  <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 uppercase font-mono block">Connected via</span>
-                      <span className="font-semibold text-neutral-900 text-xs">Browser Wallet</span>
+                <>
+                  {/* Invisible Backdrop for outside-click dismissal */}
+                  <div
+                    className="fixed inset-0 z-20 cursor-default"
+                    onClick={() => setWalletDropdownOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    ref={walletDropdownRef}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-white rounded-2xl border border-neutral-200 shadow-xl p-3 z-30 space-y-2.5 text-xs font-sans animate-in fade-in zoom-in-95 duration-150"
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+                      <div>
+                        <span className="text-[10px] text-neutral-400 uppercase font-mono block">Connected via</span>
+                        <span className="font-semibold text-neutral-900 text-xs">Browser Wallet</span>
+                      </div>
+                      {isWrongChain ? (
+                        <span className="text-[9.5px] font-mono bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold">
+                          Wrong Network
+                        </span>
+                      ) : (
+                        <span className="text-[9.5px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
+                          {activeChainConfig.name}
+                        </span>
+                      )}
                     </div>
-                    {isWrongChain ? (
-                      <span className="text-[9.5px] font-mono bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold">
-                        Wrong Network
-                      </span>
-                    ) : (
-                      <span className="text-[9.5px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
-                        {activeChainConfig.name}
-                      </span>
-                    )}
-                  </div>
 
-                  {/* Quick Network Switcher in Dropdown */}
-                  <div className="p-2.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
-                      <span>ARC NETWORKS</span>
-                      <Globe className="w-3 h-3 text-neutral-400" />
+                    {/* Quick Network Switcher in Dropdown */}
+                    <div className="p-2.5 bg-neutral-50 rounded-xl border border-neutral-100 space-y-1.5">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500">
+                        <span>ARC NETWORKS</span>
+                        <Globe className="w-3 h-3 text-neutral-400" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => switchOrAddChain(5042002)}
+                          disabled={isSwitchingChain}
+                          className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-center cursor-pointer ${
+                            currentNumericChainId === 5042002
+                              ? "bg-emerald-600 text-white font-semibold shadow-xs"
+                              : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
+                          }`}
+                        >
+                          Arc Testnet
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => switchOrAddChain(5042)}
+                          disabled={isSwitchingChain}
+                          className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-center cursor-pointer ${
+                            currentNumericChainId === 5042
+                              ? "bg-blue-600 text-white font-semibold shadow-xs"
+                              : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
+                          }`}
+                        >
+                          Arc Mainnet
+                        </button>
+                      </div>
+                      {isWrongChain && (
+                        <button
+                          type="button"
+                          onClick={() => switchOrAddChain(selectedChainId)}
+                          disabled={isSwitchingChain}
+                          className="w-full mt-1.5 py-1.5 px-2 rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+                        >
+                          {isSwitchingChain ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Globe className="w-3 h-3" />}
+                          <span>Switch to {activeChainConfig.name}</span>
+                        </button>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5">
+
+                    <div className="space-y-1">
                       <button
                         type="button"
-                        onClick={() => switchOrAddChain(5042002)}
-                        disabled={isSwitchingChain}
-                        className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-center cursor-pointer ${
-                          currentNumericChainId === 5042002
-                            ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                            : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
-                        }`}
+                        onClick={() => {
+                          copyToClipboard(walletAddress);
+                          setWalletDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-neutral-50 text-neutral-700 hover:text-neutral-950 flex items-center justify-between text-xs cursor-pointer font-mono"
                       >
-                        Arc Testnet
+                        <span>Copy Address</span>
+                        <Copy className="w-3 h-3 text-neutral-400" />
                       </button>
+
+                      <a
+                        href={`${activeChainConfig.explorerUrl}/address/${walletAddress}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-neutral-50 text-neutral-700 hover:text-neutral-950 flex items-center justify-between text-xs cursor-pointer font-mono"
+                      >
+                        <span>View on {activeChainConfig.explorerName}</span>
+                        <ExternalLink className="w-3 h-3 text-neutral-400" />
+                      </a>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-neutral-100">
                       <button
                         type="button"
-                        onClick={() => switchOrAddChain(5042)}
-                        disabled={isSwitchingChain}
-                        className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-center cursor-pointer ${
-                          currentNumericChainId === 5042
-                            ? "bg-blue-600 text-white font-semibold shadow-xs"
-                            : "bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100"
-                        }`}
+                        onClick={handleDisconnectWallet}
+                        className="w-full py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                       >
-                        Arc Mainnet
+                        <LogOut className="w-3 h-3" />
+                        <span>Disconnect Wallet</span>
                       </button>
                     </div>
-                    {isWrongChain && (
-                      <button
-                        type="button"
-                        onClick={() => switchOrAddChain(selectedChainId)}
-                        disabled={isSwitchingChain}
-                        className="w-full mt-1.5 py-1.5 px-2 rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
-                      >
-                        {isSwitchingChain ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Globe className="w-3 h-3" />}
-                        <span>Switch to {activeChainConfig.name}</span>
-                      </button>
-                    )}
                   </div>
-
-                  <div className="space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        copyToClipboard(walletAddress);
-                        setWalletDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-neutral-50 text-neutral-700 hover:text-neutral-950 flex items-center justify-between text-xs cursor-pointer font-mono"
-                    >
-                      <span>Copy Address</span>
-                      <Copy className="w-3 h-3 text-neutral-400" />
-                    </button>
-
-                    <a
-                      href={`${activeChainConfig.explorerUrl}/address/${walletAddress}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-neutral-50 text-neutral-700 hover:text-neutral-950 flex items-center justify-between text-xs cursor-pointer font-mono"
-                    >
-                      <span>View on {activeChainConfig.explorerName}</span>
-                      <ExternalLink className="w-3 h-3 text-neutral-400" />
-                    </a>
-                  </div>
-
-                  <div className="pt-1.5 border-t border-neutral-100">
-                    <button
-                      type="button"
-                      onClick={handleDisconnectWallet}
-                      className="w-full py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <LogOut className="w-3 h-3" />
-                      <span>Disconnect Wallet</span>
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
             </div>
           )}
@@ -2613,8 +2686,17 @@ export default function ShieldedPlayground() {
 
       {/* TOKEN SELECTOR MODAL */}
       {tokenSelectorOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-150">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => {
+            setTokenSelectorOpen(false);
+            setTokenSearchQuery("");
+          }}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="p-4 border-b border-neutral-100 flex items-center justify-between">
               <h3 className="font-semibold text-sm text-neutral-900">Select a token</h3>
@@ -2692,8 +2774,14 @@ export default function ShieldedPlayground() {
 
       {/* NO BROWSER WALLET MODAL */}
       {noWalletModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full p-5 space-y-4 text-center">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setNoWalletModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-sm w-full p-5 space-y-4 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
               <AlertCircle className="w-6 h-6" />
             </div>
@@ -2732,8 +2820,14 @@ export default function ShieldedPlayground() {
 
       {/* WALLET SELECTION MODAL */}
       {walletSelectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-sm w-full p-5 space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setWalletSelectModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-sm w-full p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm text-neutral-900">
                 Select Wallet
@@ -2801,8 +2895,14 @@ export default function ShieldedPlayground() {
 
       {/* PHANTOM OVERRIDE GUIDANCE MODAL */}
       {phantomOverrideWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 text-left">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setPhantomOverrideWarning(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
               <AlertCircle className="w-6 h-6" />
             </div>
@@ -2855,8 +2955,14 @@ export default function ShieldedPlayground() {
 
       {/* TRANSACTION RECEIPT MODAL */}
       {lastReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setLastReceipt(null)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -2982,8 +3088,14 @@ export default function ShieldedPlayground() {
 
       {/* SHIELDED VAULT & ENCRYPTED PROOFS MODAL */}
       {vaultModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-lg w-full max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setVaultModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200/90 shadow-2xl max-w-lg w-full max-h-[88vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between shrink-0 bg-neutral-50/50">
               <div className="flex items-center gap-3">
@@ -3306,8 +3418,14 @@ export default function ShieldedPlayground() {
 
       {/* INSUFFICIENT TESTNET BALANCE / SIMULATION PROMPT MODAL */}
       {simulateModalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={cancelSimulatedDeposit}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
@@ -3378,8 +3496,14 @@ export default function ShieldedPlayground() {
 
       {/* NETWORK SELECTION MODAL */}
       {networkSelectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setNetworkSelectModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-neutral-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#0033FF]">
